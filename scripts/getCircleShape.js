@@ -4,13 +4,18 @@
 'use strict';
 
 import { log } from "./module.js";
+import { getSetting } from "./settings.js";
 
 export function walledTemplateGetCircleShape(wrapped, distance) {
   // origin is this.data.x, this.data.y
   // shape is relative to the origin
   
-  const circle = wrapped(distance);
-  log(`getCircleShape origin ${this.data.x}, ${this.data.y} with distance ${distance}`, circle);
+  log(`getCircleShape origin ${this.data.x}, ${this.data.y} with distance ${distance}`);
+  
+  if(!getSetting("default-to-walled")) return wrapped(distance);
+  
+ //  const circle = wrapped(distance);
+
   
   //   return circle;
   // get a polygon from the canvas

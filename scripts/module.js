@@ -6,6 +6,7 @@ Hooks
 
 import { MODULE_ID } from "./const.js";
 import { registerWalledTemplates } from "./patching.js";
+import { registerSettings } from "./settings.js";
 
 /**
  * Log message only when debug flag is enabled from DevMode module.
@@ -40,3 +41,7 @@ Hooks.once('init', async function() {
 
 });
 
+Hooks.once('setup', async function() {
+  log(`Setup...`);
+  registerSettings();
+});
