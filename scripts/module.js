@@ -1,3 +1,9 @@
+/* globals
+Hooks
+*/
+
+'use strict';
+
 Hooks.once('init', async function() {
 
 });
