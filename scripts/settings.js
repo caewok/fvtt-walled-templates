@@ -1,5 +1,5 @@
 /* globals
-
+game
 */
 
 'use strict';

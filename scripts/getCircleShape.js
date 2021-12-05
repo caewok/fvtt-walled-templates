@@ -1,4 +1,5 @@
 /* globals
+ClockwiseSweepPolygon
 */
 
 'use strict';
