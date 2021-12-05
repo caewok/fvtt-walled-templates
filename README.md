@@ -8,4 +8,13 @@ This module lets you toggle measured templates so that they can be blocked by wa
 
 This could be used in combination with other modules or macros that automatically target tokens based on measured templates, such as [midi-qol](https://foundryvtt.com/packages/midi-qol/) or [DragonFlagon Quality of Life](https://foundryvtt.com/packages/df-qol).
 
+# Installation
 
+Add this [Manifest URL](https://github.com/caewok/fvtt-walled-templates/releases/latest/download/module.json) in Foundry to install.
+
+## Dependencies
+- [libWrapper](https://github.com/ruipin/fvtt-lib-wrapper)
+
+## Known conflicts
+
+None.
