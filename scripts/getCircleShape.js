@@ -4,6 +4,7 @@ ClockwiseSweepPolygon
 
 'use strict';
 
+import { MODULE_ID } from "./const.js";
 import { log } from "./module.js";
 import { getSetting } from "./settings.js";
 
@@ -11,9 +12,11 @@ export function walledTemplateGetCircleShape(wrapped, distance) {
   // origin is this.data.x, this.data.y
   // shape is relative to the origin
   
-  log(`getCircleShape origin ${this.data.x}, ${this.data.y} with distance ${distance}`);
+  log(`getCircleShape origin ${this.data.x}, ${this.data.y} with distance ${distance}`, this);
   
-  if(!getSetting("default-to-walled")) return wrapped(distance);
+  
+  
+  if(!this.document.getFlag(MODULE_ID, "enabled")) return wrapped(distance);
   
  //  const circle = wrapped(distance);
 
