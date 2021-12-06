@@ -17,6 +17,7 @@ export function walledTemplateGetCircleShape(wrapped, distance) {
   
   
   if(!this.document.getFlag(MODULE_ID, "enabled")) return wrapped(distance);
+  if(!canvas.walls.quadtree) return wrapped(distance); // avoid error when first loading
   
  //  const circle = wrapped(distance);
 
