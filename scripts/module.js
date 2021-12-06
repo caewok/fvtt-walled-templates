@@ -1,5 +1,6 @@
 /* globals
-Hooks
+Hooks,
+game
 */
 
 'use strict';
@@ -7,6 +8,7 @@ Hooks
 import { MODULE_ID } from "./const.js";
 import { registerWalledTemplates } from "./patching.js";
 import { registerSettings } from "./settings.js";
+import { walledTemplatesRenderMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
 
 /**
  * Log message only when debug flag is enabled from DevMode module.
@@ -44,4 +46,12 @@ Hooks.once('init', async function() {
 Hooks.once('setup', async function() {
   log(`Setup...`);
   registerSettings();
+});
+
+
+/**
+ * Add controls to the measured template configuration
+ */
+Hooks.on("renderMeasuredTemplateConfig", (app, html, data) => {
+  walledTemplatesRenderMeasuredTemplateConfig(app, html, data);
 });
