@@ -11,6 +11,8 @@ CONST
 import { MODULE_ID } from "./const.js";
 import { log } from "./module.js";
 import { WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweepPolygon.js";
+import { shiftPolygon } from "./utility.js";
+
 
 export function walledTemplateGetConeShape(wrapped, direction, angle, distance) {
   // origin is this.data.x, this.data.y
@@ -56,17 +58,16 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
     // see MeasuredTemplate.prototype._getConeShape
     distance /= Math.cos(Math.toRadians(angle/2));
     const r1 = Ray.fromAngle(this.data.x, this.data.y, direction + Math.toRadians(angle / -2), distance + 1);
-    const r2 = Ray.fromAngle(this.data.x, this.data.y, direction + Math.toRadians(angle / 2), distance + 1);
+    const r2 = Ray.fromAngle(this.data.x, this.data.y, direction + Math.toRadians(angle / 2), distance + 1);    
     
     cfg.radius = distance + 2;
-    
     cfg.tmpWalls = [{
       A: r1.B,
-      B: r2.B,
+      B: r2.B,   
       light: CONST.WALL_SENSE_TYPES.NORMAL
     }];
     
-    log(`getConeShape A: ${r1.B.x}, ${r1.B.y}; B: ${r2.B.x}, ${r2.B.y}`);
+    log(`getConeShape A: ${cfg.tmpWalls[0].A.x}, ${cfg.tmpWalls[0].A.y}; B: ${cfg.tmpWalls[0].B.x}, ${cfg.tmpWalls[0].B.y}`);
   }
   
   const poly = new polyType();
@@ -77,15 +78,8 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
   // need to shift the polygon to have 0,0 origin because of how the MeasuredTemplate 
   // sets the origin for the drawing separately
   // Polygon points, annoyingly, are array [x0, y0, x1, y1, ...]
-  const ln = poly.points.length;
-  for(let i = 0; i < ln; i += 2) {
-    poly.points[i] = poly.points[i] - this.data.x;
-    poly.points[i + 1] = poly.points[i + 1] - this.data.y;
-  }
+  return shiftPolygon(poly, this.data);
   
-  //log(`getCircleShape poly points`, poly.points);
-  
-  return poly;
   //return new PIXI.Polygon(poly.points);
 }
 
