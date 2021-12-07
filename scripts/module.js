@@ -69,3 +69,59 @@ Hooks.on("canvasReady", (canvas) => {
     t.draw(); // async but probably don't need to await
   });
 });
+
+
+/**
+ * Hook wall creation and update to refresh templates
+ * updateWall
+ * createWall 
+ * TO-DO: Only refresh templates that contain part of the wall
+ */
+ 
+/** 
+ * createWall Hook
+ * @param {WallDocument} wall
+ * @param {Object} opts { temporary: Boolean, renderSheet: Boolean, render: Boolean } 
+ * @param {string} id
+ */
+Hooks.on("createWall", (wall, opts, id) => {
+  log(`Refreshing templates on createWall.`);
+  if(opts.temporary) return;
+  canvas.templates.placeables.forEach(t => {
+    // t.refresh();
+    t.draw(); // async but probably don't need to await
+  });
+})  
+ 
+/** 
+ * updateWall Hook
+ * @param {WallDocument} wall
+ * @param {Object} coords { c: Array[], _id: String }  Array of four coordinates plus id
+ * @param {Object} opts { diff: Boolean, render: Boolean } 
+ * @param {string} id
+ */
+Hooks.on("updateWall", (wall, coords, opts, id) => {
+  log(`Refreshing templates on updateWall.`);
+  if(!opts.diff) return;
+  canvas.templates.placeables.forEach(t => {
+    // t.refresh();
+    t.draw(); // async but probably don't need to await
+  });
+})
+
+/**
+ * deleteWall Hook
+ * @param {WallDocument} wall
+ * @param {Object} opts { render: Boolean } 
+ * @param {string} id
+ */
+Hooks.on("deleteWall", (wall, opts, id) => {
+  log(`Refreshing templates on deleteWall.`);
+  canvas.templates.placeables.forEach(t => {
+    // t.refresh();
+    t.draw(); // async but probably don't need to await
+  });
+})
+
+ 
+ 
