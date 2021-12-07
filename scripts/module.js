@@ -56,3 +56,16 @@ Hooks.once('setup', async function() {
 Hooks.on("renderMeasuredTemplateConfig", (app, html, data) => {
   walledTemplatesRenderMeasuredTemplateConfig(app, html, data);
 });
+
+
+/**
+ * Redraw templates once the canvas is loaded
+ * Cannot use walls to draw templates until canvas.walls.quadtree is loaded.
+ */
+Hooks.on("canvasReady", (canvas) => {
+  log(`Refreshing templates on canvasReady.`);
+  canvas.templates.placeables.forEach(t => {
+    // t.refresh();
+    t.draw(); // async but probably don't need to await
+  });
+});
