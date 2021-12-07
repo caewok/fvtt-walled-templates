@@ -1,6 +1,5 @@
 /* globals
-libWrapper,
-NormalizedRectangle
+libWrapper
 */
 
 'use strict';
@@ -19,18 +18,6 @@ export function registerWalledTemplates() {
 }
 
 
-/**
- * Add method to retrieve center coordinate from a normalized rectangle.
- * Assists with adding walls for the rectangle and ray templates
- */
-Object.defineProperty(NormalizedRectangle.prototype, "centerPoint", {
-  get() {
-    return {  
-      x: (this.x + this.width / 2),
-      y: (this.y + this.height / 2)
-    };
-  }
-});
 
 /**
  * Add getter methods to retrieve coordinates from a normalized rectangle
@@ -48,4 +35,3 @@ Object.defineProperty(NormalizedRectangle.prototype, "points", {
     };
   }
 });
-
