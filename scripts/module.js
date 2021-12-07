@@ -9,6 +9,7 @@ import { MODULE_ID } from "./const.js";
 import { registerWalledTemplates } from "./patching.js";
 import { registerSettings } from "./settings.js";
 import { walledTemplatesRenderMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
+import { WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweepPolygon.js";
 
 /**
  * Log message only when debug flag is enabled from DevMode module.
@@ -38,7 +39,7 @@ Hooks.once('init', async function() {
   registerWalledTemplates();
   
   game.modules.get(MODULE_ID).api = {
-   
+     WalledTemplatesClockwiseSweepPolygon: WalledTemplatesClockwiseSweepPolygon
   }
 
 });
