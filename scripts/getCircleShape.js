@@ -24,7 +24,7 @@ export function walledTemplateGetCircleShape(wrapped, distance) {
   const poly = new ClockwiseSweepPolygon();
   poly.initialize({x: this.data.x, y: this.data.y}, { 
     angle: 360,
-    debug: false,
+    debug: game.modules.get(MODULE_ID).api.drawPolygons,
     density: 60,
     radius: distance,
     rotation: 0,
