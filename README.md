@@ -16,5 +16,9 @@ Add this [Manifest URL](https://github.com/caewok/fvtt-walled-templates/releases
 - [libWrapper](https://github.com/ruipin/fvtt-lib-wrapper)
 
 ## Known conflicts
-
 None.
+
+# Usage
+When you add a template to the canvas, double click the template drag handle to open the template configuration. Select "Blocked by Walls" to enable for the given template. 
+
+To make "Blocked by Walls" the default for all templates, select "Default to Walled Measured Templates" in the module configuration.
