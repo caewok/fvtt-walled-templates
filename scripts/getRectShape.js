@@ -54,7 +54,7 @@ export function walledTemplateGetRectShape(wrapped, direction, distance) {
   const diag_dist = Math.hypot(orig_rect.width, orig_rect.height);
   
   const cfg = {
-    debug: true, //false,
+    debug: game.modules.get(MODULE_ID).api.drawPolygons, //false,
     density: 60,
     radius: diag_dist + 2, // make sure added walls are not trimmed
 //     rotation: rotation,

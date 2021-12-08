@@ -10,11 +10,13 @@ import { MODULE_ID } from "./const.js";
 import { walledTemplateGetCircleShape } from "./getCircleShape.js";
 import { walledTemplateGetConeShape } from "./getConeShape.js";
 import { walledTemplateGetRectShape } from "./getRectShape.js";
+import { walledTemplateGetRayShape }  from "./getRayShape.js";
 
 export function registerWalledTemplates() {
   libWrapper.register(MODULE_ID, `MeasuredTemplate.prototype._getCircleShape`, walledTemplateGetCircleShape, `MIXED`);
   libWrapper.register(MODULE_ID, `MeasuredTemplate.prototype._getConeShape`, walledTemplateGetConeShape, `MIXED`);
   libWrapper.register(MODULE_ID, `MeasuredTemplate.prototype._getRectShape`, walledTemplateGetRectShape, `WRAPPER`);
+  libWrapper.register(MODULE_ID, `MeasuredTemplate.prototype._getRayShape`, walledTemplateGetRayShape, `WRAPPER`);
 }
 
 

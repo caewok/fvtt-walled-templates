@@ -42,7 +42,7 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
   // for a flat cone, would need ClockwiseSweep to add relevant walls
   const cfg = {
     angle: angle,
-    debug: true, //false,
+    debug: game.modules.get(MODULE_ID).api.drawPolygons, //false,
     density: 60,
     radius: distance,
     rotation: Math.toDegrees(direction) - 90,
