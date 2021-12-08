@@ -1,3 +1,4 @@
 {
-    "MODULE.hello": "hello"
+    "walledtemplates.MeasuredTemplateConfiguration.LegendTitle": "Walled Templates",
+    "walledtemplates.MeasuredTemplateConfiguration.enabled.Name": "Blocked by Walls"
 }
