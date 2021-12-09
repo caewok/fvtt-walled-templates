@@ -10,7 +10,7 @@ import { MODULE_ID } from "./const.js";
 import { log } from "./module.js";
 import { WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweepPolygon.js";
 import { shiftPolygon, pointsAlmostEqual } from "./utility.js";
-
+import { debugPolygons } from "./settings.js";
 
 /**
  * @param {number} direction  Direction in radians
@@ -55,7 +55,7 @@ export function walledTemplateGetRectShape(wrapped, direction, distance) {
   const diag_dist = Math.hypot(orig_rect.width, orig_rect.height);
   
   const cfg = {
-    debug: game.modules.get(MODULE_ID).api.drawPolygons, //false,
+    debug: debugPolygons(),
     density: 60,
     radius: diag_dist + 2, // make sure added walls are not trimmed
 //     rotation: rotation,

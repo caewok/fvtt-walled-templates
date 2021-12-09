@@ -27,3 +27,7 @@ export function registerSettings() {
   log("Done registering settings.");
 
 }
+
+export function debugPolygons() {
+  return game.modules.get(`_dev-mode`)?.api?.getPackageDebugValue(MODULE_ID)
+}

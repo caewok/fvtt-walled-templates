@@ -9,6 +9,7 @@ game
 import { MODULE_ID } from "./const.js";
 import { log } from "./module.js";
 import { shiftPolygon } from "./utility.js";
+import { debugPolygons } from "./settings.js";
 
 export function walledTemplateGetCircleShape(wrapped, distance) {
   // origin is this.data.x, this.data.y
@@ -25,7 +26,7 @@ export function walledTemplateGetCircleShape(wrapped, distance) {
   const poly = new ClockwiseSweepPolygon();
   poly.initialize({x: this.data.x, y: this.data.y}, { 
     angle: 360,
-    debug: game.modules.get(MODULE_ID).api.drawPolygons,
+    debug: debugPolygons(),
     density: 60,
     radius: distance,
     rotation: 0,
