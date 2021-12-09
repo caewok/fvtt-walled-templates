@@ -22,8 +22,9 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
   // angle is the angle (width) of the cone. 
   // So if you have direction, moving - angle / 2 along the circle will get you to 
   // 1 point of the cone; + angle / 2 will get the other point of the cone.
+  const origin = { x: this.data.x, y: this.data.y };
   
-  log(`getConeShape origin ${this.data.x}, ${this.data.y} with distance ${distance}, angle ${angle}, direction ${direction}`, this);
+  log(`getConeShape origin ${origin.x}, ${origin.y} with distance ${distance}, angle ${angle}, direction ${direction}`, this);
   
   if(!this.document.getFlag(MODULE_ID, "enabled")) return wrapped(direction, angle, distance);
   if(!canvas.walls.quadtree) return wrapped(direction, angle, distance); // avoid error when first loading
@@ -31,7 +32,7 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
   // from original MeasuredTemplate.prototype._getConeShape
   angle = angle || 90;
   const coneType = game.settings.get("core", "coneTemplateType");
-
+   
   
   // translate direction and angle to what ClockwiseSweep expects for lights
   // or other limited angle
@@ -58,8 +59,8 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
     // add one wall to flatten the cone
     // see MeasuredTemplate.prototype._getConeShape
     distance /= Math.cos(Math.toRadians(angle/2));
-    const r1 = Ray.fromAngle(this.data.x, this.data.y, direction + Math.toRadians(angle / -2), distance + 1);
-    const r2 = Ray.fromAngle(this.data.x, this.data.y, direction + Math.toRadians(angle / 2), distance + 1);    
+    const r1 = Ray.fromAngle(origin.x, origin.y, direction + Math.toRadians(angle / -2), distance + 1);
+    const r2 = Ray.fromAngle(origin.x, origin.y, direction + Math.toRadians(angle / 2), distance + 1);    
     
     cfg.radius = distance + 2;
     cfg.tmpWalls = [{
@@ -74,14 +75,14 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
   }
   
   const poly = new polyType();
-  poly.initialize({x: this.data.x, y: this.data.y}, cfg);    
+  poly.initialize(origin, cfg);    
   poly.compute();
   
 
   // need to shift the polygon to have 0,0 origin because of how the MeasuredTemplate 
   // sets the origin for the drawing separately
   // Polygon points, annoyingly, are array [x0, y0, x1, y1, ...]
-  return shiftPolygon(poly, this.data);
+  return shiftPolygon(poly, origin);
   
   //return new PIXI.Polygon(poly.points);
 }
