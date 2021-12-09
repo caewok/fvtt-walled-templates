@@ -12,6 +12,7 @@ import { MODULE_ID } from "./const.js";
 import { log } from "./module.js";
 import { WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweepPolygon.js";
 import { shiftPolygon } from "./utility.js";
+import { debugPolygons } from "./settings.js";
 
 
 export function walledTemplateGetConeShape(wrapped, direction, angle, distance) {
@@ -43,7 +44,7 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
   // for a flat cone, would need ClockwiseSweep to add relevant walls
   const cfg = {
     angle: angle,
-    debug: game.modules.get(MODULE_ID).api.drawPolygons, //false,
+    debug: debugPolygons(),
     density: 60,
     radius: distance,
     rotation: Math.toDegrees(direction) - 90,

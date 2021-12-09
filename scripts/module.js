@@ -10,6 +10,10 @@ import { registerWalledTemplates } from "./patching.js";
 import { registerSettings, getSetting } from "./settings.js";
 import { walledTemplatesRenderMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
 import { WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweepPolygon.js";
+import { walledTemplateGetCircleShape } from "./getCircleShape.js";
+import { walledTemplateGetConeShape } from "./getConeShape.js";
+import { walledTemplateGetRectShape } from "./getRectShape.js";
+import { walledTemplateGetRayShape } from "./getRayShape.js";
 
 /**
  * Log message only when debug flag is enabled from DevMode module.
@@ -40,7 +44,10 @@ Hooks.once('init', async function() {
   
   game.modules.get(MODULE_ID).api = {
      WalledTemplatesClockwiseSweepPolygon: WalledTemplatesClockwiseSweepPolygon,
-     drawPolygons: game.modules.get(`_dev-mode`)?.api?.getPackageDebugValue(MODULE_ID)
+     getCircleShape: walledTemplateGetCircleShape,
+     getConeShape: walledTemplateGetConeShape,
+     getRectShape: walledTemplateGetRectShape,
+     getRayShape: walledTemplateGetRayShape
   }
 
 });
