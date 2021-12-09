@@ -40,7 +40,7 @@ Hooks.once('init', async function() {
   
   game.modules.get(MODULE_ID).api = {
      WalledTemplatesClockwiseSweepPolygon: WalledTemplatesClockwiseSweepPolygon,
-     drawPolygons: true
+     drawPolygons: game.modules.get(`_dev-mode`)?.api?.getPackageDebugValue(MODULE_ID)
   }
 
 });
