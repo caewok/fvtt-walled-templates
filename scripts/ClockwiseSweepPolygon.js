@@ -49,12 +49,10 @@ export class WalledTemplatesClockwiseSweepPolygon extends ClockwiseSweepPolygon 
     // (needed radius to detect if intersections w/in radius for Step 2)
     // (don't need radius padding in Step 3 b/c not a circle)
     // For light mask, find the light data
-    const drop_padding = hasLimitedRadius && shape !== "circle";
+    const drop_padding = hasLimitedRadius && Boolean(shape) && shape !== "circle";
                         
     if(drop_padding) {
-      const cfg = this.config;
-      cfg.radius = undefined; 
-      this.initialize(this.origin, cfg);
+      this.config.hasLimitedRadius = false;
     }         
 
     // Step 3 - Radial sweep over endpoints
@@ -114,7 +112,7 @@ export class WalledTemplatesClockwiseSweepPolygon extends ClockwiseSweepPolygon 
   _addCustomEdges() {
     const { type, tmpWalls } = this.config;
     
-    log(`_addCustomEdges ${tmpWalls}`, this.config);
+    log(`_addCustomEdges ${tmpWalls.length || tmpWalls.size} walls`, this.config);
     
     if(!tmpWalls) return;
     

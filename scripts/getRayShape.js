@@ -43,6 +43,7 @@ export function walledTemplateGetRayShape(wrapped, direction, distance, width) {
     rotation: Math.toDegrees(direction) - 90,
     angle: 180,
     type: "light",
+    shape: "ray" // avoid padding checks in clockwise sweep by setting non-circular
   }
 
   // for the polygon, point:
@@ -57,16 +58,19 @@ export function walledTemplateGetRayShape(wrapped, direction, distance, width) {
   // cross the limited ray forming the fourth wall
   
   const pts = orig_poly.points;
+  const x_adj = Math.sign(this.ray.dx);
+  const y_adj = Math.sign(this.ray.dy);
+  
   cfg.tmpWalls = [
     // right of origin
-    { A: { x: pts[0] - Math.sign(this.ray.dx)*10, 
-           y: pts[1] - Math.sign(this.ray.dx)*10 },
+    { A: { x: pts[0] - x_adj, 
+           y: pts[1] - y_adj },
       B: { x: pts[6], y: pts[7] },
       light: CONST.WALL_SENSE_TYPES.NORMAL },
     
     // left of origin
-    { A: { x: pts[2] - Math.sign(this.ray.dx)*10, 
-           y: pts[3] - Math.sign(this.ray.dx)*10 },
+    { A: { x: pts[2] - x_adj, 
+           y: pts[3] - y_adj },
       B: { x: pts[4], y: pts[5] },
       light: CONST.WALL_SENSE_TYPES.NORMAL },
       

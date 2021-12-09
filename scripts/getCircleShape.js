@@ -1,12 +1,13 @@
 /* globals
-ClockwiseSweepPolygon
+ClockwiseSweepPolygon,
+canvas,
+game
 */
 
 'use strict';
 
 import { MODULE_ID } from "./const.js";
 import { log } from "./module.js";
-import { getSetting } from "./settings.js";
 import { shiftPolygon } from "./utility.js";
 
 export function walledTemplateGetCircleShape(wrapped, distance) {
@@ -28,7 +29,8 @@ export function walledTemplateGetCircleShape(wrapped, distance) {
     density: 60,
     radius: distance,
     rotation: 0,
-    type: "light"
+    type: "light",
+    shape: "circle" // avoid padding checks in clockwise sweep by setting non-circular
   });
     
   poly.compute();
