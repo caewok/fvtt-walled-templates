@@ -58,8 +58,8 @@ export function walledTemplateGetRayShape(wrapped, direction, distance, width) {
   // cross the limited ray forming the fourth wall
   
   const pts = orig_poly.points;
-  const x_adj = Math.sign(this.ray.dx)*10;
-  const y_adj = Math.sign(this.ray.dy)*10
+  const x_adj = Math.sign(this.ray.dx);
+  const y_adj = Math.sign(this.ray.dy);
   
   cfg.tmpWalls = [
     // right of origin

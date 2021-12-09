@@ -90,8 +90,8 @@ export function walledTemplateGetRectShape(wrapped, direction, distance) {
   // need two walls, each intersecting the limited rays (vertical and horizontal) 
   // and meeting at the diagonal point opposite the origin 
   // Make the walls longer so they definitely cross the limited rays
-  const x_adj = Math.sign(this.ray.dx)*10;
-  const y_adj = Math.sign(this.ray.dy)*10
+  const x_adj = Math.sign(this.ray.dx);
+  const y_adj = Math.sign(this.ray.dy);
   
 //   const dx = diag.x - origin.x;
 //   const dy = diag.y - origin.y;
