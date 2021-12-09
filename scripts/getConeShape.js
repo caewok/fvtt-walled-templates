@@ -46,7 +46,8 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
     density: 60,
     radius: distance,
     rotation: Math.toDegrees(direction) - 90,
-    type: "light"
+    type: "light",
+    shape: "circle" // avoid padding checks in clockwise sweep by setting non-circular
   }
   
   
@@ -66,6 +67,8 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
       B: r2.B,   
       light: CONST.WALL_SENSE_TYPES.NORMAL
     }];
+    
+    cfg.shape = "flat cone" // avoid padding checks in clockwise sweep by setting non-circular
     
     log(`getConeShape A: ${cfg.tmpWalls[0].A.x}, ${cfg.tmpWalls[0].A.y}; B: ${cfg.tmpWalls[0].B.x}, ${cfg.tmpWalls[0].B.y}`);
   }

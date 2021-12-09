@@ -43,6 +43,7 @@ export function walledTemplateGetRayShape(wrapped, direction, distance, width) {
     rotation: Math.toDegrees(direction) - 90,
     angle: 180,
     type: "light",
+    shape: "ray" // avoid padding checks in clockwise sweep by setting non-circular
   }
 
   // for the polygon, point:
