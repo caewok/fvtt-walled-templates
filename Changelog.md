@@ -1,3 +1,6 @@
+## 0.0.2
+Fixed issue with templates facing west. Fixed flag for debugging field-of-vision polygons. Added hook to set the enabled flag when template is first created, so that templates work properly when first placed on the canvas. Added screenshots to the main git readme page.
+
 ## 0.0.1
 Initial public release. Basic functionality present for all template types: circle, cone, flat cone, rectangle, ray. Templates automatically update when walls are added, modified, or removed. Templates re-draw on canvas load. 
 
