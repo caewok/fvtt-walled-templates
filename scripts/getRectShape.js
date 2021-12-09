@@ -1,6 +1,7 @@
 /* globals
 canvas,
-CONST
+CONST,
+game
 */
 
 'use strict';
@@ -9,7 +10,7 @@ import { MODULE_ID } from "./const.js";
 import { log } from "./module.js";
 import { WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweepPolygon.js";
 import { shiftPolygon, pointsAlmostEqual } from "./utility.js";
-
+import { debugPolygons } from "./settings.js";
 
 /**
  * @param {number} direction  Direction in radians
@@ -54,12 +55,13 @@ export function walledTemplateGetRectShape(wrapped, direction, distance) {
   const diag_dist = Math.hypot(orig_rect.width, orig_rect.height);
   
   const cfg = {
-    debug: game.modules.get(MODULE_ID).api.drawPolygons, //false,
+    debug: debugPolygons(),
     density: 60,
     radius: diag_dist + 2, // make sure added walls are not trimmed
 //     rotation: rotation,
     angle: 90,
     type: "light",
+    shape: "rectangle" // avoid padding checks in clockwise sweep by setting non-circular
   }
   
   // depending on how the rectangle is oriented, we have a different manipulation to make
@@ -88,10 +90,13 @@ export function walledTemplateGetRectShape(wrapped, direction, distance) {
   // need two walls, each intersecting the limited rays (vertical and horizontal) 
   // and meeting at the diagonal point opposite the origin 
   // Make the walls longer so they definitely cross the limited rays
-  const dx = diag.x - origin.x;
-  const dy = diag.y - origin.y;
-  const pt1 = { x: origin.x - Math.sign(dx)*5, y: diag.y };
-  const pt2 = { x: diag.x, y: origin.y - Math.sign(dy)*5 };
+  const x_adj = Math.sign(this.ray.dx);
+  const y_adj = Math.sign(this.ray.dy);
+  
+//   const dx = diag.x - origin.x;
+//   const dy = diag.y - origin.y;
+  const pt1 = { x: origin.x - x_adj, y: diag.y };
+  const pt2 = { x: diag.x, y: origin.y - y_adj };
   
   cfg.tmpWalls = [
     { A: pt1,

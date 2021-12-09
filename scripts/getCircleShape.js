@@ -1,13 +1,15 @@
 /* globals
-ClockwiseSweepPolygon
+ClockwiseSweepPolygon,
+canvas,
+game
 */
 
 'use strict';
 
 import { MODULE_ID } from "./const.js";
 import { log } from "./module.js";
-import { getSetting } from "./settings.js";
 import { shiftPolygon } from "./utility.js";
+import { debugPolygons } from "./settings.js";
 
 export function walledTemplateGetCircleShape(wrapped, distance) {
   // origin is this.data.x, this.data.y
@@ -24,11 +26,12 @@ export function walledTemplateGetCircleShape(wrapped, distance) {
   const poly = new ClockwiseSweepPolygon();
   poly.initialize({x: this.data.x, y: this.data.y}, { 
     angle: 360,
-    debug: game.modules.get(MODULE_ID).api.drawPolygons,
+    debug: debugPolygons(),
     density: 60,
     radius: distance,
     rotation: 0,
-    type: "light"
+    type: "light",
+    shape: "circle" // avoid padding checks in clockwise sweep by setting non-circular
   });
     
   poly.compute();

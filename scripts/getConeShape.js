@@ -12,6 +12,7 @@ import { MODULE_ID } from "./const.js";
 import { log } from "./module.js";
 import { WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweepPolygon.js";
 import { shiftPolygon } from "./utility.js";
+import { debugPolygons } from "./settings.js";
 
 
 export function walledTemplateGetConeShape(wrapped, direction, angle, distance) {
@@ -22,8 +23,9 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
   // angle is the angle (width) of the cone. 
   // So if you have direction, moving - angle / 2 along the circle will get you to 
   // 1 point of the cone; + angle / 2 will get the other point of the cone.
+  const origin = { x: this.data.x, y: this.data.y };
   
-  log(`getConeShape origin ${this.data.x}, ${this.data.y} with distance ${distance}, angle ${angle}, direction ${direction}`, this);
+  log(`getConeShape origin ${origin.x}, ${origin.y} with distance ${distance}, angle ${angle}, direction ${direction}`, this);
   
   if(!this.document.getFlag(MODULE_ID, "enabled")) return wrapped(direction, angle, distance);
   if(!canvas.walls.quadtree) return wrapped(direction, angle, distance); // avoid error when first loading
@@ -31,7 +33,7 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
   // from original MeasuredTemplate.prototype._getConeShape
   angle = angle || 90;
   const coneType = game.settings.get("core", "coneTemplateType");
-
+   
   
   // translate direction and angle to what ClockwiseSweep expects for lights
   // or other limited angle
@@ -42,11 +44,12 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
   // for a flat cone, would need ClockwiseSweep to add relevant walls
   const cfg = {
     angle: angle,
-    debug: game.modules.get(MODULE_ID).api.drawPolygons, //false,
+    debug: debugPolygons(),
     density: 60,
     radius: distance,
     rotation: Math.toDegrees(direction) - 90,
-    type: "light"
+    type: "light",
+    shape: "circle" // avoid padding checks in clockwise sweep by setting non-circular
   }
   
   
@@ -57,8 +60,8 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
     // add one wall to flatten the cone
     // see MeasuredTemplate.prototype._getConeShape
     distance /= Math.cos(Math.toRadians(angle/2));
-    const r1 = Ray.fromAngle(this.data.x, this.data.y, direction + Math.toRadians(angle / -2), distance + 1);
-    const r2 = Ray.fromAngle(this.data.x, this.data.y, direction + Math.toRadians(angle / 2), distance + 1);    
+    const r1 = Ray.fromAngle(origin.x, origin.y, direction + Math.toRadians(angle / -2), distance + 1);
+    const r2 = Ray.fromAngle(origin.x, origin.y, direction + Math.toRadians(angle / 2), distance + 1);    
     
     cfg.radius = distance + 2;
     cfg.tmpWalls = [{
@@ -67,18 +70,20 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
       light: CONST.WALL_SENSE_TYPES.NORMAL
     }];
     
+    cfg.shape = "flat cone" // avoid padding checks in clockwise sweep by setting non-circular
+    
     log(`getConeShape A: ${cfg.tmpWalls[0].A.x}, ${cfg.tmpWalls[0].A.y}; B: ${cfg.tmpWalls[0].B.x}, ${cfg.tmpWalls[0].B.y}`);
   }
   
   const poly = new polyType();
-  poly.initialize({x: this.data.x, y: this.data.y}, cfg);    
+  poly.initialize(origin, cfg);    
   poly.compute();
   
 
   // need to shift the polygon to have 0,0 origin because of how the MeasuredTemplate 
   // sets the origin for the drawing separately
   // Polygon points, annoyingly, are array [x0, y0, x1, y1, ...]
-  return shiftPolygon(poly, this.data);
+  return shiftPolygon(poly, origin);
   
   //return new PIXI.Polygon(poly.points);
 }

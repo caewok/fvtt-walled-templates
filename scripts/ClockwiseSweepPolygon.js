@@ -49,12 +49,10 @@ export class WalledTemplatesClockwiseSweepPolygon extends ClockwiseSweepPolygon 
     // (needed radius to detect if intersections w/in radius for Step 2)
     // (don't need radius padding in Step 3 b/c not a circle)
     // For light mask, find the light data
-    const drop_padding = hasLimitedRadius && shape !== "circle";
+    const drop_padding = hasLimitedRadius && Boolean(shape) && shape !== "circle";
                         
     if(drop_padding) {
-      const cfg = this.config;
-      cfg.radius = undefined; 
-      this.initialize(this.origin, cfg);
+      this.config.hasLimitedRadius = false;
     }         
 
     // Step 3 - Radial sweep over endpoints
@@ -114,7 +112,7 @@ export class WalledTemplatesClockwiseSweepPolygon extends ClockwiseSweepPolygon 
   _addCustomEdges() {
     const { type, tmpWalls } = this.config;
     
-    log(`_addCustomEdges ${tmpWalls}`, this.config);
+    log(`_addCustomEdges ${tmpWalls.length || tmpWalls.size} walls`, this.config);
     
     if(!tmpWalls) return;
     
@@ -122,12 +120,12 @@ export class WalledTemplatesClockwiseSweepPolygon extends ClockwiseSweepPolygon 
       log(`Adding custom edge ${w.A.x}, ${w.A.y} <--> ${w.B.x}, ${w.B.y}`);
       const edge = new WalledTemplatesPolygonEdge(w.A, w.B, 
                     w[type] || CONST.WALL_SENSE_TYPES.NORMAL);
-      
+            
       return edge;
     });
     
      // for tracking intersections       
-    // we don't need to compare against each other /c we know they don't overlap
+    // we don't need to compare against each other b/c we know they don't overlap
     const edges_array = Array.from(this.edges);
     poly_walls.forEach(e => e.identifyIntersections(edges_array));
     poly_walls.forEach(e => this.edges.add(e));
@@ -184,7 +182,11 @@ export class WalledTemplatesClockwiseSweepPolygon extends ClockwiseSweepPolygon 
     // For limited angle polygons, restrict vertices
     if ( hasLimitedAngle ) {
       for ( let vertex of this.vertices.values() ) {
-        if ( !vertex._inLimitedAngle ) this.vertices.delete(vertex.key);
+        if ( !vertex._inLimitedAngle ) {
+          log(`Removing vertex ${vertex.key} as outside limitedAngle`);
+          this.vertices.delete(vertex.key);
+          
+          }
       }
 
       // Add vertices for the endpoints of bounding rays
@@ -203,6 +205,8 @@ export class WalledTemplatesClockwiseSweepPolygon extends ClockwiseSweepPolygon 
    * @private
    */
   _identifyIntersections(wallEdgeMap) {
+    const { hasLimitedAngle, rMin, rMax } = this.config;
+  
     const processed = new Set();
     const o = this.origin;
     for ( let edge of this.edges ) {
@@ -224,7 +228,14 @@ export class WalledTemplatesClockwiseSweepPolygon extends ClockwiseSweepPolygon 
         // Register the intersection point as a vertex
         let v = PolygonVertex.fromPoint(i);
         if ( this.vertices.has(v.key) ) v = this.vertices.get(v.key);
-        else this.vertices.set(v.key, v);
+        else {
+          
+          // if limited angle, test for inclusion
+          if(hasLimitedAngle) {      
+            v._inLimitedAngle = this.constructor.pointBetweenRays(v, rMin, rMax);
+          } 
+          this.vertices.set(v.key, v);                  
+        }
         if ( !v.edges.has(edge) ) v.attachEdge(edge, 0);
         if ( !v.edges.has(other) ) v.attachEdge(other, 0);
       }
