@@ -1,6 +1,7 @@
 /* globals
 Hooks,
-game
+game,
+canvas
 */
 
 'use strict';
@@ -9,6 +10,7 @@ import { MODULE_ID } from "./const.js";
 import { registerWalledTemplates } from "./patching.js";
 import { registerSettings, getSetting } from "./settings.js";
 import { walledTemplatesRenderMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
+import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
 import { WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweepPolygon.js";
 import { walledTemplateGetCircleShape } from "./getCircleShape.js";
 import { walledTemplateGetConeShape } from "./getConeShape.js";
@@ -55,6 +57,23 @@ Hooks.once('init', async function() {
 Hooks.once('setup', async function() {
   log(`Setup...`);
   registerSettings();
+  
+  // If using dnd5e, hook the actor item sheet and add a toggle in spell details for 
+// walled templates
+
+/**
+ * renderItemSheet5e hook
+ * @param {ItemSheet5e} sheet
+ * @param {Object} html
+ * @param {Object} data
+ */
+if(game.system.id === "dnd5e") {  
+  Hooks.on("renderItemSheet5e",  async (app, html, data) => { 
+    if(data.itemType === "Spell") {
+      walledTemplatesRender5eSpellTemplateConfig(app, html, data);
+    }
+  });
+}
 });
 
 
@@ -147,9 +166,11 @@ Hooks.on("preCreateMeasuredTemplate", async (template, updateData, opts, id) => 
   //
   const flag = `flags.${MODULE_ID}.enabled`;
   
-  template.data.update({ [flag]: true })
+  template.data.update({ [flag]: getSetting("default-to-walled") })
   
  // updateData.data.update({ flags.[MODULE_ID].enabled: getSetting("default-to-walled") });  
 });
- 
+
+
+
  
