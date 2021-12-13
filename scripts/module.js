@@ -160,6 +160,10 @@ Hooks.on("deleteWall", async (wall, opts, id) => {
  */
 // https://foundryvtt.wiki/en/migrations/foundry-core-0_8_x#adding-items-to-an-actor-during-precreate
 Hooks.on("preCreateMeasuredTemplate", async (template, updateData, opts, id) => {
+  // only create if the id does not already exist
+  
+  if(typeof template.data.document.getFlag(MODULE_ID, "enabled") === "undefined") {
+
   log(`Creating template ${id} with default setting ${getSetting("default-to-walled")}.`, template, updateData);
   // setFlag doesn't work
   //template.data.document.setFlag(MODULE_ID, "enabled", getSetting("default-to-walled"));
@@ -167,6 +171,9 @@ Hooks.on("preCreateMeasuredTemplate", async (template, updateData, opts, id) => 
   const flag = `flags.${MODULE_ID}.enabled`;
   
   template.data.update({ [flag]: getSetting("default-to-walled") })
+  } else {
+    log(`preCreateMeasuredTemplate: template enabled flag already set to ${template.data.document.getFlag(MODULE_ID, "enabled")}`);
+  }
   
  // updateData.data.update({ flags.[MODULE_ID].enabled: getSetting("default-to-walled") });  
 });
