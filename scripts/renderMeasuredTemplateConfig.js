@@ -21,7 +21,7 @@ export async function walledTemplatesRenderMeasuredTemplateConfig(app, html, dat
   
   
   log(`enabled flag is ${data.document.getFlag(MODULE_ID, "enabled")}`);
-  if(data.document.getFlag(MODULE_ID, "enabled") === undefined) {
+  if(typeof data.document.getFlag(MODULE_ID, "enabled") === "undefined") {
     log(`setting enabled flag to ${getSetting("default-to-walled")}`);
     data.document.setFlag(MODULE_ID, "enabled", getSetting("default-to-walled"));
   }
