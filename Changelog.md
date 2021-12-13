@@ -1,3 +1,8 @@
+## 0.0.4
+Add checks so that when first drawing a new template, the outline shape will have walls blocked if that is the world default.
+
+dnd5e only: Add a checkbox in spell details for AoE spells to determine whether walls block on a per-spell basis.
+
 ## 0.0.3
 Actually check the world setting for whether walls should block templates by default when creating new templates. 
 
