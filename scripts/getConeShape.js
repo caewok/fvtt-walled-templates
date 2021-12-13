@@ -12,7 +12,7 @@ import { MODULE_ID } from "./const.js";
 import { log } from "./module.js";
 import { WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweepPolygon.js";
 import { shiftPolygon } from "./utility.js";
-import { debugPolygons } from "./settings.js";
+import { debugPolygons, getSetting } from "./settings.js";
 
 
 export function walledTemplateGetConeShape(wrapped, direction, angle, distance) {
@@ -26,9 +26,17 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
   const origin = { x: this.data.x, y: this.data.y };
   
   log(`getConeShape origin ${origin.x}, ${origin.y} with distance ${distance}, angle ${angle}, direction ${direction}`, this);
-  
-  if(!this.document.getFlag(MODULE_ID, "enabled")) return wrapped(direction, angle, distance);
+      
+  // if no flag is present, go with the world default
+  let enabled = this.document.getFlag(MODULE_ID, "enabled");
+  if(typeof enabled === "undefined") {
+    enabled = getSetting("default-to-walled");
+  }    
+      
+  if(!enabled) return wrapped(direction, angle, distance);
   if(!canvas.walls.quadtree) return wrapped(direction, angle, distance); // avoid error when first loading
+  
+  log(`creating walled cone shape`)
   
   // from original MeasuredTemplate.prototype._getConeShape
   angle = angle || 90;

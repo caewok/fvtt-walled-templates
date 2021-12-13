@@ -27,6 +27,13 @@ To make "Blocked by Walls" the default for all templates, select "Default to Wal
 
 <img src="https://raw.githubusercontent.com/caewok/fvtt-walled-templates/feature/screenshots/screenshots/module_config.jpg" width="400" alt="Screenshot of Walled Templates Module configuration: 'Default to Walled Measured Templates' selected">
 
+## dnd5e
+
+For the dnd5e system, this module adds a checkbox to spell detail templates that overrides the world default, so you can indicate on a per-spell basis whether walls should block.
+
+## Macros and advanced usage
+This module adds a flag to template objects, `flags.walledtemplates.enabled: true` or `flags.walledtemplates.enabled: false`, to indicate if walls should block a given template. Templates without the flag will use the world default. 
+
 ## Circle
 
 Walled Templates works with grids or gridless scenes. But it is easiest to see exactly the bounds of the template in a gridless scene.

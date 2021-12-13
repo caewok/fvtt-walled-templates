@@ -1,4 +1,5 @@
 {
     "walledtemplates.MeasuredTemplateConfiguration.LegendTitle": "Walled Templates",
-    "walledtemplates.MeasuredTemplateConfiguration.enabled.Name": "Blocked by Walls"
+    "walledtemplates.MeasuredTemplateConfiguration.enabled.Name": "Blocked by Walls",
+    "walledtemplates.dnd5eSpellTemplateConfiguration.enabled.Name": "Blocked by Walls"
 }
