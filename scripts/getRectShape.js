@@ -10,7 +10,7 @@ import { MODULE_ID } from "./const.js";
 import { log } from "./module.js";
 import { WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweepPolygon.js";
 import { shiftPolygon, pointsAlmostEqual } from "./utility.js";
-import { debugPolygons } from "./settings.js";
+import { debugPolygons, getSetting } from "./settings.js";
 
 /**
  * @param {number} direction  Direction in radians
@@ -26,8 +26,14 @@ export function walledTemplateGetRectShape(wrapped, direction, distance) {
   
   log(`getRectShape origin ${origin.x}, ${origin.y} with distance ${distance},  direction ${direction}`, this);
   
+  // if no flag is present, go with the world default
+  let enabled = this.document.getFlag(MODULE_ID, "enabled");
+  if(typeof enabled === "undefined") {
+    enabled = getSetting("default-to-walled");
+  }
+  
   const orig_rect = wrapped(direction, distance);
-  if(!this.document.getFlag(MODULE_ID, "enabled")) return orig_rect;
+  if(!enabled) return orig_rect;
   if(!canvas.walls.quadtree) return orig_rect; // avoid error when first loading
   
   // catch and avoid edge cases where the rectangle is flat / 1-dimensional
@@ -36,6 +42,7 @@ export function walledTemplateGetRectShape(wrapped, direction, distance) {
      direction.almostEqual(Math.PI / 2) ||
      direction.almostEqual(Math.PI / 2 * 3)) return orig_rect;
 
+   log(`creating walled rectangle shape`)
 
   // Use limited angle to get the rectangle.
   // origin is data.x, data.y

@@ -10,7 +10,7 @@ import { MODULE_ID } from "./const.js";
 import { log } from "./module.js";
 import { WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweepPolygon.js";
 import { shiftPolygon } from "./utility.js";
-import { debugPolygons } from "./settings.js";
+import { debugPolygons, getSetting } from "./settings.js";
 
 /**
  * @param {number} direction  Direction in radians
@@ -28,9 +28,17 @@ export function walledTemplateGetRayShape(wrapped, direction, distance, width) {
   
   log(`getRayShape origin ${origin.x}, ${origin.y} with distance ${distance},  direction ${direction}, width ${width}`, this);
   
+  // if no flag is present, go with the world default
+  let enabled = this.document.getFlag(MODULE_ID, "enabled");
+  if(typeof enabled === "undefined") {
+    enabled = getSetting("default-to-walled");
+  }
+  
   const orig_poly = wrapped(direction, distance, width);
-  if(!this.document.getFlag(MODULE_ID, "enabled")) return orig_poly;
+  if(!enabled) return orig_poly;
   if(!canvas.walls.quadtree) return orig_poly; // avoid error when first loading
+  
+   log(`creating walled ray shape`)
   
   // shift the polygon to the actual origin
   shiftPolygon(orig_poly, { x: -origin.x, y: -origin.y });

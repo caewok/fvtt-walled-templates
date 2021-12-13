@@ -9,7 +9,7 @@ game
 import { MODULE_ID } from "./const.js";
 import { log } from "./module.js";
 import { shiftPolygon } from "./utility.js";
-import { debugPolygons } from "./settings.js";
+import { debugPolygons, getSetting } from "./settings.js";
 
 export function walledTemplateGetCircleShape(wrapped, distance) {
   // origin is this.data.x, this.data.y
@@ -17,8 +17,18 @@ export function walledTemplateGetCircleShape(wrapped, distance) {
   
   log(`getCircleShape origin ${this.data.x}, ${this.data.y} with distance ${distance}`, this);
   
-  if(!this.document.getFlag(MODULE_ID, "enabled")) return wrapped(distance);
+  // if no flag is present, go with the world default
+  let enabled = this.document.getFlag(MODULE_ID, "enabled");
+  log(`getCircleShape enabled is ${enabled}`);
+  
+  if(typeof enabled === "undefined") {
+    enabled = getSetting("default-to-walled");
+  }
+  
+  if(!enabled) return wrapped(distance);
   if(!canvas.walls.quadtree) return wrapped(distance); // avoid error when first loading
+  
+  log(`creating walled circle shape`)
   
  //  const circle = wrapped(distance);
   //   return circle;

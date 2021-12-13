@@ -1,5 +1,7 @@
 /* globals
-libWrapper
+libWrapper,
+game,
+NormalizedRectangle
 */
 
 'use strict';
@@ -11,12 +13,18 @@ import { walledTemplateGetCircleShape } from "./getCircleShape.js";
 import { walledTemplateGetConeShape } from "./getConeShape.js";
 import { walledTemplateGetRectShape } from "./getRectShape.js";
 import { walledTemplateGetRayShape }  from "./getRayShape.js";
+import { walledTemplate5eFromItem }   from "./render5eSpellTemplateConfig.js";
 
 export function registerWalledTemplates() {
   libWrapper.register(MODULE_ID, `MeasuredTemplate.prototype._getCircleShape`, walledTemplateGetCircleShape, `MIXED`);
   libWrapper.register(MODULE_ID, `MeasuredTemplate.prototype._getConeShape`, walledTemplateGetConeShape, `MIXED`);
   libWrapper.register(MODULE_ID, `MeasuredTemplate.prototype._getRectShape`, walledTemplateGetRectShape, `WRAPPER`);
   libWrapper.register(MODULE_ID, `MeasuredTemplate.prototype._getRayShape`, walledTemplateGetRayShape, `WRAPPER`);
+  
+  if(game.system.id === "dnd5e") {
+    // Catch when template is created from item; set walled template enabled based on item
+    libWrapper.register(MODULE_ID, `game.dnd5e.canvas.AbilityTemplate.fromItem`, walledTemplate5eFromItem, `WRAPPER`);
+  }
 }
 
 

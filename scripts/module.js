@@ -1,6 +1,7 @@
 /* globals
 Hooks,
-game
+game,
+canvas
 */
 
 'use strict';
@@ -9,6 +10,7 @@ import { MODULE_ID } from "./const.js";
 import { registerWalledTemplates } from "./patching.js";
 import { registerSettings, getSetting } from "./settings.js";
 import { walledTemplatesRenderMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
+import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
 import { WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweepPolygon.js";
 import { walledTemplateGetCircleShape } from "./getCircleShape.js";
 import { walledTemplateGetConeShape } from "./getConeShape.js";
@@ -55,6 +57,23 @@ Hooks.once('init', async function() {
 Hooks.once('setup', async function() {
   log(`Setup...`);
   registerSettings();
+  
+  // If using dnd5e, hook the actor item sheet and add a toggle in spell details for 
+// walled templates
+
+/**
+ * renderItemSheet5e hook
+ * @param {ItemSheet5e} sheet
+ * @param {Object} html
+ * @param {Object} data
+ */
+if(game.system.id === "dnd5e") {  
+  Hooks.on("renderItemSheet5e",  async (app, html, data) => { 
+    if(data.itemType === "Spell") {
+      walledTemplatesRender5eSpellTemplateConfig(app, html, data);
+    }
+  });
+}
 });
 
 
@@ -141,6 +160,10 @@ Hooks.on("deleteWall", async (wall, opts, id) => {
  */
 // https://foundryvtt.wiki/en/migrations/foundry-core-0_8_x#adding-items-to-an-actor-during-precreate
 Hooks.on("preCreateMeasuredTemplate", async (template, updateData, opts, id) => {
+  // only create if the id does not already exist
+  
+  if(typeof template.data.document.getFlag(MODULE_ID, "enabled") === "undefined") {
+
   log(`Creating template ${id} with default setting ${getSetting("default-to-walled")}.`, template, updateData);
   // setFlag doesn't work
   //template.data.document.setFlag(MODULE_ID, "enabled", getSetting("default-to-walled"));
@@ -148,8 +171,13 @@ Hooks.on("preCreateMeasuredTemplate", async (template, updateData, opts, id) => 
   const flag = `flags.${MODULE_ID}.enabled`;
   
   template.data.update({ [flag]: getSetting("default-to-walled") })
+  } else {
+    log(`preCreateMeasuredTemplate: template enabled flag already set to ${template.data.document.getFlag(MODULE_ID, "enabled")}`);
+  }
   
  // updateData.data.update({ flags.[MODULE_ID].enabled: getSetting("default-to-walled") });  
 });
- 
+
+
+
  
