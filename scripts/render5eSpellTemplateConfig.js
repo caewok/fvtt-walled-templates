@@ -65,25 +65,12 @@ export function walledTemplate5eFromItem(wrapped, item) {
     const is_enabled = item.data.document.getFlag(MODULE_ID, "enabled");
   
     log(`Setting template flag to ${is_enabled}`);
-    
     // cannot use setFlag b/c template.data has no id
-    //template.data.flags[`$MODULE_ID`] = { enabled:  item.data.document.getFlag(MODULE_ID, "enabled") }
-    //template.document.data.flags["walledtemplates"] = { enabled: is_enabled };
-    //const key = `flags.${MODULE_ID}.enabled`;
+
+    template.data.update({ [`flags.${MODULE_ID}.enabled`]: is_enabled });
+    // or template.data.update({ [key]: is_enabled })
+    // or template.data.update({ [`flags.${MODULE_ID}`]: { "enabled": is_enabled}})
     
-    //template.document.data.flags["walledtemplates"] = { enabled: is_enabled };
-    //template.data.flags["walledtemplates"] = { enabled: is_enabled };
-    //template.data.document.data.flags["walledtemplates"] = { enabled: is_enabled };
-    template.data._source.flags["walledtemplates"] = { enabled: is_enabled };
-    
-    // template.document.update({ [key]: is_enabled }); doesn't work without id; also requires await
-    
-    
-    // const newData = {}
-//     newData[`flags.${MODULE_ID}.enabled`] = item.data.document.getFlag(MODULE_ID, "enabled");
-//     foundry.utils.mergeObject(template.data, newData, {inplace: true});
-  
-//     template.data.document.setFlag(MODULE_ID, "enabled", item.data.document.getFlag(MODULE_ID, "enabled"));
    }
   log(`Wrapped AbilityTemplate.fromItem template enabled is now`, template) 
   
