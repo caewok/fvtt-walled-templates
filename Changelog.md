@@ -1,3 +1,6 @@
+## 0.0.3
+Actually check the world setting for whether walls should block templates by default when creating new templates. 
+
 ## 0.0.2
 Fixed issue with templates facing west. Fixed flag for debugging field-of-vision polygons. Added hook to set the enabled flag when template is first created, so that templates work properly when first placed on the canvas. Added screenshots to the main git readme page.
 
