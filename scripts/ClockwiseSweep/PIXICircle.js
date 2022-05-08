@@ -75,13 +75,13 @@ export function registerPIXICircleMethods() {
     configurable: true
   });
 
-  Object.defineProperty(PIXI.Circle.prototype, "polygonUnion", {
+  Object.defineProperty(PIXI.Circle.prototype, "unionPolygon", {
     value: circleUnion,
     writable: true,
     configurable: true
   });
 
-  Object.defineProperty(PIXI.Circle.prototype, "polygonIntersect", {
+  Object.defineProperty(PIXI.Circle.prototype, "intersectPolygon", {
     value: circleIntersect,
     writable: true,
     configurable: true
