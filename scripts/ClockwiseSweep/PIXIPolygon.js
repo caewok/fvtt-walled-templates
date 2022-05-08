@@ -347,6 +347,19 @@ function unscale({ position_dx = 0, position_dy = 0, size_dx = 1, size_dy = 1 } 
   return out;
 }
 
+/**
+ * Translate, shifting it in the x and y direction.
+ * @param {Number} delta_x  Movement in the x direction.
+ * @param {Number} delta_y  Movement in the y direction.
+ */
+function translate(delta_x, delta_y) {
+  const ln = this.points.length;
+  for(let i = 0; i < ln; i += 2) {
+    this.points[i] = this.points[i] + delta_x;
+    this.points[i + 1] = this.points[i + 1] + delta_y;
+  }
+}
+
 // ---------------- Clipper JS library ---------------------------------------------------
 
 /**
@@ -529,6 +542,11 @@ export function registerPIXIPolygonMethods() {
     configurable: true
   });
 
+  Object.defineProperty(PIXI.Polygon.prototype, "translate", {
+    value: translate,
+    writable: true,
+    configurable: true
+  });
 
   // ----------------  CLIPPER LIBRARY METHODS ------------------------
 

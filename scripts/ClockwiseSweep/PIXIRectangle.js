@@ -225,6 +225,17 @@ function rectangleIntersection(other, outRect) {
   return outRect;
 }
 
+/**
+ * Translate a rectangle, shifting it in the x and y direction.
+ * (Basic but useful b/c it is equivalent to polygon.translate)
+ * @param {Number} delta_x  Movement in the x direction.
+ * @param {Number} delta_y  Movement in the y direction.
+ */
+function translate(delta_x, delta_y) {
+  this.x += delta_x;
+  this.y += delta_y;
+}
+
 
 // ----------------  ADD METHODS TO THE PIXI.RECTANGLE PROTOTYPE ------------------------
 export function registerPIXIRectangleMethods() {

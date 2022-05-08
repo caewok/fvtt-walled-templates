@@ -67,6 +67,17 @@ function get360PaddingPoints(x, y, radius, { density = 60 } = {}) {
   return ClockwiseSweepPolygon.prototype._getPaddingPoints.call(obj, r0, r1);
 }
 
+/**
+ * Translate a circle, shifting it in the x and y direction.
+ * (Basic but useful b/c it is equivalent to polygon.translate)
+ * @param {Number} delta_x  Movement in the x direction.
+ * @param {Number} delta_y  Movement in the y direction.
+ */
+function translate(delta_x, delta_y) {
+  this.origin.x += delta_x;
+  this.origin.y += delta_y;
+}
+
 // ----------------  ADD METHODS TO THE PIXI.CIRCLE PROTOTYPE ------------------------
 export function registerPIXICircleMethods() {
   Object.defineProperty(PIXI.Circle.prototype, "toPolygon", {
@@ -90,5 +101,11 @@ export function registerPIXICircleMethods() {
   // For equivalence with a PIXI.Polygon
   Object.defineProperty(PIXI.Circle.prototype, "isClosed", {
     get: () => true
+  });
+
+  Object.defineProperty(PIXI.Circle.prototype, "translate", {
+    value: translate,
+    writable: true,
+    configurable: true
   });
 }
