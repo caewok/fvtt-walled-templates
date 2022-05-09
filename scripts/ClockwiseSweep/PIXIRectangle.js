@@ -56,9 +56,9 @@ function containsPoint(p, e = 1e-8) {
   if (this.width <= 0 || this.height <= 0) { return false; }
 
   const x_inside = (p.x > this.x && p.x < this.right) || p.x.almostEqual(this.x, e) || p.x.almostEqual(this.right, e);
-  if(!x_inside) return false;
+  if (!x_inside) return false;
 
-  // y inside
+  // Y inside
   return (p.y > this.y && p.y < this.bottom) || p.y.almostEqual(this.y, e) || p.y.almostEqual(this.bottom, e);
 }
 
@@ -69,7 +69,7 @@ function containsPoint(p, e = 1e-8) {
  * @return {Boolean} Is the segment contained by or intersects the rectangle?
  */
 function encountersSegment(s, e = 1e-8) {
-  if(this.containsPoint(s.A) || this.containsPoint(s.B)) return true;
+  if (this.containsPoint(s.A, e) || this.containsPoint(s.B, e)) return true;
 
   // Point are both outside the rectangle. Only true if the segment intersects.
   return this.lineSegmentIntersects(s.A, s.B);
@@ -262,7 +262,7 @@ export function registerPIXIRectangleMethods() {
     value: encountersSegment,
     writable: true,
     configurable: true
-  })
+  });
 
   Object.defineProperty(PIXI.Rectangle.prototype, "padToPoint", {
     value: padToPoint,

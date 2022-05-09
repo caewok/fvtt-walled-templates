@@ -77,7 +77,7 @@ export function walledTemplateGetCircleShape(wrapped, distance) {
   log(`walledTemplateGetCircleShape with distance ${distance}`, this);
   // Make sure the default shape is constructed.
   this.shape = wrapped(distance);
-  log(`walledTemplateGetCircleShape|shape`, this.shape);
+  log("walledTemplateGetCircleShape|shape", this.shape);
 
   return useBoundaryPolygon.bind(this)();
 }
@@ -98,7 +98,7 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
     // For flat cone, use WalledTemplatesClockwiseSweepPolygon and pass this source object.
 
     this.shape = wrapped(direction, angle, distance);
-    log(`walledTemplateGetConeShape|shape`, this.shape);
+    log("walledTemplateGetConeShape|shape", this.shape);
     return useBoundaryPolygon.bind(this)();
   }
 
@@ -112,7 +112,7 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
     return shape;
   }
   if (!canvas.walls.quadtree) {
-    const shape = wrapped(direction, angle, distance)
+    const shape = wrapped(direction, angle, distance);
     log("useBoundaryPolygon|no quadtree. Returning shape", shape);
     return shape; // Avoid error when first loading
   }
@@ -153,7 +153,7 @@ export function walledTemplateGetRectShape(wrapped, direction, distance) {
   log(`walledTemplateGetRectShape with direction ${direction}, distance ${distance}`, this);
   // Make sure the default shape is constructed.
   this.shape = wrapped(direction, distance);
-  log(`walledTemplateGetRectShape|shape`, this.shape);
+  log("walledTemplateGetRectShape|shape", this.shape);
   return useBoundaryPolygon.bind(this)();
 }
 
@@ -171,6 +171,6 @@ export function walledTemplateGetRayShape(wrapped, direction, distance, width) {
   log(`walledTemplateGetRayShape with direction ${direction}, distance ${distance}, width ${width}`, this);
   // Make sure the default shape is constructed.
   this.shape = wrapped(direction, distance, width);
-  log(`walledTemplateGetRayShape|shape`, this.shape);
+  log("walledTemplateGetRayShape|shape", this.shape);
   return useBoundaryPolygon.bind(this)();
 }
