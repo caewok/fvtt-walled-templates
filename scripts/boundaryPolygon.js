@@ -27,10 +27,15 @@ export function boundaryPolygon(origin, radius, rotation = 0) { // eslint-disabl
     const shifted_origin = pointFromAngle(origin, Math.toRadians(this.data.direction), -1);
     log(`boundaryPolygon|Polygon shifted origin to ${shifted_origin.x},${shifted_origin.y} for direction ${this.data.direction}`);
     shape.translate(shifted_origin.x, shifted_origin.y);
+
   } else if (shape instanceof PIXI.Rectangle) {
     // Pad the rectangle by one pixel so it definitely includes origin
     shape.translate(origin.x, origin.y);
     shape.pad(1, 1);
+
+  } else if (shape instanceof PIXI.Circle){
+    shape.radius += 1;
+    shape.translate(origin.x, origin.y);
 
   } else {
     shape.translate(origin.x, origin.y);
