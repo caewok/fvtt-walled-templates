@@ -1,5 +1,5 @@
 // Constants used in this module
 
-'use strict';
+"use strict";
 
-export const MODULE_ID = `walledtemplates`;
+export const MODULE_ID = "walledtemplates";
