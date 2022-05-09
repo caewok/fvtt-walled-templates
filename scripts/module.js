@@ -20,6 +20,8 @@ import { registerSettings, getSetting } from "./settings.js";
 import { walledTemplatesRenderMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
 import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
 import { LightMaskClockwisePolygonSweep as WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweep/LightMaskClockwisePolygonSweep.js";
+import { LimitedAngleSweepPolygon } from "./ClockwiseSweep/LimitedAngle.js";
+
 import {
   walledTemplateGetCircleShape,
   walledTemplateGetConeShape,
@@ -62,7 +64,8 @@ Hooks.once("init", async function() {
     walledTemplateGetCircleShape,
     walledTemplateGetConeShape,
     walledTemplateGetRectShape,
-    walledTemplateGetRayShape
+    walledTemplateGetRayShape,
+    LimitedAngleSweepPolygon
   };
 
 });

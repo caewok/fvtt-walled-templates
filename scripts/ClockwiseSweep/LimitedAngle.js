@@ -124,7 +124,7 @@ export class LimitedAngleSweepPolygon extends PIXI.Polygon {
   static offsetOrigin(origin, rotation) {
     /* eslint-disable indent */
     const r = pointFromAngle(origin, Math.toRadians(rotation + 90), -1);
-    return { x: Math.round(r.B.x), y: Math.round(r.B.y) };
+    return { x: Math.round(r.x), y: Math.round(r.y) };
   }
 
   /**

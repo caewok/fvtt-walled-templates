@@ -5,6 +5,7 @@ game
 
 "use strict";
 
+import { pointFromAngle } from "./ClockwiseSweep/utilities.js";
 import { MODULE_ID } from "./const.js";
 import { log } from "./module.js";
 import { debugPolygons, getSetting } from "./settings.js";
@@ -99,7 +100,12 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
 
     this.shape = wrapped(direction, angle, distance);
     log("walledTemplateGetConeShape|shape", this.shape);
-    return useBoundaryPolygon.bind(this)();
+    const poly = useBoundaryPolygon.bind(this)();
+
+    // Shift back the origin from the adjustment in boundaryPolygon
+    const shifted_origin = pointFromAngle({x: 0, y: 0}, Math.toRadians(this.data.direction), 1);
+    poly.translate(shifted_origin.x, shifted_origin.y);
+    return poly
   }
 
   let enabled = this.document.getFlag(MODULE_ID, "enabled");
@@ -129,6 +135,7 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
     rotation: Math.toDegrees(direction) - 90
   };
 
+  log(`walledTemplateGetConeShape|Round cone. Angle ${angle}, distance ${distance}, direction ${direction} at origin ${origin.x},${origin.y}`);
   const poly = new WalledTemplatesClockwiseSweepPolygon();
   poly.initialize(origin, cfg);
   poly.compute();
@@ -136,6 +143,10 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
   // Set polygon origin to 0, 0 as expected for Template shape.
   poly.translate(-origin.x, -origin.y);
   log("walledTemplateGetConeShape|poly", poly);
+
+  // Shift back the origin from the adjustment in boundaryPolygon
+  const shifted_origin = pointFromAngle({x: 0, y: 0}, Math.toRadians(this.data.direction), 1);
+  poly.translate(shifted_origin.x, shifted_origin.y);
 
   return poly;
 }
