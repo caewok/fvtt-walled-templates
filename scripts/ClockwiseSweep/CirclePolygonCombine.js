@@ -7,6 +7,8 @@ ClockwiseSweepPolygon,
 
 "use strict";
 
+import { distanceSquared } from "./utilities.js";
+
 /*
 Intersect or union a polygon with a circle without immediately converting circle to a polygon.
 
@@ -202,11 +204,19 @@ export function _tracePolygon(poly, circle, { clockwise = true, density = 60 } =
 
       if (ixs_result.intersections.length === 2) {
         // We must have a outside --> i0 ---> i1 ---> b outside
-        ix_data.ix = ixs_result.intersections[0];
         ix_data.aInside = ixs_result.aInside;
         ix_data.aInside = ixs_result.aInside;
 
+        // process the intersections in order from edge.A
+        if(distanceSquared(ixs_result.intersections[0], edge.A) > distanceSquared(ixs_result.intersections[1], edge.A)) {
+          ixs_result.intersections.reverse();
+        }
+
+        ix_data.ix = ixs_result.intersections[0];
         processIntersection(circle, edge, ix_data, false);
+
+        // don't process the second intersection if circled back
+        if(circled_back) { break; }
 
         ix_data.ix = ixs_result.intersections[1];
         processIntersection(circle, edge, ix_data, true);

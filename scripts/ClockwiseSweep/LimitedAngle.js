@@ -32,7 +32,7 @@ ClockwiseSweepPolygon,
 
 "use strict";
 
-import { pixelLineContainsPoint, pointsEqual } from "./utilities.js";
+import { pixelLineContainsPoint, pointsEqual, pointFromAngle } from "./utilities.js";
 import { SimplePolygonEdge } from "./SimplePolygonEdge.js";
 
 export class LimitedAngleSweepPolygon extends PIXI.Polygon {
@@ -123,9 +123,11 @@ export class LimitedAngleSweepPolygon extends PIXI.Polygon {
    */
   static offsetOrigin(origin, rotation) {
     /* eslint-disable indent */
-    const r = Ray.fromAngle(origin.x,
-                            origin.y,
-                            Math.toRadians(rotation + 90), -1);
+//     const r = Ray.fromAngle(origin.x,
+//                             origin.y,
+//                             Math.toRadians(rotation + 90), -1);
+    const r = pointFromAngle(origin, Math.toRadians(rotation + 90), -1)
+
     return { x: Math.round(r.B.x), y: Math.round(r.B.y) };
   }
 
@@ -487,9 +489,13 @@ function _tracePolygon(poly, limitedAngle, { clockwise = true } = {}) {
 
         if (d2_min < d2_max) {
           processRMinIntersection(ix_min, edges, next_edge_idx, edge, ix_data);
+          if (circled_back) { break; }
+
           processRMaxIntersection(ix_max, edges, next_edge_idx, edge, ix_data);
         } else {
           processRMaxIntersection(ix_max, edges, next_edge_idx, edge, ix_data);
+          if (circled_back) { break; }
+
           processRMinIntersection(ix_min, edges, next_edge_idx, edge, ix_data);
         }
       }
@@ -503,10 +509,11 @@ function _tracePolygon(poly, limitedAngle, { clockwise = true } = {}) {
       ix && processRMaxIntersection(ix, edges, next_edge_idx, edge, ix_data); // eslint-disable-line no-unused-expressions
     }
 
-    if (circled_back) { break; } // Back to first intersecting edge
+    // circled_back && console.log("circled back")
+//     if (circled_back) { break; } // Back to first intersecting edge
 
     // Only if not circled back
-    if (ix_data.is_tracing_polygon) { ix_data.pts.push(edge.B.x, edge.B.y); }
+    if (ix_data.is_tracing_polygon) { ix_data.pts.push(edge.B.x, edge.B.y); drawPoint(edge.B)}
   }
   if (!circled_back && i >= (max_iterations - 1)) { console.warn(`LimitedAngle trace is at max_iterations ${i}`); }
 
@@ -569,6 +576,7 @@ function processRMinIntersection(ix, edges, next_edge_idx, edge, ix_data) {
     change_direction ||= !ix_data.is_tracing_polygon
       && ((orientation < 0 && !clockwise) || (orientation > 0 && clockwise));
 
+//     change_direction && console.log(`Changing direction ${was_tracing_polygon ? 'polygon --> limitedAngle' : 'limitedAngle --> polygon'}`);
     change_direction && (ix_data.is_tracing_polygon = !was_tracing_polygon); // eslint-disable-line no-unused-expressions
   }
 
@@ -576,12 +584,15 @@ function processRMinIntersection(ix, edges, next_edge_idx, edge, ix_data) {
   if (was_tracing_polygon && !ix_data.is_tracing_polygon) {
     // We moved from polygon --> limitedAngle
     // Store the intersection and whether this is rMin or rMax
+//     console.log(`polygon --> limitedAngle at ${ix.x},${ix.y}.`)
+//     drawPoint(ix, {alpha: .5})
     ix_data.prior_ix = ix;
     ix_data.started_at_rMin = true;
     ix_data.circled_back = false;
     return;
   }
 
+//   console.log(`limitedAngle --> polygon at ${ix.x},${ix.y}.`)
   // We moved from limitedAngle --> polygon
   // Get the points from the previous intersection to the current
   // Options:
@@ -593,25 +604,32 @@ function processRMinIntersection(ix, edges, next_edge_idx, edge, ix_data) {
   //    (a) rMax --> origin/rMin.A --> rMin.B --> canvas --> rMax.B
   //    (b) rMin --> rMin.B --> canvas --> rMax.B --> origin/rMin.A
   ix_data.pts.push(ix_data.prior_ix.x, ix_data.prior_ix.y);
+//   drawPoint(ix_data.prior_ix)
 
   if (ix_data.started_at_rMin) {
     if (ix_data.circled_back) {
       // (4)(b) rMin --> rMin.B --> canvas --> rMax.B --> origin/rMin.A
-      if (!pointsEqual(ix, rMin_ix)) { ix_data.pts.push(rMin_ix.x, rMin_ix.y); }
+      if (!pointsEqual(ix, rMin_ix)) { ix_data.pts.push(rMin_ix.x, rMin_ix.y)}
       ix_data.pts.push(...canvas_points);
       ix_data.pts.push(rMax_ix.x, rMax_ix.y);
       ix_data.pts.push(origin.x, origin.y);
+
+//       canvas_points.forEach(pt => drawPoint(pt));
+//       drawPoint(rMax_ix);
+//       drawPoint(origin);
     }
     // Otherwise: (1) previous and current ix on the same ray; do nothing
 
   } else if (!pointsEqual(ix, origin)) { // Started at rMax
     // (2) rMax --> origin/rMin.A --> rMin
     ix_data.pts.push(origin.x, origin.y);
+//     drawPoint(origin);
   }
 
   ix_data.prior_ix = undefined;
   ix_data.circled_back = false;
   ix_data.pts.push(ix.x, ix.y);
+//   drawPoint(ix)
 }
 
 /**
@@ -647,18 +665,22 @@ function processRMaxIntersection(ix, edges, next_edge_idx, edge, ix_data) {
   change_direction ||= !ix_data.is_tracing_polygon
     && ((orientation < 0 && !clockwise) || (orientation > 0 && clockwise));
 
+//   change_direction && console.log(`Changing direction ${was_tracing_polygon ? 'polygon --> limitedAngle' : 'limitedAngle --> polygon'}`);
   change_direction && (ix_data.is_tracing_polygon = !was_tracing_polygon); // eslint-disable-line no-unused-expressions
 
   if (!(was_tracing_polygon ^ ix_data.is_tracing_polygon)) return;
   if (was_tracing_polygon && !ix_data.is_tracing_polygon) {
     // We moved from polygon --> limitedAngle
     // store the intersection and whether this is rMin or rMax
+//     console.log(`polygon --> limitedAngle at ${ix.x},${ix.y}.`)
+//     drawPoint(ix, {alpha: .5})
     ix_data.prior_ix = ix;
     ix_data.started_at_rMin = false;
     ix_data.circled_back = false;
     return;
   }
 
+//   console.log(`limitedAngle --> polygon at ${ix.x},${ix.y}.`)
   // We moved from limitedAngle --> polygon
   // Get the points from the previous intersection to the current
   // Options:
@@ -670,14 +692,19 @@ function processRMaxIntersection(ix, edges, next_edge_idx, edge, ix_data) {
   //    (a) rMax --> origin/rMin.A --> rMin.B --> canvas --> rMax.B
   //    (b) rMin --> rMin.B --> canvas --> rMax.B --> origin/rMin.A
   ix_data.pts.push(ix_data.prior_ix.x, ix_data.prior_ix.y);
+//   drawPoint(ix_data.prior_ix)
 
   if (!ix_data.started_at_rMin) {
     if (ix_data.circled_back) {
       // (4)(a) rMax --> origin/rMin.A --> rMin.B --> canvas --> rMax.B
-      if (!pointsEqual(ix, origin)) { ix_data.pts.push(origin.x, origin.y); }
+      if (!pointsEqual(ix, origin)) { ix_data.pts.push(origin.x, origin.y)}
       ix_data.pts.push(rMin_ix.x, rMin_ix.y);
       ix_data.pts.push(...canvas_points);
       ix_data.pts.push(rMax_ix.x, rMax_ix.y);
+
+//       drawPoint(rMin_ix);
+//       canvas_points.forEach(pt => drawPoint(pt));
+//       drawPoint(rMax_ix)
     }
     // Otherwise (1) previous and current ix on the same ray
 
@@ -685,13 +712,17 @@ function processRMaxIntersection(ix, edges, next_edge_idx, edge, ix_data) {
     // (3) rMin.B --> canvas --> rMax.B
     if (!pointsEqual(ix, rMin_ix)) {
       ix_data.pts.push(rMin_ix.x, rMin_ix.y);
+//       drawPoint(rMin_ix)
     }
     ix_data.pts.push(...canvas_points);
+//     canvas_points.forEach(pt => drawPoint(pt))
     ix_data.pts.push(rMax_ix.x, rMax_ix.y);
+//     drawPoint(rMax_ix)
   }
 
   ix_data.prior_ix = undefined;
   ix_data.circled_back = false;
 
   ix_data.pts.push(ix.x, ix.y);
+//   drawPoint(ix)
 }

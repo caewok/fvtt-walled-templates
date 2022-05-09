@@ -153,3 +153,26 @@ function orient2dPixelLine(ray, c) {
 
   return (orientation2 < cutoff) ? 0 : orientation;
 }
+
+/**
+ * Calculate the distance squared between two points
+ * @param {Point} a
+ * @param {Point} b
+ * @return {Number}
+ */
+export function distanceSquared(a, b) {
+  return Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2);
+}
+
+/**
+ * Same as Ray.fromAngle but returns a point instead of constructing the full Ray.
+ * @param {Point}   origin    Starting point.
+ * @param {Number}  radians   Angle to move from the starting point.
+ * @param {Number}  distance  Distance to travel from the starting point.
+ * @return {Point}  Coordinates of point that lies distance away from origin along angle.
+ */
+export function pointFromAngle(origin, radians, distance) {
+  const dx = Math.cos(radians);
+  const dy = Math.sin(radians);
+  return { x: origin.x + (dx * distance), y: origin.y + (dy * distance) };
+}

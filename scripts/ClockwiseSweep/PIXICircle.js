@@ -74,8 +74,8 @@ function get360PaddingPoints(x, y, radius, { density = 60 } = {}) {
  * @param {Number} delta_y  Movement in the y direction.
  */
 function translate(delta_x, delta_y) {
-  this.origin.x += delta_x;
-  this.origin.y += delta_y;
+  this.x += delta_x;
+  this.y += delta_y;
 }
 
 // ----------------  ADD METHODS TO THE PIXI.CIRCLE PROTOTYPE ------------------------
