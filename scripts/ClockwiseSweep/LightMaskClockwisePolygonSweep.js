@@ -21,10 +21,6 @@ import { findIntersectionsBruteRedBlack } from "./IntersectionsBrute.js";
 import { findIntersectionsSortSingle } from "./IntersectionsSort.js";
 import { LimitedAngleSweepPolygon } from "./LimitedAngle.js";
 
-// This import is needed only to check for lightmask properties and if not present,
-// fall back on default ClockwiseSweep. Could in theory run this ClockwiseSweep for all.
-import { MODULE_ID, SHAPE_KEY, CUSTOM_EDGES_KEY } from "../const.js";
-
 /*
 Basic concept:
 1. Custom shapes for light/sight/sound can be represented using temporary walls added
@@ -65,24 +61,6 @@ vertexOutsideBoundary: True if the vertex does not cross and is not contained by
 
 export class LightMaskClockwisePolygonSweep extends ClockwiseSweepPolygon {
   // Constructor same as ClockwiseSweep
-
-  /**
-   * Check for whether LightMask is necessary and if not, fall back on default
-   * ClockwiseSweep.
-   * @override
-   * @param {Point} origin                          The origin source point
-   * @param {PointSourcePolygonConfig} [config={}]  Configuration options which customize the polygon computation
-   * @returns {PointSourcePolygon}                  The computed polygon instance
-   */
-  static create(origin, config = {}) {
-    const cso = config?.source?.object;
-    if (!cso || !(cso.document.getFlag(MODULE_ID, SHAPE_KEY)
-                 || cso.document.getFlag(MODULE_ID, CUSTOM_EDGES_KEY))) {
-      return ClockwiseSweepPolygon.create(origin, config);
-    }
-
-    return super.create(origin, config);
-  }
 
   /* -------------------------------------------- */
 
