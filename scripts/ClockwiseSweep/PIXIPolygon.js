@@ -354,7 +354,7 @@ function unscale({ position_dx = 0, position_dy = 0, size_dx = 1, size_dy = 1 } 
  */
 function translate(delta_x, delta_y) {
   const ln = this.points.length;
-  for(let i = 0; i < ln; i += 2) {
+  for (let i = 0; i < ln; i += 2) {
     this.points[i] = this.points[i] + delta_x;
     this.points[i + 1] = this.points[i + 1] + delta_y;
   }

@@ -14,11 +14,16 @@ PolygonVertex
 
 "use strict";
 
+import { log } from "../module.js";
 import { SimplePolygonEdge } from "./SimplePolygonEdge.js";
 import { identifyIntersectionsWithNoEndpoint, lineBlocksPoint } from "./utilities.js";
 import { findIntersectionsBruteRedBlack } from "./IntersectionsBrute.js";
 import { findIntersectionsSortSingle } from "./IntersectionsSort.js";
 import { LimitedAngleSweepPolygon } from "./LimitedAngle.js";
+
+// This import is needed only to check for lightmask properties and if not present,
+// fall back on default ClockwiseSweep. Could in theory run this ClockwiseSweep for all.
+import { MODULE_ID, SHAPE_KEY, CUSTOM_EDGES_KEY } from "../const.js";
 
 /*
 Basic concept:
@@ -59,7 +64,25 @@ vertexOutsideBoundary: True if the vertex does not cross and is not contained by
 
 
 export class LightMaskClockwisePolygonSweep extends ClockwiseSweepPolygon {
-  // constructor same as ClockwiseSweep
+  // Constructor same as ClockwiseSweep
+
+  /**
+   * Check for whether LightMask is necessary and if not, fall back on default
+   * ClockwiseSweep.
+   * @override
+   * @param {Point} origin                          The origin source point
+   * @param {PointSourcePolygonConfig} [config={}]  Configuration options which customize the polygon computation
+   * @returns {PointSourcePolygon}                  The computed polygon instance
+   */
+  static create(origin, config = {}) {
+    const cso = config?.source?.object;
+    if (!cso || !(cso.document.getFlag(MODULE_ID, SHAPE_KEY)
+                 || cso.document.getFlag(MODULE_ID, CUSTOM_EDGES_KEY))) {
+      return ClockwiseSweepPolygon.create(origin, config);
+    }
+
+    return super.create(origin, config);
+  }
 
   /* -------------------------------------------- */
 
@@ -85,7 +108,7 @@ export class LightMaskClockwisePolygonSweep extends ClockwiseSweepPolygon {
     this.edges = new Map(); // ** NEW ** //
     this.collisions = []; // ** NEW ** Collisions formatted as [{x, y}, ...]
 
-    console.log(`LightMask initialize ${cfg.source?.id} with radius ${cfg.radius}, rotation ${cfg.rotation}, and origin ${this.origin.x}, ${this.origin.y}`, cfg.source);
+    log(`LightMask initialize ${cfg.source?.id} with radius ${cfg.radius}, rotation ${cfg.rotation}, and origin ${this.origin.x}, ${this.origin.y}`, cfg.source);
 
     // Testing method of intersection
     cfg.findIntersectionsSingle ||= findIntersectionsSortSingle;
@@ -102,19 +125,16 @@ export class LightMaskClockwisePolygonSweep extends ClockwiseSweepPolygon {
     this.origin = { x: Math.round(this.origin.x), y: Math.round(this.origin.y) };
 
     // Set the boundaryPolygon and customEdges using config.source
-    if(cfg?.source?.object) {
+    if (cfg?.source?.object) {
       cfg.boundaryPolygon ||= (cfg.source.object?.boundaryPolygon
         && cfg.source.object.boundaryPolygon(this.origin, cfg.radius, cfg.rotation));
       cfg.tempEdges ||= (cfg.source.object?.customEdges && cfg.source.object.customEdges(this.origin));
 
       // If boundaryPolygon is "none", then drop any limited circle boundary
       // This will cause the boundary to be the canvas edges.
-      if(cfg.boundaryPolygon === "none") {
+      if (cfg.boundaryPolygon === "none") {
         cfg.boundaryPolygon = undefined;
         cfg.hasLimitedRadius = false;
-//         cfg.radius = canvas.dimensions.maxR;   // not used in this LightMaskClockwisePolygonSweep
-//         cfg.radius2 = Math.pow(cfg.radius, 2); // not used in this LightMaskClockwisePolygonSweep
-//         cfg.radiusE = 0.5 / cfg.radius;        // not used in this LightMaskClockwisePolygonSweep
       }
     }
 
@@ -154,7 +174,7 @@ export class LightMaskClockwisePolygonSweep extends ClockwiseSweepPolygon {
     // Limited Radius boundary represented by PIXI.Circle b/c it is much faster to
     // intersect a circle with a polygon than two equivalent polygons.
     // Only need a limited radius boundary if no custom boundary was provided.
-    if(cfg.hasLimitedRadius && !cfg.boundaryPolygon) {
+    if (cfg.hasLimitedRadius && !cfg.boundaryPolygon) {
       cfg.boundaryPolygon = new PIXI.Circle(this.origin.x, this.origin.y, cfg.radius);
     }
 
@@ -819,32 +839,32 @@ export class LightMaskClockwisePolygonSweep extends ClockwiseSweepPolygon {
     // - have a toPolygon method
     let boundaryPolygon = this.config.boundaryPolygon;
 
-    if(!boundaryPolygon) {
-       // Should not happen, b/c validate is only called when there is a boundaryPolygon
-      console.log("ClockwiseSweep: boundaryPolygon undefined.");
+    if (!boundaryPolygon) {
+      // Should not happen, b/c validate is only called when there is a boundaryPolygon
+      log("ClockwiseSweep: boundaryPolygon undefined.");
       return false;
     }
 
     // Need to ensure the boundary encompasses the origin; otherwise intersect can fail
     // or may create holes.
-    if(!boundaryPolygon.contains(this.origin.x, this.origin.y)) {
-      console.log(`ClockwiseSweep: boundaryPolygon does not contain origin ${this.origin.x},${this.origin.y}.`, boundaryPolygon);
+    if (!boundaryPolygon?.contains(this.origin.x, this.origin.y)) {
+      log(`ClockwiseSweep: boundaryPolygon does not contain origin ${this.origin.x},${this.origin.y}.`, boundaryPolygon);
       return false;
     }
 
     // Bounds required to create bbox.
-    if(!("getBounds" in boundaryPolygon)) {
-      console.log("ClockwiseSweep: boundaryPolygon has no 'getBounds' method.", boundaryPolygon);
+    if (!("getBounds" in boundaryPolygon)) {
+      log("ClockwiseSweep: boundaryPolygon has no 'getBounds' method.", boundaryPolygon);
       return false;
     }
 
-    if(boundaryPolygon instanceof PIXI.Polygon) {
+    if (boundaryPolygon instanceof PIXI.Polygon) {
       // Assumed that polygon creates a closed shape
       boundaryPolygon.close();
-    } else if(!("intersectPolygon" in boundaryPolygon)) {
+    } else if (!("intersectPolygon" in boundaryPolygon)) {
       this.config.boundaryPolygon = boundaryPolygon?.toPolygon();
-      if(!this.config.boundaryPolygon) {
-        console.log("ClockwiseSweep: boundaryPolygon has no 'toPolygon' or 'intersect' method.", boundaryPolygon);
+      if (!this.config.boundaryPolygon) {
+        log("ClockwiseSweep: boundaryPolygon has no 'toPolygon' or 'intersect' method.", boundaryPolygon);
         return false;
       }
     }
@@ -873,7 +893,7 @@ export class LightMaskClockwisePolygonSweep extends ClockwiseSweepPolygon {
     // Start with the canvas bbox
     let bbox = canvas.dimensions.rect;
 
-    boundaryPolygon && (bbox = bbox.intersection(boundaryPolygon.getBounds()));
+    boundaryPolygon && (bbox = bbox.intersection(boundaryPolygon.getBounds())); // eslint-disable-line no-unused-expressions
     limitedAngle && (bbox = bbox.intersection(limitedAngle.getBounds())); // eslint-disable-line no-unused-expressions
 
     // Convert to NormalizedRectangle, which is expected by _getWalls.
@@ -1006,7 +1026,7 @@ export class LightMaskClockwisePolygonSweep extends ClockwiseSweepPolygon {
     const pts = this.points;
 
     // Store a copy for debugging
-    this.config.debug && (this._sweepPoints = [...pts]);
+    this.config.debug && (this._sweepPoints = [...pts]); // eslint-disable-line no-unused-expressions
 
     // Jump early if nothing to intersect
     // need three points (6 coords) to form a polygon to intersect
@@ -1029,8 +1049,8 @@ export class LightMaskClockwisePolygonSweep extends ClockwiseSweepPolygon {
     // Fall back on passing the boundary to clipper to intersect.
     // This allows us to pass things other than polygons as boundaries, such as circles
     // or rectangles.
-    if(boundaryPolygon) {
-      const res = (typeof boundaryPolygon.intersectPolygon === 'function')
+    if (boundaryPolygon) {
+      const res = (typeof boundaryPolygon.intersectPolygon === "function")
         && boundaryPolygon.intersectPolygon(poly);
       poly = res || poly.clipperClip(boundaryPolygon, { cliptype: ClipperLib.ClipType.ctIntersection });
     }

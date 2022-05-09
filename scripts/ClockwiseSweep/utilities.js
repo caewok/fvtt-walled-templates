@@ -1,3 +1,9 @@
+/* globals
+foundry,
+Ray
+*/
+"use strict";
+
 /**
  * Callback function that can be passed to Intersections functions to process
  * intersections between two segments. Marks the intersections in the
@@ -110,6 +116,32 @@ export function pointsEqual(p1, p2) { return (p1.x.almostEqual(p2.x) && p1.y.alm
  * @return {Number}
  */
 function dot(r1, r2) { return (r1.dx * r2.dx) + (r1.dy * r2.dy); }
+
+/**
+ * Measure whether two coordinates could be the same pixel.
+ * Points within √2 / 2 distance of one another will be considered equal.
+ * Consider coordinates on a square grid: √2 / 2 is the distance from any
+ * corner of the square to the center. Thus, any coordinate within the square that
+ * is within √2 / 2 of a corner can be "claimed" by the pixel at that corner.
+ * @param {Point} p1
+ * @param {Point} p2
+ * @return {boolean}  True if the points are within √2 / 2 of one another.
+ */
+function equivalentPixel(p1, p2) {
+  // To try to improve speed, don't just call almostEqual.
+  // Ultimately need the distance between the two points but first check the easy case
+  // if points exactly vertical or horizontal, the x/y would need to be within √2 / 2
+  const dx = Math.abs(p2.x - p1.x);
+  if (dx > Math.SQRT1_2) return false; // Math.SQRT1_2 === √2 / 2
+
+  const dy = Math.abs(p2.y - p1.y);
+  if (dy > Math.SQRT1_2) return false;
+
+  // Within the √2 / 2 bounding box
+  // Compare distance squared.
+  const dist2 = Math.pow(dx, 2) + Math.pow(dy, 2);
+  return dist2 < 0.5;
+}
 
 /**
  * Is the point c within a pixel of the ray and thereby "contained" by the ray?
