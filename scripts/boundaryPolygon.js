@@ -32,6 +32,9 @@ export function boundaryPolygon(origin, radius, rotation = 0) { // eslint-disabl
     shape.translate(origin.x, origin.y);
     shape.pad(1, 1);
 
+  } else if (shape instanceof PIXI.Circle) {
+    // Make the circle very slightly larger to better match expected template outputs.
+    shape.radius *= .1;
   } else {
     shape.translate(origin.x, origin.y);
   }
