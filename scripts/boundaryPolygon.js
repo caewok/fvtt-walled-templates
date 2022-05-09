@@ -33,7 +33,9 @@ export function boundaryPolygon(origin, radius, rotation = 0) { // eslint-disabl
     shape.translate(origin.x, origin.y);
     shape.pad(1, 1);
 
-  } else if (shape instanceof PIXI.Circle){
+  } else if (shape instanceof PIXI.Circle) {
+    // Pad the circle by one pixel so it better covers expected grid spaces.
+    // (Rounding tends to drop spaces on the edge.)
     shape.radius += 1;
     shape.translate(origin.x, origin.y);
 
