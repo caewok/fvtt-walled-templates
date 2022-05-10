@@ -1,3 +1,6 @@
+## 0.2.1
+Fix conflict with light mask where both modules define the same getters.
+
 ## 0.2.0
 Relies on a version of ClockwiseSweep that can accept arbitrary boundary polygons and temporary walls. Fixes [issue #1](https://github.com/caewok/fvtt-walled-templates/issues/1).
 

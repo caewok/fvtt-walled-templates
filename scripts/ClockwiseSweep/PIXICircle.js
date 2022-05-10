@@ -99,9 +99,11 @@ export function registerPIXICircleMethods() {
   });
 
   // For equivalence with a PIXI.Polygon
-  Object.defineProperty(PIXI.Circle.prototype, "isClosed", {
-    get: () => true
-  });
+  if(!PIXI.Circle.prototype.hasOwnProperty("isClosed")) {
+    Object.defineProperty(PIXI.Circle.prototype, "isClosed", {
+      get: () => true
+    });
+  }
 
   Object.defineProperty(PIXI.Circle.prototype, "translate", {
     value: translate,

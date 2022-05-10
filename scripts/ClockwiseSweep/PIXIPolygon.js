@@ -471,22 +471,29 @@ export function registerPIXIPolygonMethods() {
     configurable: true
   });
 
-  Object.defineProperty(PIXI.Polygon.prototype, "coordinates", {
-    get: coordinates
-  });
+  if(!PIXI.Polygon.prototype.hasOwnProperty("coordinates")) {
+    Object.defineProperty(PIXI.Polygon.prototype, "coordinates", {
+      get: coordinates
+    });
+  }
 
-  Object.defineProperty(PIXI.Polygon.prototype, "isClosed", {
-    get: isClosed
-  });
+  if(!PIXI.Polygon.prototype.hasOwnProperty("isClosed")) {
+    Object.defineProperty(PIXI.Polygon.prototype, "isClosed", {
+      get: isClosed
+    });
+  }
 
+  if(!PIXI.Polygon.prototype.hasOwnProperty("isConvex")) {
+    Object.defineProperty(PIXI.Polygon.prototype, "isConvex", {
+      get: isConvex
+    });
+  }
 
-  Object.defineProperty(PIXI.Polygon.prototype, "isConvex", {
-    get: isConvex
-  });
-
-  Object.defineProperty(PIXI.Polygon.prototype, "isClockwise", {
-    get: isClockwise
-  });
+  if(!PIXI.Polygon.prototype.hasOwnProperty("isClockwise")) {
+    Object.defineProperty(PIXI.Polygon.prototype, "isClockwise", {
+      get: isClockwise
+    });
+  }
 
   Object.defineProperty(PIXI.Polygon.prototype, "determineConvexity", {
     value: determineConvexity,
@@ -556,9 +563,11 @@ export function registerPIXIPolygonMethods() {
     configurable: true
   });
 
-  Object.defineProperty(PIXI.Polygon.prototype, "clipperCoordinates", {
-    get: clipperCoordinates
-  });
+  if(!PIXI.Polygon.prototype.hasOwnProperty("clipperCoordinates")) {
+    Object.defineProperty(PIXI.Polygon.prototype, "clipperCoordinates", {
+      get: clipperCoordinates
+    });
+  }
 
   Object.defineProperty(PIXI.Polygon, "fromClipperPoints", {
     value: fromClipperPoints,

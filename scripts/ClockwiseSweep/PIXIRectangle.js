@@ -313,9 +313,11 @@ export function registerPIXIRectangleMethods() {
   });
 
   // For equivalence with a PIXI.Polygon
-  Object.defineProperty(PIXI.Rectangle.prototype, "isClosed", {
-    get: () => true
-  });
+  if(!PIXI.Rectangle.prototype.hasOwnProperty("isClosed")) {
+    Object.defineProperty(PIXI.Rectangle.prototype, "isClosed", {
+      get: () => true
+    });
+  }
 
   Object.defineProperty(PIXI.Rectangle.prototype, "translate", {
     value: translate,
