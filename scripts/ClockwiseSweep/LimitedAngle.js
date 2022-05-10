@@ -147,7 +147,7 @@ export class LimitedAngleSweepPolygon extends PIXI.Polygon {
    * @param {Ray}   rMax    Ray from origin on the right side of the "viewer."
    * @return {Points[]} Array of points representing the limited angle polygon.
    */
-  static getBoundaryPoints(origin, rMin, rMax) {
+  static getBoundaryPoints(origin, angle, rMin, rMax) {
     const points = [origin.x, origin.y]; // All the points of the LimitedAngle polygon
     const boundaries = [...canvas.walls.boundaries];
     // Find the boundary that intersects rMin and add intersection point.
