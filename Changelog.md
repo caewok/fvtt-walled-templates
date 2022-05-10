@@ -1,3 +1,6 @@
+## 0.2.3
+Fix rendering error when using a limited angle close to 360º. (Not typically an issue with templates, but inherited fix from light mask.)
+
 ## 0.2.2
 Fix conflict with PerfectVision by switching ClipperLib to an internal-only import.
 
