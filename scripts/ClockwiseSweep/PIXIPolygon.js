@@ -6,6 +6,8 @@ ClipperLib,
 
 "use strict";
 
+import { ClipperLib } from "./clipper_unminified.js";
+
 /* Additions to the PIXI.Polygon class:
 Getters:
 - isClosed: Are the points closed (first and last points are same)?

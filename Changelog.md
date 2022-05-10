@@ -1,3 +1,6 @@
+## 0.2.2
+Fix conflict with PerfectVision by switching ClipperLib to an internal-only import.
+
 ## 0.2.1
 Fix conflict with light mask where both modules define the same getters.
 
