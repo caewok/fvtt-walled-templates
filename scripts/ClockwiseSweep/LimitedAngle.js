@@ -48,7 +48,7 @@ export class LimitedAngleSweepPolygon extends PIXI.Polygon {
   static build(origin, angle, rotation, { contain_origin = true } = {}) {
     if (contain_origin) { origin = this.offsetOrigin(origin, rotation); }
     const { rMin, rMax } = this.constructLimitedAngleRays(origin, rotation, angle);
-    const points = this.getBoundaryPoints(origin, rMin, rMax);
+    const points = this.getBoundaryPoints(origin, angle, rMin, rMax);
 
     const poly = new this(points);
     poly.angle = angle;
@@ -166,17 +166,19 @@ export class LimitedAngleSweepPolygon extends PIXI.Polygon {
       }
     }
 
-    // "Walk" around the canvas edges.
-    // Starting with the rMin canvas intersection, check for rMax.
-    // If not intersected, than add the corner point.
-    // If greater than 180º angle, don't start with rMin intersection b/c we need to
-    // circle around.
-    if (this.angle > 180) {
+    // If angle is greater than 180º, we know we need at least one boundary.
+    // So add the boundary with which rMin collides first.
+    // This avoids the issue whereby an angle at, say 359º, would have rMin and rMax
+    // intersect the same canvas border but first we need to add all border corners.
+    if (angle > 180) {
       const boundary = boundaries[i];
       points.push(boundary.B.x, boundary.B.y);
       i = i + 1;
     }
 
+    // "Walk" around the canvas edges.
+    // Starting with the rMin canvas intersection, check for rMax.
+    // If not intersected, than add the corner point.
     for (let j = 0; j < ln; j += 1) {
       const new_i = (i + j) % 4;
       const boundary = boundaries[new_i];
