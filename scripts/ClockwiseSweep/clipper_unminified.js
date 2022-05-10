@@ -39,10 +39,11 @@
  * This is a translation of the C# Clipper library to Javascript.               *
  *                                                                              *
  *******************************************************************************/
-(function ()
-{
+
+
+
 	"use strict";
-	var ClipperLib = {};
+export const ClipperLib = {};
 	ClipperLib.version = '6.4.2.2';
 
 	//UseLines: Enables open path clipping. Adds a very minor cost to performance.
@@ -51,28 +52,11 @@
 	//ClipperLib.use_xyz: adds a Z member to FPoint. Adds a minor cost to performance.
 	ClipperLib.use_xyz = false;
 
-	var isNode = false;
-	if (typeof module !== 'undefined' && module.exports)
-	{
-		module.exports = ClipperLib;
-		isNode = true;
-	}
-	else
-	{
-		if (typeof (document) !== "undefined") window.ClipperLib = ClipperLib;
-		else self['ClipperLib'] = ClipperLib;
-	}
+
 	var navigator_appName;
-	if (!isNode)
-	{
-		var nav = navigator.userAgent.toString().toLowerCase();
-		navigator_appName = navigator.appName;
-	}
-	else
-	{
-		var nav = "chrome"; // Node.js uses Chrome's V8 engine
-		navigator_appName = "Netscape"; // Firefox, Chrome and Safari returns "Netscape", so Node.js should also
-	}
+  var nav = navigator.userAgent.toString().toLowerCase();
+	navigator_appName = navigator.appName;
+
 	// Browser test to speedup performance critical functions
 	var browser = {};
 
@@ -796,9 +780,9 @@
 	{
 		if (pt.X > ClipperLib.ClipperBase.maxValue || pt.X < -ClipperLib.ClipperBase.maxValue
 		|| pt.Y > ClipperLib.ClipperBase.maxValue || pt.Y < -ClipperLib.ClipperBase.maxValue
-|| (pt.X > 0 && pt.X < ClipperLib.ClipperBase.minValue) 
-|| (pt.Y > 0 && pt.Y < ClipperLib.ClipperBase.minValue) 
-|| (pt.X < 0 && pt.X > -ClipperLib.ClipperBase.minValue) 
+|| (pt.X > 0 && pt.X < ClipperLib.ClipperBase.minValue)
+|| (pt.Y > 0 && pt.Y < ClipperLib.ClipperBase.minValue)
+|| (pt.X < 0 && pt.X > -ClipperLib.ClipperBase.minValue)
 || (pt.Y < 0 && pt.Y > -ClipperLib.ClipperBase.minValue))
 			ClipperLib.Error("Coordinate outside allowed range in RangeTest().");
 	};
@@ -3513,7 +3497,7 @@
 				}
 
 				//When StrictlySimple and 'e' is being touched by another edge, then
-				//make sure both edges have a vertex here ...        
+				//make sure both edges have a vertex here ...
 				if (this.StrictlySimple)
 				{
 					var ePrev = e.PrevInAEL;
@@ -5635,5 +5619,3 @@
 		}
 		return expolygons;
 	};
-
-})();
