@@ -1,3 +1,6 @@
+## 0.2.3
+Fix rendering error when using a limited angle close to 360º.
+
 ## 0.2.2
 Fix conflict with PerfectVision by switching ClipperLib to an internal-only import.
 
