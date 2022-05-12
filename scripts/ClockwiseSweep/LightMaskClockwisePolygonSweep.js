@@ -103,19 +103,19 @@ export class LightMaskClockwisePolygonSweep extends ClockwiseSweepPolygon {
     // origin has moved 1+ pixels in either x or y direction.
     this.origin = { x: Math.round(this.origin.x), y: Math.round(this.origin.y) };
 
-    // Set the boundaryPolygon and customEdges using config.source
-    if (cfg?.source?.object) {
-      cfg.boundaryPolygon ||= (cfg.source.object?.boundaryPolygon
-        && cfg.source.object.boundaryPolygon(this.origin, cfg.radius, cfg.rotation));
-      cfg.tempEdges ||= (cfg.source.object?.customEdges && cfg.source.object.customEdges(this.origin));
+    // If the source has the boundaryPolygon or customEdges method, set config accordingly.
+    cfg.boundaryPolygon ||= (cfg.source?.boundaryPolygon
+      && cfg.source.boundaryPolygon(this.origin, cfg.radius, cfg.rotation));
+    cfg.tempEdges ||= (cfg.source?.customEdges
+      && cfg.source.customEdges(this.origin));
 
-      // If boundaryPolygon is "none", then drop any limited circle boundary
-      // This will cause the boundary to be the canvas edges.
-      if (cfg.boundaryPolygon === "none") {
-        cfg.boundaryPolygon = undefined;
-        cfg.hasLimitedRadius = false;
-      }
+    // If boundaryPolygon is "none", then drop any limited circle boundary
+    // This will cause the boundary to be the canvas edges.
+    if (cfg.boundaryPolygon === "none") {
+      cfg.boundaryPolygon = undefined;
+      cfg.hasLimitedRadius = false;
     }
+
 
     // Reset certain configuration values from what ClockwiseSweep did.
 

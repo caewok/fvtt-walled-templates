@@ -47,7 +47,7 @@ function useBoundaryPolygon() {
     debug: debugPolygons(),
     type: "light",
     density: 60,
-    source: { object: this }
+    source: this
   };
 
   const poly = new WalledTemplatesClockwiseSweepPolygon();
