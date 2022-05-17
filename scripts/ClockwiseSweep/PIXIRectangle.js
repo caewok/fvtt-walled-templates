@@ -113,67 +113,58 @@ function _intersectsLeft(a, b) {
 }
 
 /**
- * Split outside of rectangle into 8 zones by extending the rectangle edges indefinitely.
- * Zone is 1–8 starting at northwest corner, moving clockwise around rectangle.
- * containsPoint === true is zone 0
- * Determine in which zone a point falls.
+ * Use the Cohen-Sutherland algorithm approach to split a rectangle into zones:
+ *          left    central   right
+ * top      1001    1000      1010
+ * central  0001    0000      0010
+ * bottom   0101    0100      0110
+ * https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm
+ */
+const rectZones = {
+  INSIDE: 0x0000,
+  LEFT: 0x0001,
+  RIGHT: 0x0010,
+  TOP: 0x1000,
+  BOTTOM: 0x0100
+}
+
+/**
+ * Get the rectZone for a given x,y point located around or in a rectangle.
+ *
  * @param {Point} p
- * @return {number} 0–9
+ * @return {Integer}
  */
 function _zone(p) {
-  if (this.containsPoint(p)) return 0;
-
+  code = rectZones.INSIDE;
   if (p.x < this.x) {
-    // Zones 1, 8, 7
-    return p.y < this.y ? 1 : p.y > this.bottom ? 7 : 8;
+    code |= rectZones.LEFT;
   } else if (p.x > this.right) {
-    // Zones 3, 4, 5
-    return p.y < this.y ? 3 : p.y > this.bottom ? 5 : 4;
-  } else {
-    // X is within rectangle bounds; zones 2, 6
-    return p.y < this.y ? 2 : 6;
+    code |= rectZones.RIGHT;
+  }
+
+  if (p.y < this.y) {
+    code |= rectZones.TOP
+  } else if (p.y > this.bottom) {
+    code |= rectZones.BOTTOM
   }
 }
 
 function lineSegmentIntersects(a, b) {
   const zone_a = this._zone(a);
   const zone_b = this._zone(b);
-  if (!zone_a && !zone_b) return false; // Both points inside
-  if (zone_a === 0 || zone_b === 0) return true; // One point inside, one outside
 
-  // Checking every zone combination is complicated
-  // and does not give a huge speed increase.
-  // Instead, check the easy ones.
+  if(!(zone_a | zone_b)) { return false; } // Bitwise OR is 0: both points inside rectangle.
+  if(zone_a & zone_b) { return false; } // Bitwise AND is not 0: both points share outside zone
+  // LEFT, RIGHT, TOP, BOTTOM
 
-  // Points outside && a is on a corner:
-  if ((zone_a === 1)
-     && (zone_b === 1 || zone_b === 2 || zone_b === 3 || zone_b === 7 || zone_b === 8)) { return false; }
+  if(!zone_a || !zone_b) { return true; } // Regular OR: One point inside, one outside
 
-  if ((zone_a === 3)
-     && (zone_b === 1 || zone_b === 2 || zone_b === 3 || zone_b === 4 || zone_b === 5)) { return false; }
-
-  if ((zone_a === 5)
-     && (zone_b === 3 || zone_b === 4 || zone_b === 5 || zone_b === 6 || zone_b === 7)) { return false; }
-
-  if ((zone_a === 7)
-     && (zone_b === 5 || zone_b === 6 || zone_b === 7 || zone_b === 8 || zone_b === 1)) { return false; }
-
-  // Points outside && on same side of rectangle:
-  if   ((zone_a === 1 || zone_a === 2 || zone_a === 3) // eslint-disable-line no-multi-spaces
-     && (zone_b === 1 || zone_b === 2 || zone_b === 3)) { return false; }
-
-  if   ((zone_a === 3 || zone_a === 4 || zone_a === 5) // eslint-disable-line no-multi-spaces
-     && (zone_b === 3 || zone_b === 4 || zone_b === 5)) { return false; }
-
-  if   ((zone_a === 5 || zone_a === 6 || zone_a === 7) // eslint-disable-line no-multi-spaces
-     && (zone_b === 5 || zone_b === 6 || zone_b === 7)) { return false; }
-
-  if   ((zone_a === 7 || zone_a === 8 || zone_a === 1) // eslint-disable-line no-multi-spaces
-     && (zone_b === 7 || zone_b === 8 || zone_b === 1)) { return false; }
-
+  // Line likely intersects, but some possibility that the line starts at, say,
+  // center left and moves to center top which means it may or may not cross the
+  // rectangle
 
   // Could just do this and skip the above; but it is a bit faster
-  // to check some of the easy cases above first.
+  // to check the easy cases above first.
   return this._intersectsTop(a, b)
     || this._intersectsRight(a, b)
     || this._intersectsBottom(a, b)
