@@ -1,3 +1,7 @@
+## 0.2.4
+- Do not overwrite the origin object to improve compatibility with Wall Height.
+- Use Cohen-Sutherland approach to classifying zones around a rectangle to improve segment intersection identification.
+
 ## 0.2.3
 Fix rendering error when using a limited angle close to 360º. (Not typically an issue with templates, but inherited fix from light mask.)
 
