@@ -101,7 +101,11 @@ export class LightMaskClockwisePolygonSweep extends ClockwiseSweepPolygon {
     //  simpler option.)
     // TO-DO: Rounding origin implies that ClockwiseSweep should only be called when the
     // origin has moved 1+ pixels in either x or y direction.
-    this.origin = { x: Math.round(this.origin.x), y: Math.round(this.origin.y) };
+
+    // Don't overwrite the origin object in case other modules, like wall height or levels,
+    // have added properties to the origin.
+    this.origin.x = Math.round(this.origin.x);
+    this.origin.y = Math.round(this.origin.y);
 
     // If the source has the boundaryPolygon or customEdges method, set config accordingly.
     cfg.boundaryPolygon ||= (cfg.source?.boundaryPolygon
