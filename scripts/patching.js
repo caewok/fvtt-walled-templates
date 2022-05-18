@@ -16,6 +16,7 @@ import {
   walledTemplateGetRayShape } from "./getShape.js";
 import { walledTemplate5eFromItem } from "./render5eSpellTemplateConfig.js";
 import { boundaryPolygon } from "./boundaryPolygon.js";
+import { walledTemplatesMeasuredTemplateDraw, autotargetByTokenCenter } from "./targeting.js";
 
 export function registerWalledTemplates() {
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getCircleShape", walledTemplateGetCircleShape, "WRAPPER");
@@ -27,6 +28,8 @@ export function registerWalledTemplates() {
     // Catch when template is created from item; set walled template enabled based on item
     libWrapper.register(MODULE_ID, "game.dnd5e.canvas.AbilityTemplate.fromItem", walledTemplate5eFromItem, "WRAPPER");
   }
+
+  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.refresh", walledTemplatesMeasuredTemplateDraw, "WRAPPER");
 }
 
 Object.defineProperty(MeasuredTemplate.prototype, "boundaryPolygon", {
@@ -34,3 +37,10 @@ Object.defineProperty(MeasuredTemplate.prototype, "boundaryPolygon", {
   writable: true,
   configurable: true
 });
+
+Object.defineProperty(MeasuredTemplate.prototype, "autotargetByTokenCenter", {
+  value: autotargetByTokenCenter,
+  writable: true,
+  configurable: true
+});
+
