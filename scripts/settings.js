@@ -23,18 +23,34 @@ export function registerSettings() {
     type: Boolean
   });
 
-  game.settings.register(MODULE_ID, "auto-target-method", {
-    name: "Auto-targeting method",
+  game.settings.register(MODULE_ID, "autotarget-method", {
+    name: "Autotargeting method",
     hint: "Method to auto-target tokens with templates",
     scope: "world",
     config: true,
     default: "center",
     type: String,
     choices: {
-      center: "By token center",
-      collision: "Using collision rays from template center",
+      no: "No autotargeting",
+      center: "Token center inside template",
+      overlap: "Token area overlaps template",
+      collision: "Line from template origin strikes token"
     }
   }); // See class TokenLayer.targetObjects
+
+  game.settings.register(MODULE_ID, "autotarget-area", {
+    name: "Autotargeting area",
+    hint: "For overlap method, percent of the token area that must overlap the template to count as a target.",
+    range: {
+      max: 100,
+      min: 0,
+      step: 10
+    },
+    type: Number,
+    default: 0,
+    scope: "world",
+    config: true
+  });
 
   // Setting to use percentage of token area on template edges
   // Setting to force token autotarget on/off?

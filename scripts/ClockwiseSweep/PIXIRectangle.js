@@ -126,7 +126,7 @@ const rectZones = {
   RIGHT: 0x0010,
   TOP: 0x1000,
   BOTTOM: 0x0100
-}
+};
 
 /**
  * Get the rectZone for a given x,y point located around or in a rectangle.
@@ -135,7 +135,7 @@ const rectZones = {
  * @return {Integer}
  */
 function _zone(p) {
-  code = rectZones.INSIDE;
+  let code = rectZones.INSIDE;
   if (p.x < this.x) {
     code |= rectZones.LEFT;
   } else if (p.x > this.right) {
@@ -143,9 +143,9 @@ function _zone(p) {
   }
 
   if (p.y < this.y) {
-    code |= rectZones.TOP
+    code |= rectZones.TOP;
   } else if (p.y > this.bottom) {
-    code |= rectZones.BOTTOM
+    code |= rectZones.BOTTOM;
   }
 }
 
@@ -153,11 +153,11 @@ function lineSegmentIntersects(a, b) {
   const zone_a = this._zone(a);
   const zone_b = this._zone(b);
 
-  if(!(zone_a | zone_b)) { return false; } // Bitwise OR is 0: both points inside rectangle.
-  if(zone_a & zone_b) { return false; } // Bitwise AND is not 0: both points share outside zone
+  if ( !(zone_a | zone_b) ) { return false; } // Bitwise OR is 0: both points inside rectangle.
+  if ( zone_a & zone_b ) { return false; } // Bitwise AND is not 0: both points share outside zone
   // LEFT, RIGHT, TOP, BOTTOM
 
-  if(!zone_a || !zone_b) { return true; } // Regular OR: One point inside, one outside
+  if ( !zone_a || !zone_b ) { return true; } // Regular OR: One point inside, one outside
 
   // Line likely intersects, but some possibility that the line starts at, say,
   // center left and moves to center top which means it may or may not cross the

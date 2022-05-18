@@ -16,7 +16,11 @@ import {
   walledTemplateGetRayShape } from "./getShape.js";
 import { walledTemplate5eFromItem } from "./render5eSpellTemplateConfig.js";
 import { boundaryPolygon } from "./boundaryPolygon.js";
-import { walledTemplatesMeasuredTemplateDraw, autotargetByTokenCenter } from "./targeting.js";
+import {
+  walledTemplatesMeasuredTemplateDraw,
+  autotargetByTokenCenter,
+  autotargetByTokenOverlap,
+  autotargetByCollision } from "./targeting.js";
 
 export function registerWalledTemplates() {
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getCircleShape", walledTemplateGetCircleShape, "WRAPPER");
@@ -44,3 +48,14 @@ Object.defineProperty(MeasuredTemplate.prototype, "autotargetByTokenCenter", {
   configurable: true
 });
 
+Object.defineProperty(MeasuredTemplate.prototype, "autotargetByTokenOverlap", {
+  value: autotargetByTokenOverlap,
+  writable: true,
+  configurable: true
+});
+
+Object.defineProperty(MeasuredTemplate.prototype, "autotargetByCollision", {
+  value: autotargetByCollision,
+  writable: true,
+  configurable: true
+});
