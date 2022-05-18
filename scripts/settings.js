@@ -23,6 +23,23 @@ export function registerSettings() {
     type: Boolean
   });
 
+  game.settings.register(MODULE_ID, "auto-target-method", {
+    name: "Auto-targeting method",
+    hint: "Method to auto-target tokens with templates",
+    scope: "world",
+    config: true,
+    default: "center",
+    type: String,
+    choices: {
+      center: "By token center",
+      collision: "Using collision rays from template center",
+    }
+  }); // See class TokenLayer.targetObjects
+
+  // Setting to use percentage of token area on template edges
+  // Setting to force token autotarget on/off?
+  // Add control button to toggle autotarget on/off?
+
   log("Done registering settings.");
 }
 
