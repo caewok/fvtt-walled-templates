@@ -365,6 +365,20 @@ function translate(delta_x, delta_y) {
 // ---------------- Clipper JS library ---------------------------------------------------
 
 /**
+ * Intersect another polygon
+ */
+function intersectPolygon(other) {
+  return this.clipperClip(other, { cliptype: ClipperLib.ClipType.ctIntersection })
+}
+
+/**
+ * Union another polygon
+ */
+function unionPolygon(other) {
+  return this.clipperClip(other, { cliptype: ClipperLib.ClipType.ctUnion })
+}
+
+/**
  * Transform array of X, Y points to a PIXI.Polygon
  */
 function fromClipperPoints(points) {
@@ -450,6 +464,18 @@ function clipperClip(poly, { cliptype = ClipperLib.ClipType.ctUnion } = {}) {
   c.Execute(cliptype, solution);
 
   return PIXI.Polygon.fromClipperPoints(solution[0]);
+}
+
+/**
+ * Area of polygon
+ */
+function area() {
+  return Math.abs(this.clipperArea());
+}
+
+function clipperArea() {
+  const path = this.clipperCoordinates;
+  return ClipperLib.Clipper.Area(path);
 }
 
 
@@ -559,6 +585,18 @@ export function registerPIXIPolygonMethods() {
 
   // ----------------  CLIPPER LIBRARY METHODS ------------------------
 
+  Object.defineProperty(PIXI.Polygon.prototype, "intersectPolygon", {
+    value: intersectPolygon,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(PIXI.Polygon.prototype, "unionPolygon", {
+    value: unionPolygon,
+    writable: true,
+    configurable: true
+  });
+
   Object.defineProperty(PIXI.Polygon.prototype, "iterateClipperLibPoints", {
     value: iterateClipperLibPoints,
     writable: true,
@@ -597,6 +635,18 @@ export function registerPIXIPolygonMethods() {
 
   Object.defineProperty(PIXI.Polygon.prototype, "clipperContains", {
     value: clipperContains,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(PIXI.Polygon.prototype, "area", {
+    value: area,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(PIXI.Polygon.prototype, "clipperArea", {
+    value: clipperArea,
     writable: true,
     configurable: true
   });

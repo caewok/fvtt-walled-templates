@@ -19,8 +19,7 @@ import { boundaryPolygon } from "./boundaryPolygon.js";
 import {
   walledTemplatesMeasuredTemplateDraw,
   autotargetByTokenCenter,
-  autotargetByTokenOverlap,
-  autotargetByCollision } from "./targeting.js";
+  autotargetByTokenOverlap } from "./targeting.js";
 
 export function registerWalledTemplates() {
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getCircleShape", walledTemplateGetCircleShape, "WRAPPER");
@@ -50,12 +49,6 @@ Object.defineProperty(MeasuredTemplate.prototype, "autotargetByTokenCenter", {
 
 Object.defineProperty(MeasuredTemplate.prototype, "autotargetByTokenOverlap", {
   value: autotargetByTokenOverlap,
-  writable: true,
-  configurable: true
-});
-
-Object.defineProperty(MeasuredTemplate.prototype, "autotargetByCollision", {
-  value: autotargetByCollision,
   writable: true,
   configurable: true
 });

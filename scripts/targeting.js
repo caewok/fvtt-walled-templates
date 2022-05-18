@@ -1,7 +1,5 @@
 /* globals
 canvas,
-Ray,
-ClockwiseSweepPolygon,
 PIXI,
 game
 */
@@ -56,42 +54,23 @@ export function autotargetByTokenOverlap({ only_visible = false } = {}) {
     if ( only_visible && !token.visible ) { return false; }
     return tokenOverlapsShape(token, this.shape, this.data);
   });
+  log(`autotargetByTokenOverlap: ${targets.length} targets before area calculation.`);
+
+  const area_percentage = getSetting("autotarget-area");
+  if ( area_percentage ) {
+    // For each target, calculate the area of overlap by constructing the intersecting
+    // polygon between token hit rectangle and the template shape.
+    targets = targets.filter(token => {
+      const poly = tokenShapeIntersection(token, this.shape, this.data);
+      if ( !poly || poly.points.length < 3 ) return false;
+      const t_area = token.hitArea.width * token.hitArea.height;
+      const p_area = poly.area();
+      const target_area = t_area * area_percentage;
+      return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%
+    });
+  }
 
   log(`autotargetByTokenOverlap: ${targets.length} targets.`);
-  releaseAndAcquireTargets(targets);
-}
-
-/**
- * Target token based on whether there is a collision between any corner of the token
- * and the origin of the template shape.
- * Whether target token is within the template is determined mathematically based
- * on shape type.
- */
-export function autotargetByCollision({ type = "move", only_visible = false } = {}) {
-  // Locate the set of tokens to target
-  // Any overlap with the template counts.
-  // Refine set of targets by collision ray
-  let targets = canvas.tokens.placeables.filter(token => {
-    if ( only_visible && !token.visible ) { return false; }
-    const tRect = token._boundsRect;
-    const corners = [
-      { x: tRect.left, y: tRect.top },
-      { x: tRect.right, y: tRect.top },
-      { x: tRect.right, y: tRect.bottom },
-      { x: tRect.left, y: tRect.bottom }
-    ];
-
-    for ( let i = 0; i < 4; i += 1 ) {
-      const r = new Ray(this.data, corners[i]);
-      if ( ClockwiseSweepPolygon.getRayCollisions(r, { type, mode: "any" }) ) {
-        return false;
-      }
-    }
-
-    return true;
-  });
-
-  log(`autotargetByCollision: ${targets.length} targets.`);
   releaseAndAcquireTargets(targets);
 }
 
@@ -118,6 +97,7 @@ function releaseAndAcquireTargets(targets) {
 }
 
 
+// TO-DO: Handle hex token shapes
 function tokenOverlapsShape(token, shape, origin) {
   log(`tokenOverlapsShape|testing token ${token?.id} at origin ${origin.x},${origin.y}`, token, shape);
 
@@ -165,3 +145,29 @@ function tokenOverlapsShape(token, shape, origin) {
   return overlaps;
 }
 
+// TO-DO: Handle hex token shapes
+function tokenShapeIntersection(token, shape, origin) {
+  log(`tokenShapeIntersection|testing token ${token?.id} at origin ${origin.x},${origin.y}`, token, shape);
+
+  // Use the token hit area, adjusted for the token center.
+  const w = token.hitArea.width;
+  const h = token.hitArea.height;
+  const tRect = new PIXI.Rectangle(token.center.x - (w / 2), token.center.y - (h /2), w, h);
+
+  // Adjust to match template origin 0,0
+  tRect.translate(-origin.x, -origin.y);
+
+  // Token always a rectangle. Shape could be rectangle, circle, or polygon
+  if ( shape instanceof PIXI.Polygon ) {
+    return shape.intersectPolygon(tRect.toPolygon());
+
+  } else if ( shape instanceof PIXI.Circle ) {
+    return shape.intersectPolygon(tRect.toPolygon(), { density: 12 });
+
+  } else if ( shape instanceof PIXI.Rectangle ) {
+    return tRect.rectangleIntersection(shape);
+
+  } else {
+    console.warn("tokenOverlapsShape|shape not recognized.", shape);
+  }
+}

@@ -34,17 +34,16 @@ export function registerSettings() {
       no: "No autotargeting",
       center: "Token center inside template",
       overlap: "Token area overlaps template",
-      collision: "Line from template origin strikes token"
     }
   }); // See class TokenLayer.targetObjects
 
   game.settings.register(MODULE_ID, "autotarget-area", {
     name: "Autotargeting area",
-    hint: "For overlap method, percent of the token area that must overlap the template to count as a target.",
+    hint: "For overlap method, percent of the token area that must overlap the template to count as a target. 0 means any overlap counts.",
     range: {
-      max: 100,
+      max: 1,
       min: 0,
-      step: 10
+      step: 0.1
     },
     type: Number,
     default: 0,
