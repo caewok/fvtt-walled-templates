@@ -1,3 +1,6 @@
+## 0.2.5
+Improve compatibility with Pathfinder 2e. Fixes [issue #4](https://github.com/caewok/fvtt-walled-templates/issues/4)
+
 ## 0.2.4
 - Do not overwrite the origin object to improve compatibility with Wall Height.
 - Use Cohen-Sutherland approach to classifying zones around a rectangle to improve segment intersection identification.

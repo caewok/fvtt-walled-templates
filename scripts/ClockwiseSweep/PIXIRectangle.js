@@ -136,17 +136,18 @@ const rectZones = {
  */
 function _zone(p) {
   let code = rectZones.INSIDE;
-  if (p.x < this.x) {
+  if ( p.x < this.x ) {
     code |= rectZones.LEFT;
-  } else if (p.x > this.right) {
+  } else if ( p.x > this.right ) {
     code |= rectZones.RIGHT;
   }
 
-  if (p.y < this.y) {
+  if ( p.y < this.y ) {
     code |= rectZones.TOP;
-  } else if (p.y > this.bottom) {
+  } else if ( p.y > this.bottom ) {
     code |= rectZones.BOTTOM;
   }
+  return code;
 }
 
 function lineSegmentIntersects(a, b) {
