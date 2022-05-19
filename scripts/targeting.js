@@ -12,9 +12,7 @@ import { log } from "./module.js";
  * Wrap MeasuredTemplate.prototype.draw to target tokens after drawing.
  */
 export function walledTemplatesMeasuredTemplateDraw(wrapped) {
-  log("walledTemplatesMeasuredTemplateDraw");
   const out = wrapped();
-  log("walledTemplatesMeasuredTemplateDraw returned from wrap", out);
   switch ( getSetting("autotarget-method") ) {
     case "center": this.autotargetByTokenCenter(); break;
     case "overlap": this.autotargetByTokenOverlap(); break;
@@ -81,14 +79,29 @@ function releaseAndAcquireTargets(targets) {
   // Release other targets
   for ( let t of user.targets ) {
     if ( !targets.includes(t) ) {
-      t.setTarget(false, { releaseOthers: false, groupSelection: true });
+      log(`Un-targeting token ${t.id}`, t);
+      // When switching to a new scene, Foundry will sometimes try to setTarget using
+      // token.position, but token.position throws an error. Maybe canvas not loaded?
+      try {
+        t.setTarget(false, { releaseOthers: false, groupSelection: true });
+      } catch(error) {
+        log(error); // Just log it b/c probably not (easily) fixable
+      }
+
     }
   }
 
   // Acquire targets for those not yet targeted
   targets.forEach(t => {
     if ( !user.targets.has(t) ) {
-      t.setTarget(true, { releaseOthers: false, groupSelection: true });
+       log(`Targeting token ${t.id}`, t);
+      // When switching to a new scene, Foundry will sometimes try to setTarget using
+      // token.position, but token.position throws an error. Maybe canvas not loaded?
+      try {
+        t.setTarget(true, { releaseOthers: false, groupSelection: true });
+      } catch(error) {
+        log(error); // Just log it b/c probably not (easily) fixable
+      }
     }
   });
 
@@ -109,16 +122,23 @@ function tokenOverlapsShape(token, shape, origin) {
   // Adjust to match template origin 0,0
   tRect.translate(-origin.x, -origin.y);
 
-  let overlaps = false;
   if ( shape instanceof PIXI.Polygon ) {
+    if ( shape.contains(tRect.left, tRect.top)
+      || shape.contains(tRect.right, tRect.top)
+      || shape.contains(tRect.left, tRect.bottom)
+      || shape.contains(tRect.right, tRect.bottom)) {
+      return true;
+
+    }
+
     for ( const edge of shape.iterateEdges() ) {
       if ( tRect.lineSegmentIntersects(edge.A, edge.B)
         || tRect.containsPoint(edge.A)
         || tRect.containsPoint(edge.B)) {
-        overlaps = true;
-        break;
+        return true;
       }
     }
+
   } else if ( shape instanceof PIXI.Circle ) {
     // https://www.geeksforgeeks.org/check-if-any-point-overlaps-the-given-circle-and-rectangle
     // {xn,yn} is the nearest point on the rectangle to the circle center
@@ -128,7 +148,7 @@ function tokenOverlapsShape(token, shape, origin) {
     // Find the distance between the nearest point and the center of the circle
     const dx = xn - shape.x;
     const dy = yn - shape.y;
-    overlaps = (Math.pow(dx, 2) + Math.pow(dy, 2)) <= Math.pow(shape.radius, 2);
+    return (Math.pow(dx, 2) + Math.pow(dy, 2)) <= Math.pow(shape.radius, 2);
   } else if ( shape instanceof PIXI.Rectangle ) {
     // https://www.geeksforgeeks.org/find-two-rectangles-overlap
     if ( tRect.top > shape.bottom || shape.top > tRect.bottom ) {
@@ -136,13 +156,13 @@ function tokenOverlapsShape(token, shape, origin) {
     } else if ( tRect.left > shape.right || shape.left > tRect.right ) {
     // One rect is to the left of the other: No overlap
     } else {
-      overlaps = true;
+      return true;
     }
   } else {
     console.warn("tokenOverlapsShape|shape not recognized.", shape);
   }
 
-  return overlaps;
+  return false;
 }
 
 // TO-DO: Handle hex token shapes
