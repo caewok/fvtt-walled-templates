@@ -1,12 +1,14 @@
 /* globals
 canvas,
 PIXI,
-game
+game,
+CONST
 */
 "use strict";
 
 import { getSetting } from "./settings.js";
 import { log } from "./module.js";
+import { Hexagon } from "./Hexagon.js";
 
 /**
  * Wrap MeasuredTemplate.prototype.draw to target tokens after drawing.
@@ -61,9 +63,11 @@ export function autotargetByTokenOverlap({ only_visible = false } = {}) {
     targets = targets.filter(token => {
       const poly = tokenShapeIntersection(token, this.shape, this.data);
       if ( !poly || poly.points.length < 3 ) return false;
-      const t_area = token.hitArea.width * token.hitArea.height;
+      const t_area = tokenArea(token);
       const p_area = poly.area();
       const target_area = t_area * area_percentage;
+      log(`Target area: ${t_area}; Polygon area: ${p_area}.`);
+
       return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%
     });
   }
@@ -72,6 +76,24 @@ export function autotargetByTokenOverlap({ only_visible = false } = {}) {
   releaseAndAcquireTargets(targets);
 }
 
+/**
+ * Calculate the hit area of a token. Either square or hexagon.
+ * @param {Token} token
+ * @return {Number}
+ */
+function tokenArea(token) {
+  if ( canvas.scene.data.gridType === CONST.GRID_TYPES.GRIDLESS
+    || canvas.scene.data.gridType === CONST.GRID_TYPES.SQUARE) {
+    return token.hitArea.width * token.hitArea.height;
+  }
+  return Hexagon.fromToken(token).area();
+}
+
+/**
+ * Given an array of target tokens, release all other targets for the user and target
+ * these.
+ * @param {Token[]} targets
+ */
 function releaseAndAcquireTargets(targets) {
   // Closely follows TokenLayer.prototype.targetObjects
   const user = game.user;
@@ -87,14 +109,13 @@ function releaseAndAcquireTargets(targets) {
       } catch(error) {
         log(error); // Just log it b/c probably not (easily) fixable
       }
-
     }
   }
 
   // Acquire targets for those not yet targeted
   targets.forEach(t => {
     if ( !user.targets.has(t) ) {
-       log(`Targeting token ${t.id}`, t);
+      log(`Targeting token ${t.id}`, t);
       // When switching to a new scene, Foundry will sometimes try to setTarget using
       // token.position, but token.position throws an error. Maybe canvas not loaded?
       try {
@@ -109,85 +130,76 @@ function releaseAndAcquireTargets(targets) {
   user.broadcastActivity({ targets: user.targets.ids });
 }
 
-
-// TO-DO: Handle hex token shapes
+/**
+ * Test whether the token hit area overlaps a given shape.
+ * @param {Token}           token
+ * @param {PIXI.Polygon
+          |PIXI.Circle
+          |PIXI.Rectangle}  shape
+ * @param {Point}           origin    Origin of the template. Shape is normalized to 0,0.
+ * @return {Boolean}
+ */
 function tokenOverlapsShape(token, shape, origin) {
   log(`tokenOverlapsShape|testing token ${token?.id} at origin ${origin.x},${origin.y}`, token, shape);
+  const tBounds = tokenBounds(token);  // Either a rectangle or hexagon representing token bounds
+  tBounds.translate(-origin.x, -origin.y); // Adjust to match template origin 0,0
 
-  // Use the token hit area, adjusted for the token center.
-  const w = token.hitArea.width;
-  const h = token.hitArea.height;
-  const tRect = new PIXI.Rectangle(token.center.x - (w / 2), token.center.y - (h /2), w, h);
+  if ( shape instanceof PIXI.Polygon ) { return tBounds.overlapsPolygon(shape); }
+  if ( shape instanceof PIXI.Circle ) { return tBounds.overlapsCircle(shape); }
+  if ( shape instanceof PIXI.Rectangle ) { return tBounds.overlapsRectangle(shape); }
 
-  // Adjust to match template origin 0,0
-  tRect.translate(-origin.x, -origin.y);
-
-  if ( shape instanceof PIXI.Polygon ) {
-    if ( shape.contains(tRect.left, tRect.top)
-      || shape.contains(tRect.right, tRect.top)
-      || shape.contains(tRect.left, tRect.bottom)
-      || shape.contains(tRect.right, tRect.bottom)) {
-      return true;
-
-    }
-
-    for ( const edge of shape.iterateEdges() ) {
-      if ( tRect.lineSegmentIntersects(edge.A, edge.B)
-        || tRect.containsPoint(edge.A)
-        || tRect.containsPoint(edge.B)) {
-        return true;
-      }
-    }
-
-  } else if ( shape instanceof PIXI.Circle ) {
-    // https://www.geeksforgeeks.org/check-if-any-point-overlaps-the-given-circle-and-rectangle
-    // {xn,yn} is the nearest point on the rectangle to the circle center
-    const xn = Math.max(tRect.right, Math.min(shape.x, tRect.left));
-    const yn = Math.max(tRect.top, Math.min(shape.y, tRect.bottom));
-
-    // Find the distance between the nearest point and the center of the circle
-    const dx = xn - shape.x;
-    const dy = yn - shape.y;
-    return (Math.pow(dx, 2) + Math.pow(dy, 2)) <= Math.pow(shape.radius, 2);
-  } else if ( shape instanceof PIXI.Rectangle ) {
-    // https://www.geeksforgeeks.org/find-two-rectangles-overlap
-    if ( tRect.top > shape.bottom || shape.top > tRect.bottom ) {
-      // One rect is above the other: No overlap
-    } else if ( tRect.left > shape.right || shape.left > tRect.right ) {
-    // One rect is to the left of the other: No overlap
-    } else {
-      return true;
-    }
-  } else {
-    console.warn("tokenOverlapsShape|shape not recognized.", shape);
-  }
-
+  console.warn("tokenOverlapsShape|shape not recognized.", shape);
   return false;
 }
 
-// TO-DO: Handle hex token shapes
+/**
+ * Return either a square- or hexagon-shaped hit area object based on grid type
+ * @param {Token} token
+ * @return {PIXI.Rectangle|Hexagon}
+ */
+function tokenBounds(token) {
+  if ( canvas.scene.data.gridType === CONST.GRID_TYPES.GRIDLESS
+    || canvas.scene.data.gridType === CONST.GRID_TYPES.SQUARE ) {
+    const w = token.hitArea.width;
+    const h = token.hitArea.height;
+    return new PIXI.Rectangle(token.center.x - (w / 2), token.center.y - (h /2), w, h);
+  }
+
+  return Hexagon.fromToken(token);
+}
+
+/**
+ * Return the intersection of the token hit area with a shape.
+ * @param {Token}           token
+ * @param {PIXI.Polygon
+          |PIXI.Circle
+          |PIXI.Rectangle}  shape
+ * @param {Point}           origin    Origin of the template. Shape is normalized to 0,0.
+ * @return {PIXI.Polygon}
+ */
 function tokenShapeIntersection(token, shape, origin) {
   log(`tokenShapeIntersection|testing token ${token?.id} at origin ${origin.x},${origin.y}`, token, shape);
 
-  // Use the token hit area, adjusted for the token center.
-  const w = token.hitArea.width;
-  const h = token.hitArea.height;
-  const tRect = new PIXI.Rectangle(token.center.x - (w / 2), token.center.y - (h /2), w, h);
+  const tBounds = tokenBounds(token);
+  tBounds.translate(-origin.x, -origin.y);
 
-  // Adjust to match template origin 0,0
-  tRect.translate(-origin.x, -origin.y);
-
-  // Token always a rectangle. Shape could be rectangle, circle, or polygon
   if ( shape instanceof PIXI.Polygon ) {
-    return shape.intersectPolygon(tRect.toPolygon());
-
-  } else if ( shape instanceof PIXI.Circle ) {
-    return shape.intersectPolygon(tRect.toPolygon(), { density: 12 });
-
-  } else if ( shape instanceof PIXI.Rectangle ) {
-    return tRect.rectangleIntersection(shape);
-
-  } else {
-    console.warn("tokenOverlapsShape|shape not recognized.", shape);
+    return shape.intersectPolygon(tBounds.toPolygon());
   }
+
+  if ( shape instanceof PIXI.Circle ) {
+    // Intersecting a polygon with a circle is faster than two polygons
+    return shape.intersectPolygon(tBounds.toPolygon(), { density: 12});
+  }
+
+  if ( shape instanceof PIXI.Rectangle ) {
+    // Intersecting rectangles is easier, so do that if possible
+    if ( tBounds instanceof PIXI.Rectangle ) {
+      return tBounds.intersection(shape).toPolygon(); // Intersection of two PIXI.Rectangles returns PIXI.Rectangle
+    }
+    return tBounds.toPolygon().intersectPolygon(shape.toPolygon());
+  }
+
+  console.warn("tokenOverlapsShape|shape not recognized.", shape);
+  return new PIXI.Polygon(); // Null polygon b/c we expect a polygon on return
 }
