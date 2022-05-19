@@ -9,6 +9,7 @@ MeasuredTemplate
 // Patches
 
 import { MODULE_ID } from "./const.js";
+import { log } from "./module.js";
 import {
   walledTemplateGetCircleShape,
   walledTemplateGetConeShape,
@@ -43,8 +44,10 @@ Object.defineProperty(MeasuredTemplate.prototype, "boundaryPolygon", {
 
 // Same as PF2e but for the contains test
 function WalledTemplatesPF2eHighlightGrid() {
+  log(`WalledTemplatesPF2eHighlightGrid type ${this.type}`);
+
   if (!["circle", "cone"].includes(this.type) || canvas.scene?.data.gridType !== CONST.GRID_TYPES.SQUARE) {
-      return MeasuredTemplate.highlightGrid.bind(this);
+      return MeasuredTemplate.prototype.highlightGrid.bind(this)();
   }
 
   const grid = canvas.grid;
@@ -56,6 +59,7 @@ function WalledTemplatesPF2eHighlightGrid() {
 
   // Clear existing highlight
   const highlightLayer = grid.getHighlightLayer(`Template.${this.id}`)?.clear();
+  if(!highlightLayer) return; // *** NEW: Break early if no highlight layer
 
   // Get the center of the grid position occupied by the template
   const x = this.data.x;
@@ -127,16 +131,20 @@ function WalledTemplatesPF2eHighlightGrid() {
           // Determine point we're measuring the distance to - always in the center of a grid square
           const destination = { x: cellCenterX, y: cellCenterY };
 
+          // *** NEW ***
+          // check distance first because that is likely the easier calculation
           const distance = this.measureDistance(destination, origin);
+          if(distance > this.data.distance) { continue; }
 
           // *** NEW ***
-          // If the point we are measuring is not contained in the shape, skip
-          // (Likely blocked by a wall)
-          if (highlightLayer && distance <= this.data.distance && this.shape.contains(destination.x, destination.y)) {
-              const color = this.fillColor;
-              const border = this.borderColor;
-              grid.grid.highlightGridPosition(highlightLayer, { x: gx, y: gy, color, border });
-          }
+          // If the shape does not contain destination, skip.
+          // Remember that the shape is set to 0,0 origin.
+          const translated_destination = { x: destination.x - this.data.x, y: destination.y - this.data.y };
+          if(!this.shape.contains(translated_destination.x, translated_destination.y)) { continue; }
+
+          const color = this.fillColor;
+          const border = this.borderColor;
+          grid.grid.highlightGridPosition(highlightLayer, { x: gx, y: gy, color, border });
       }
   }
 }
