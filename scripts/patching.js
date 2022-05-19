@@ -71,8 +71,8 @@ function WalledTemplatesPF2eHighlightGrid() {
 
   const [cx, cy] = grid.getCenter(x, y);
   const [col0, row0] = grid.grid.getGridPositionFromPixels(cx, cy);
-  const minAngle = (360 + (((this.data.direction - this.data.angle) * 0.5) % 360)) % 360;
-  const maxAngle = (360 + (((this.data.direction + this.data.angle) * 0.5) % 360)) % 360;
+  const minAngle = (360 + ((this.data.direction - (this.data.angle * 0.5)) % 360)) % 360;
+  const maxAngle = (360 + ((this.data.direction + (this.data.angle * 0.5)) % 360)) % 360;
 
   const withinAngle = (min, max, value) => {
     min = (360 + (min % 360)) % 360;
