@@ -30,7 +30,7 @@ export function registerWalledTemplates() {
 
   if (game.system.id === "pf2e") {
     // Override how the grid is highlighted for cones and rays
-    libWrapper.register(MODULE_ID, "MeasuredTemplatePF2e.prototype.highlightGrid", WalledTemplatesPF2eHighlightGrid, "OVERRIDE");
+    libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype.highlightGrid", WalledTemplatesPF2eHighlightGrid, "OVERRIDE");
   }
 }
 
