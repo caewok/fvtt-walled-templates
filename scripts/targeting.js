@@ -6,7 +6,7 @@ CONST
 */
 "use strict";
 
-import { getSetting } from "./settings.js";
+import { getSetting, SETTINGS } from "./settings.js";
 import { log } from "./module.js";
 import { Hexagon } from "./Hexagon.js";
 
@@ -15,11 +15,10 @@ import { Hexagon } from "./Hexagon.js";
  */
 export function walledTemplatesMeasuredTemplateDraw(wrapped) {
   const out = wrapped();
-  if( !getSetting("autotarget-enabled") ) { return out; }
-  switch ( getSetting("autotarget-method") ) {
-    case "center": this.autotargetByTokenCenter(); break;
-    case "overlap": this.autotargetByTokenOverlap(); break;
-    case "collision": this.autotargetByCollision(); break;
+  if( !getSetting(SETTINGS.AUTOTARGET.ENABLED) ) { return out; }
+  switch ( getSetting(SETTINGS.AUTOTARGET.METHOD) ) {
+    case SETTINGS.AUTOTARGET.METHODS.CENTER: this.autotargetByTokenCenter(); break;
+    case SETTINGS.AUTOTARGET.METHODS.OVERLAP: this.autotargetByTokenOverlap(); break;
   }
 
   return out;
@@ -57,7 +56,7 @@ export function autotargetByTokenOverlap({ only_visible = false } = {}) {
   });
   log(`autotargetByTokenOverlap: ${targets.length} targets before area calculation.`);
 
-  const area_percentage = getSetting("autotarget-area");
+  const area_percentage = getSetting(SETTINGS.AUTOTARGET.AREA);
   if ( area_percentage ) {
     // For each target, calculate the area of overlap by constructing the intersecting
     // polygon between token hit rectangle and the template shape.

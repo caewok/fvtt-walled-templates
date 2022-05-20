@@ -6,9 +6,8 @@ canvas
 
 "use strict";
 
-import { MODULE_ID } from "./const.js";
 import { registerWalledTemplates } from "./patching.js";
-import { registerSettings, getSetting, toggleSetting } from "./settings.js";
+import { MODULE_ID, SETTINGS, registerSettings, getSetting, toggleSetting } from "./settings.js";
 
 import { registerPIXIPolygonMethods } from "./ClockwiseSweep/PIXIPolygon.js";
 import { registerPIXIRectangleMethods } from "./ClockwiseSweep/PIXIRectangle.js";
@@ -93,15 +92,15 @@ Hooks.once("setup", async function() {
 Hooks.on('getSceneControlButtons', controls => {
 //   if ( !getSetting("autotarget-enabled") ) { return; }
   const control = controls.find(x => x.name === "measure");
-  const opt = getSetting("autotarget-menu");
+  const opt = getSetting(SETTINGS.AUTOTARGET.MENU);
   control.tools.splice(4, 0, {
     icon: "fas fa-crosshairs",
     name: "autotarget",
-    title: "Autotarget tokens with template",
+    title: game.i18n.localize("walledtemplates.controls.autotarget.Title"),
     toggle: true,
-    visible: opt === "toggle_off" || opt === "toggle_on",
-    active: getSetting("autotarget-enabled"),
-    onClick: toggle => toggleSetting("autotarget-enabled")
+    visible: opt === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF || opt === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON,
+    active: getSetting(SETTINGS.AUTOTARGET.ENABLED),
+    onClick: toggle => toggleSetting(SETTINGS.AUTOTARGET.ENABLED)
   });
 });
 
@@ -186,12 +185,12 @@ Hooks.on("deleteWall", async (wall, opts, id) => { // eslint-disable-line no-unu
 Hooks.on("preCreateMeasuredTemplate", async (template, updateData, opts, id) => {
   // Only create if the id does not already exist
   if (typeof template.data.document.getFlag(MODULE_ID, "enabled") === "undefined") {
-    log(`Creating template ${id} with default setting ${getSetting("default-to-walled")}.`, template, updateData);
+    log(`Creating template ${id} with default setting ${getSetting(SETTINGS.AUTOTARGET.DEFAULT_WALLED)}.`, template, updateData);
     // Cannot use setFlag here. E.g.,
     // template.data.document.setFlag(MODULE_ID, "enabled", getSetting("default-to-walled"));
     const flag = `flags.${MODULE_ID}.enabled`;
 
-    template.data.update({ [flag]: getSetting("default-to-walled") });
+    template.data.update({ [flag]: getSetting(SETTINGS.DEFAULT_WALLED) });
   } else {
     log(`preCreateMeasuredTemplate: template enabled flag already set to ${template.data.document.getFlag(MODULE_ID, "enabled")}`);
   }
