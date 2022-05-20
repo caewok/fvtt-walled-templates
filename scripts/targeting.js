@@ -15,6 +15,7 @@ import { Hexagon } from "./Hexagon.js";
  */
 export function walledTemplatesMeasuredTemplateDraw(wrapped) {
   const out = wrapped();
+  if( !getSetting("autotarget-enabled") ) { return out; }
   switch ( getSetting("autotarget-method") ) {
     case "center": this.autotargetByTokenCenter(); break;
     case "overlap": this.autotargetByTokenOverlap(); break;

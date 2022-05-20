@@ -8,13 +8,13 @@ canvas
 
 import { MODULE_ID } from "./const.js";
 import { registerWalledTemplates } from "./patching.js";
+import { registerSettings, getSetting, toggleSetting } from "./settings.js";
 
 import { registerPIXIPolygonMethods } from "./ClockwiseSweep/PIXIPolygon.js";
 import { registerPIXIRectangleMethods } from "./ClockwiseSweep/PIXIRectangle.js";
 import { registerPIXICircleMethods } from "./ClockwiseSweep/PIXICircle.js";
 import { registerPolygonVertexMethods } from "./ClockwiseSweep/SimplePolygonEdge.js";
 
-import { registerSettings, getSetting } from "./settings.js";
 import { walledTemplatesRenderMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
 import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
 import { LightMaskClockwisePolygonSweep as WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweep/LightMaskClockwisePolygonSweep.js";
@@ -90,6 +90,20 @@ Hooks.once("setup", async function() {
   }
 });
 
+Hooks.on('getSceneControlButtons', controls => {
+//   if ( !getSetting("autotarget-enabled") ) { return; }
+  const control = controls.find(x => x.name === "measure");
+  const opt = getSetting("autotarget-menu");
+  control.tools.splice(4, 0, {
+    icon: "fas fa-crosshairs",
+    name: "autotarget",
+    title: "Autotarget tokens with template",
+    toggle: true,
+    visible: opt === "toggle_off" || opt === "toggle_on",
+    active: getSetting("autotarget-enabled"),
+    onClick: toggle => toggleSetting("autotarget-enabled")
+  });
+});
 
 /**
  * Add controls to the measured template configuration
