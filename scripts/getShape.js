@@ -6,7 +6,7 @@ game
 "use strict";
 
 import { pointFromAngle } from "./ClockwiseSweep/utilities.js";
-import { MODULE_ID } from "./const.js";
+import { MODULE_ID } from "./settings.js";
 import { log } from "./module.js";
 import { debugPolygons, getSetting } from "./settings.js";
 import { LightMaskClockwisePolygonSweep as WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweep/LightMaskClockwisePolygonSweep.js";
