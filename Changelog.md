@@ -1,3 +1,10 @@
+## 0.3.0
+Added settings to autotarget tokens from templates.
+- Option to add a toggle to template controls.
+- Target tokens by whether their center-point falls within the template.
+- Target tokens by whether a percentage of their area overlaps the template
+Localization improvements for settings.
+
 ## 0.2.5
 Improve compatibility with Pathfinder 2e. Fixes [issue #4](https://github.com/caewok/fvtt-walled-templates/issues/4)
 
