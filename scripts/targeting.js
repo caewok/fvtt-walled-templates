@@ -66,7 +66,7 @@ export function autotargetByTokenOverlap({ only_visible = false } = {}) {
       const t_area = tokenArea(token);
       const p_area = poly.area();
       const target_area = t_area * area_percentage;
-      log(`Target area: ${t_area}; Polygon area: ${p_area}.`);
+      log(`Target area: ${t_area}; Polygon area: ${p_area}.`, poly, token, this);
 
       return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%
     });

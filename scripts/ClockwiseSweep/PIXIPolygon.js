@@ -89,8 +89,7 @@ function* iterateEdges({close = true} = {}) {
  * Getter to store the coordinate point set.
  */
 function coordinates() {
-  return this._coordinates
-         || (this._coordinates = [...this.iteratePoints({close: false})]);
+  return [...this.iteratePoints({close: false})];
 }
 
 /**
@@ -411,8 +410,7 @@ function* iterateClipperLibPoints({close = true} = {}) {
  * Getter to store the clipper coordinate point set.
  */
 function clipperCoordinates() {
-  return this._clipperCoordinates
-         || (this._clipperCoordinates = [...this.iterateClipperLibPoints({close: false})]);
+  return [...this.iterateClipperLibPoints({close: false})];
 }
 
 /**

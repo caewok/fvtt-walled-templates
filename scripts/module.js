@@ -19,6 +19,9 @@ import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTempl
 import { LightMaskClockwisePolygonSweep as WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweep/LightMaskClockwisePolygonSweep.js";
 import { LimitedAngleSweepPolygon } from "./ClockwiseSweep/LimitedAngle.js";
 
+import { ClipperLib } from "./ClockwiseSweep/clipper_unminified.js";
+import { Hexagon } from "./Hexagon.js";
+
 import {
   walledTemplateGetCircleShape,
   walledTemplateGetConeShape,
@@ -62,7 +65,9 @@ Hooks.once("init", async function() {
     walledTemplateGetConeShape,
     walledTemplateGetRectShape,
     walledTemplateGetRayShape,
-    LimitedAngleSweepPolygon
+    LimitedAngleSweepPolygon,
+    ClipperLib,
+    Hexagon
   };
 
 });
@@ -185,9 +190,9 @@ Hooks.on("deleteWall", async (wall, opts, id) => { // eslint-disable-line no-unu
 Hooks.on("preCreateMeasuredTemplate", async (template, updateData, opts, id) => {
   // Only create if the id does not already exist
   if (typeof template.data.document.getFlag(MODULE_ID, "enabled") === "undefined") {
-    log(`Creating template ${id} with default setting ${getSetting(SETTINGS.AUTOTARGET.DEFAULT_WALLED)}.`, template, updateData);
+    log(`Creating template ${id} with default setting ${getSetting(SETTINGS.DEFAULT_WALLED)}.`, template, updateData);
     // Cannot use setFlag here. E.g.,
-    // template.data.document.setFlag(MODULE_ID, "enabled", getSetting("default-to-walled"));
+    // template.data.document.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
     const flag = `flags.${MODULE_ID}.enabled`;
 
     template.data.update({ [flag]: getSetting(SETTINGS.DEFAULT_WALLED) });
