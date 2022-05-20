@@ -64,3 +64,24 @@ export function findIntersectionsBruteRedBlack(red, black, reportFn = (_s1, _s2)
     }
   }
 }
+
+/**
+ * Determine if at least one segment from black intersects one segment from red.
+ * @param {Segments[]} red      Array of objects that contain points A.x, A.y, B.x, B.y.
+ * @param {Segments[]} black    Array of objects that contain points A.x, A.y, B.x, B.y.
+ * @return {Boolean}
+ */
+export function hasIntersectionBruteRedBlack(red, black) {
+  const ln1 = red.length;
+  const ln2 = black.length;
+  if (!ln1 || !ln2) { return; }
+
+  for (let i = 0; i < ln1; i += 1) {
+    const si = red[i];
+    for (let j = 0; j < ln2; j += 1) {
+      const sj = black[j];
+      if ( foundry.utils.lineSegmentIntersects(si.A, si.B, sj.A, sj.B) ) return true;
+    }
+  }
+  return false;
+}
