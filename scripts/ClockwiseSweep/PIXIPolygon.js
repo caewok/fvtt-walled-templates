@@ -1,7 +1,6 @@
 /* globals
 PIXI,
 foundry,
-ClipperLib,
 */
 
 "use strict";
@@ -367,14 +366,14 @@ function translate(delta_x, delta_y) {
  * Intersect another polygon
  */
 function intersectPolygon(other) {
-  return this.clipperClip(other, { cliptype: ClipperLib.ClipType.ctIntersection })
+  return this.clipperClip(other, { cliptype: ClipperLib.ClipType.ctIntersection });
 }
 
 /**
  * Union another polygon
  */
 function unionPolygon(other) {
-  return this.clipperClip(other, { cliptype: ClipperLib.ClipType.ctUnion })
+  return this.clipperClip(other, { cliptype: ClipperLib.ClipType.ctUnion });
 }
 
 /**
@@ -497,25 +496,25 @@ export function registerPIXIPolygonMethods() {
     configurable: true
   });
 
-  if(!PIXI.Polygon.prototype.hasOwnProperty("coordinates")) {
+  if ( !Object.hasOwn(PIXI.Polygon.prototype, "coordinates") ) {
     Object.defineProperty(PIXI.Polygon.prototype, "coordinates", {
       get: coordinates
     });
   }
 
-  if(!PIXI.Polygon.prototype.hasOwnProperty("isClosed")) {
+  if ( !Object.hasOwn(PIXI.Polygon.prototype, "isClosed") ) {
     Object.defineProperty(PIXI.Polygon.prototype, "isClosed", {
       get: isClosed
     });
   }
 
-  if(!PIXI.Polygon.prototype.hasOwnProperty("isConvex")) {
+  if (!Object.hasOwn(PIXI.Polygon.prototype, "isConvex") ) {
     Object.defineProperty(PIXI.Polygon.prototype, "isConvex", {
       get: isConvex
     });
   }
 
-  if(!PIXI.Polygon.prototype.hasOwnProperty("isClockwise")) {
+  if ( !Object.hasOwn(PIXI.Polygon.prototype, "isClockwise") ) {
     Object.defineProperty(PIXI.Polygon.prototype, "isClockwise", {
       get: isClockwise
     });
@@ -601,7 +600,7 @@ export function registerPIXIPolygonMethods() {
     configurable: true
   });
 
-  if(!PIXI.Polygon.prototype.hasOwnProperty("clipperCoordinates")) {
+  if ( !Object.hasOwn(PIXI.Polygon.prototype, "clipperCoordinates") ) {
     Object.defineProperty(PIXI.Polygon.prototype, "clipperCoordinates", {
       get: clipperCoordinates
     });

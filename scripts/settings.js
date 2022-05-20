@@ -26,7 +26,7 @@ export const SETTINGS = {
       OVERLAP: "overlap"
     }
   }
-}
+};
 
 export function getSetting(settingName) {
   return game.settings.get(MODULE_ID, settingName);
@@ -88,7 +88,7 @@ export function registerSettings() {
     type: String,
     choices: {
       [SETTINGS.AUTOTARGET.METHODS.CENTER]: game.i18n.localize("walledtemplates.settings.autotarget-method.Method.Center"),
-      [SETTINGS.AUTOTARGET.METHODS.OVERLAP]: game.i18n.localize("walledtemplates.settings.autotarget-method.Method.Overlap"),
+      [SETTINGS.AUTOTARGET.METHODS.OVERLAP]: game.i18n.localize("walledtemplates.settings.autotarget-method.Method.Overlap")
     }
   }); // See class TokenLayer.targetObjects
 

@@ -94,8 +94,7 @@ Hooks.once("setup", async function() {
   }
 });
 
-Hooks.on('getSceneControlButtons', controls => {
-//   if ( !getSetting("autotarget-enabled") ) { return; }
+Hooks.on("getSceneControlButtons", controls => {
   const control = controls.find(x => x.name === "measure");
   const opt = getSetting(SETTINGS.AUTOTARGET.MENU);
   control.tools.splice(4, 0, {
@@ -105,7 +104,7 @@ Hooks.on('getSceneControlButtons', controls => {
     toggle: true,
     visible: opt === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF || opt === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON,
     active: getSetting(SETTINGS.AUTOTARGET.ENABLED),
-    onClick: toggle => toggleSetting(SETTINGS.AUTOTARGET.ENABLED)
+    onClick: toggle => toggleSetting(SETTINGS.AUTOTARGET.ENABLED) // eslint-disable-line no-unused-vars
   });
 });
 

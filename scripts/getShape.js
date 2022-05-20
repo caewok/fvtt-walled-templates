@@ -6,9 +6,8 @@ game
 "use strict";
 
 import { pointFromAngle } from "./ClockwiseSweep/utilities.js";
-import { MODULE_ID } from "./settings.js";
 import { log } from "./module.js";
-import { debugPolygons, getSetting } from "./settings.js";
+import { MODULE_ID, debugPolygons, getSetting } from "./settings.js";
 import { LightMaskClockwisePolygonSweep as WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweep/LightMaskClockwisePolygonSweep.js";
 
 /**
@@ -105,7 +104,7 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
     // Shift back the origin from the adjustment in boundaryPolygon
     const shifted_origin = pointFromAngle({x: 0, y: 0}, Math.toRadians(this.data.direction), 1);
     poly.translate(shifted_origin.x, shifted_origin.y);
-    return poly
+    return poly;
   }
 
   let enabled = this.document.getFlag(MODULE_ID, "enabled");

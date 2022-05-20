@@ -59,7 +59,7 @@ export class Hexagon {
     return this.fromDimensions(
       token.center.x,
       token.center.y,
-      token.hitArea.width, // token.hitArea has x,y of 0,0
+      token.hitArea.width, // Token.hitArea has x,y of 0,0
       token.hitArea.height);
   }
 

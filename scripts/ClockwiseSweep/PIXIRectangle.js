@@ -375,7 +375,7 @@ export function registerPIXIRectangleMethods() {
   });
 
   // For equivalence with a PIXI.Polygon
-  if ( !PIXI.Rectangle.prototype.hasOwnProperty("isClosed") ) {
+  if ( !Object.hasOwn(PIXI.Rectangle.prototype, "isClosed") ) {
     Object.defineProperty(PIXI.Rectangle.prototype, "isClosed", {
       get: () => true
     });
