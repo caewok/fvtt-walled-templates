@@ -1,7 +1,6 @@
 /* globals
 PIXI,
 foundry,
-ClipperLib,
 */
 
 "use strict";
@@ -89,8 +88,7 @@ function* iterateEdges({close = true} = {}) {
  * Getter to store the coordinate point set.
  */
 function coordinates() {
-  return this._coordinates
-         || (this._coordinates = [...this.iteratePoints({close: false})]);
+  return [...this.iteratePoints({close: false})];
 }
 
 /**
@@ -365,6 +363,20 @@ function translate(delta_x, delta_y) {
 // ---------------- Clipper JS library ---------------------------------------------------
 
 /**
+ * Intersect another polygon
+ */
+function intersectPolygon(other) {
+  return this.clipperClip(other, { cliptype: ClipperLib.ClipType.ctIntersection });
+}
+
+/**
+ * Union another polygon
+ */
+function unionPolygon(other) {
+  return this.clipperClip(other, { cliptype: ClipperLib.ClipType.ctUnion });
+}
+
+/**
  * Transform array of X, Y points to a PIXI.Polygon
  */
 function fromClipperPoints(points) {
@@ -397,8 +409,7 @@ function* iterateClipperLibPoints({close = true} = {}) {
  * Getter to store the clipper coordinate point set.
  */
 function clipperCoordinates() {
-  return this._clipperCoordinates
-         || (this._clipperCoordinates = [...this.iterateClipperLibPoints({close: false})]);
+  return [...this.iterateClipperLibPoints({close: false})];
 }
 
 /**
@@ -452,6 +463,18 @@ function clipperClip(poly, { cliptype = ClipperLib.ClipType.ctUnion } = {}) {
   return PIXI.Polygon.fromClipperPoints(solution[0]);
 }
 
+/**
+ * Area of polygon
+ */
+function area() {
+  return Math.abs(this.clipperArea());
+}
+
+function clipperArea() {
+  const path = this.clipperCoordinates;
+  return ClipperLib.Clipper.Area(path);
+}
+
 
 // ----------------  ADD METHODS TO THE PIXI.POLYGON PROTOTYPE --------------------------
 export function registerPIXIPolygonMethods() {
@@ -473,25 +496,25 @@ export function registerPIXIPolygonMethods() {
     configurable: true
   });
 
-  if(!PIXI.Polygon.prototype.hasOwnProperty("coordinates")) {
+  if ( !Object.hasOwn(PIXI.Polygon.prototype, "coordinates") ) {
     Object.defineProperty(PIXI.Polygon.prototype, "coordinates", {
       get: coordinates
     });
   }
 
-  if(!PIXI.Polygon.prototype.hasOwnProperty("isClosed")) {
+  if ( !Object.hasOwn(PIXI.Polygon.prototype, "isClosed") ) {
     Object.defineProperty(PIXI.Polygon.prototype, "isClosed", {
       get: isClosed
     });
   }
 
-  if(!PIXI.Polygon.prototype.hasOwnProperty("isConvex")) {
+  if (!Object.hasOwn(PIXI.Polygon.prototype, "isConvex") ) {
     Object.defineProperty(PIXI.Polygon.prototype, "isConvex", {
       get: isConvex
     });
   }
 
-  if(!PIXI.Polygon.prototype.hasOwnProperty("isClockwise")) {
+  if ( !Object.hasOwn(PIXI.Polygon.prototype, "isClockwise") ) {
     Object.defineProperty(PIXI.Polygon.prototype, "isClockwise", {
       get: isClockwise
     });
@@ -559,13 +582,25 @@ export function registerPIXIPolygonMethods() {
 
   // ----------------  CLIPPER LIBRARY METHODS ------------------------
 
+  Object.defineProperty(PIXI.Polygon.prototype, "intersectPolygon", {
+    value: intersectPolygon,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(PIXI.Polygon.prototype, "unionPolygon", {
+    value: unionPolygon,
+    writable: true,
+    configurable: true
+  });
+
   Object.defineProperty(PIXI.Polygon.prototype, "iterateClipperLibPoints", {
     value: iterateClipperLibPoints,
     writable: true,
     configurable: true
   });
 
-  if(!PIXI.Polygon.prototype.hasOwnProperty("clipperCoordinates")) {
+  if ( !Object.hasOwn(PIXI.Polygon.prototype, "clipperCoordinates") ) {
     Object.defineProperty(PIXI.Polygon.prototype, "clipperCoordinates", {
       get: clipperCoordinates
     });
@@ -597,6 +632,18 @@ export function registerPIXIPolygonMethods() {
 
   Object.defineProperty(PIXI.Polygon.prototype, "clipperContains", {
     value: clipperContains,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(PIXI.Polygon.prototype, "area", {
+    value: area,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(PIXI.Polygon.prototype, "clipperArea", {
+    value: clipperArea,
     writable: true,
     configurable: true
   });

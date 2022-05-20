@@ -8,7 +8,6 @@ NormalizedRectangle,
 CollisionResult,
 PIXI,
 CONFIG,
-ClipperLib,
 PolygonVertex
 */
 

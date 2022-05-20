@@ -1,5 +1,25 @@
 {
     "walledtemplates.MeasuredTemplateConfiguration.LegendTitle": "Walled Templates",
     "walledtemplates.MeasuredTemplateConfiguration.enabled.Name": "Blocked by Walls",
-    "walledtemplates.dnd5eSpellTemplateConfiguration.enabled.Name": "Blocked by Walls"
+    "walledtemplates.dnd5eSpellTemplateConfiguration.enabled.Name": "Blocked by Walls",
+
+    "walledtemplates.settings.default-to-walled.Name": "Default to Walled Measured Templates",
+    "walledtemplates.settings.default-to-walled.Hint": "If set, newly-created templates will default to being walled. Each template configuration has a toggle to turn walled on/off.",
+
+    "walledtemplates.settings.autotarget-menu.Name": "Enable autotargeting",
+    "walledtemplates.settings.autotarget-menu.Hint": "When toggle option is selected, a bullseye control button in the template control bar will allow you to switch between targeting or not targeting.",
+    "walledtemplates.settings.autotarget-menu.Choice.No": "Do not autotarget",
+    "walledtemplates.settings.autotarget-menu.Choice.Toggle_Off": "Display toggle button; default off",
+    "walledtemplates.settings.autotarget-menu.Choice.Toggle_On": "Display toggle button; default on",
+    "walledtemplates.settings.autotarget-menu.Choice.Yes": "Always autotarget",
+
+    "walledtemplates.settings.autotarget-method.Name": "Autotargeting method",
+    "walledtemplates.settings.autotarget-method.Hint": "Method to auto-target tokens with templates",
+    "walledtemplates.settings.autotarget-method.Method.Center": "Token center inside template",
+    "walledtemplates.settings.autotarget-method.Method.Overlap": "Token area overlaps template",
+
+    "walledtemplates.settings.autotarget-area.Name": "Autotargeting area",
+    "walledtemplates.settings.autotarget-area.Hint": "For overlap autotarget method only. The percent of the token area that must overlap the template to count as a target. 0 means any overlap counts.",
+
+    "walledtemplates.controls.autotarget.Title": "Autotarget tokens with template"
 }

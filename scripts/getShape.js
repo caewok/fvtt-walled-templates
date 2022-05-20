@@ -6,9 +6,8 @@ game
 "use strict";
 
 import { pointFromAngle } from "./ClockwiseSweep/utilities.js";
-import { MODULE_ID } from "./const.js";
 import { log } from "./module.js";
-import { debugPolygons, getSetting } from "./settings.js";
+import { MODULE_ID, debugPolygons, getSetting } from "./settings.js";
 import { LightMaskClockwisePolygonSweep as WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweep/LightMaskClockwisePolygonSweep.js";
 
 /**
@@ -75,7 +74,7 @@ function useBoundaryPolygon() {
  * @return {PIXI.Polygon}
  */
 export function walledTemplateGetCircleShape(wrapped, distance) {
-  log(`walledTemplateGetCircleShape with distance ${distance}`, this);
+  log(`walledTemplateGetCircleShape with distance ${distance}, origin ${this.data.x},${this.data.y}`, this);
   // Make sure the default shape is constructed.
   this.shape = wrapped(distance);
   log("walledTemplateGetCircleShape|shape", this.shape);
@@ -94,7 +93,7 @@ export function walledTemplateGetCircleShape(wrapped, distance) {
  * @return {PIXI.Polygon}
  */
 export function walledTemplateGetConeShape(wrapped, direction, angle, distance) {
-  log(`walledTemplateGetConeShape with direction ${direction}, angle ${angle}, distance ${distance}`, this);
+  log(`walledTemplateGetConeShape with direction ${direction}, angle ${angle}, distance ${distance}, origin ${this.data.x},${this.data.y}`, this);
   if (game.settings.get("core", "coneTemplateType") === "flat") {
     // For flat cone, use WalledTemplatesClockwiseSweepPolygon and pass this source object.
 
@@ -105,7 +104,7 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
     // Shift back the origin from the adjustment in boundaryPolygon
     const shifted_origin = pointFromAngle({x: 0, y: 0}, Math.toRadians(this.data.direction), 1);
     poly.translate(shifted_origin.x, shifted_origin.y);
-    return poly
+    return poly;
   }
 
   let enabled = this.document.getFlag(MODULE_ID, "enabled");
@@ -161,7 +160,7 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
  * @return {PIXI.Polygon}
  */
 export function walledTemplateGetRectShape(wrapped, direction, distance) {
-  log(`walledTemplateGetRectShape with direction ${direction}, distance ${distance}`, this);
+  log(`walledTemplateGetRectShape with direction ${direction}, distance ${distance}, origin ${this.data.x},${this.data.y}`, this);
   // Make sure the default shape is constructed.
   this.shape = wrapped(direction, distance);
   log("walledTemplateGetRectShape|shape", this.shape);
@@ -179,7 +178,7 @@ export function walledTemplateGetRectShape(wrapped, direction, distance) {
  * @return {PIXI.Polygon}
  */
 export function walledTemplateGetRayShape(wrapped, direction, distance, width) {
-  log(`walledTemplateGetRayShape with direction ${direction}, distance ${distance}, width ${width}`, this);
+  log(`walledTemplateGetRayShape with direction ${direction}, distance ${distance}, width ${width}, origin ${this.data.x},${this.data.y}`, this);
   // Make sure the default shape is constructed.
   this.shape = wrapped(direction, distance, width);
   log("walledTemplateGetRayShape|shape", this.shape);

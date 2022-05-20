@@ -11,7 +11,7 @@ Ray
 
 // Patches
 
-import { MODULE_ID } from "./const.js";
+import { MODULE_ID } from "./settings.js";
 import { log } from "./module.js";
 import {
   walledTemplateGetCircleShape,
@@ -20,6 +20,10 @@ import {
   walledTemplateGetRayShape } from "./getShape.js";
 import { walledTemplate5eFromItem } from "./render5eSpellTemplateConfig.js";
 import { boundaryPolygon } from "./boundaryPolygon.js";
+import {
+  walledTemplatesMeasuredTemplateDraw,
+  autotargetByTokenCenter,
+  autotargetByTokenOverlap } from "./targeting.js";
 
 export function registerWalledTemplates() {
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getCircleShape", walledTemplateGetCircleShape, "WRAPPER");
@@ -36,10 +40,24 @@ export function registerWalledTemplates() {
     // Override how the grid is highlighted for cones and rays
     libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype.highlightGrid", WalledTemplatesPF2eHighlightGrid, "OVERRIDE");
   }
+
+  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.refresh", walledTemplatesMeasuredTemplateDraw, "WRAPPER");
 }
 
 Object.defineProperty(MeasuredTemplate.prototype, "boundaryPolygon", {
   value: boundaryPolygon,
+  writable: true,
+  configurable: true
+});
+
+Object.defineProperty(MeasuredTemplate.prototype, "autotargetByTokenCenter", {
+  value: autotargetByTokenCenter,
+  writable: true,
+  configurable: true
+});
+
+Object.defineProperty(MeasuredTemplate.prototype, "autotargetByTokenOverlap", {
+  value: autotargetByTokenOverlap,
   writable: true,
   configurable: true
 });

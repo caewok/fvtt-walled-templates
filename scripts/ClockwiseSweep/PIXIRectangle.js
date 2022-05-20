@@ -63,6 +63,58 @@ function containsPoint(p, e = 1e-8) {
 }
 
 /**
+ * Does this rectangle overlap another?
+ * @param {PIXI.Rectangle} other
+ * @return {Boolean}
+ */
+function overlapsRectangle(other) {
+  // https://www.geeksforgeeks.org/find-two-rectangles-overlap
+  // One rectangle is completely above the other
+  if ( this.top > other.bottom || other.top > this.bottom ) return false;
+
+  // One rectangle is completely to the left of the other
+  if ( this.left > other.right || other.left > this.right ) return false;
+
+  return true;
+}
+
+/**
+ * Does this rectangle overlap a circle?
+ * @param {PIXI.Circle} circle
+ * @return {Boolean}
+ */
+function overlapsCircle(circle) {
+  // https://www.geeksforgeeks.org/check-if-any-point-overlaps-the-given-circle-and-rectangle
+  // {xn,yn} is the nearest point on the rectangle to the circle center
+  const xn = Math.max(this.right, Math.min(circle.x, this.left));
+  const yn = Math.max(this.top, Math.min(circle.y, this.bottom));
+
+  // Find the distance between the nearest point and the center of the circle
+  const dx = xn - circle.x;
+  const dy = yn - circle.y;
+  return (Math.pow(dx, 2) + Math.pow(dy, 2)) <= Math.pow(circle.radius, 2);
+}
+
+/**
+ * Does this rectangle overlap a polygon?
+ * @param {PIXI.Polygon} poly
+ * @return {Boolean}
+ */
+function overlapsPolygon(poly) {
+  if ( poly.contains(this.left, this.top)
+    || poly.contains(this.right, this.top)
+    || poly.contains(this.left, this.bottom)
+    || poly.contains(this.right, this.bottom)) { return true; }
+
+  for ( const edge of poly.iterateEdges() ) {
+    if ( this.lineSegmentIntersects(edge.A, edge.B)
+      || this.containsPoint(edge.A)
+      || this.containsPoint(edge.B)) { return true; }
+  }
+  return false;
+}
+
+/**
  * Is this segment contained by or intersects the rectangle?
  * @param {Segment} s   Object with {A: {x, y}, B: {x, y}} coordinates.
  * @param {Number}  e   Permitted epsilon. Default: 1e-8.
@@ -126,7 +178,7 @@ const rectZones = {
   RIGHT: 0x0010,
   TOP: 0x1000,
   BOTTOM: 0x0100
-}
+};
 
 /**
  * Get the rectZone for a given x,y point located around or in a rectangle.
@@ -154,11 +206,11 @@ function lineSegmentIntersects(a, b) {
   const zone_a = this._zone(a);
   const zone_b = this._zone(b);
 
-  if(!(zone_a | zone_b)) { return false; } // Bitwise OR is 0: both points inside rectangle.
-  if(zone_a & zone_b) { return false; } // Bitwise AND is not 0: both points share outside zone
+  if ( !(zone_a | zone_b) ) { return false; } // Bitwise OR is 0: both points inside rectangle.
+  if ( zone_a & zone_b ) { return false; } // Bitwise AND is not 0: both points share outside zone
   // LEFT, RIGHT, TOP, BOTTOM
 
-  if(!zone_a || !zone_b) { return true; } // Regular OR: One point inside, one outside
+  if ( !zone_a || !zone_b ) { return true; } // Regular OR: One point inside, one outside
 
   // Line likely intersects, but some possibility that the line starts at, say,
   // center left and moves to center top which means it may or may not cross the
@@ -304,8 +356,26 @@ export function registerPIXIRectangleMethods() {
     configurable: true
   });
 
+  Object.defineProperty(PIXI.Rectangle.prototype, "overlapsPolygon", {
+    value: overlapsPolygon,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(PIXI.Rectangle.prototype, "overlapsRectangle", {
+    value: overlapsRectangle,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(PIXI.Rectangle.prototype, "overlapsCircle", {
+    value: overlapsCircle,
+    writable: true,
+    configurable: true
+  });
+
   // For equivalence with a PIXI.Polygon
-  if(!PIXI.Rectangle.prototype.hasOwnProperty("isClosed")) {
+  if ( !Object.hasOwn(PIXI.Rectangle.prototype, "isClosed") ) {
     Object.defineProperty(PIXI.Rectangle.prototype, "isClosed", {
       get: () => true
     });

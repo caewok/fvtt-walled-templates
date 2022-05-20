@@ -6,19 +6,21 @@ canvas
 
 "use strict";
 
-import { MODULE_ID } from "./const.js";
 import { registerWalledTemplates } from "./patching.js";
+import { MODULE_ID, SETTINGS, registerSettings, getSetting, toggleSetting } from "./settings.js";
 
 import { registerPIXIPolygonMethods } from "./ClockwiseSweep/PIXIPolygon.js";
 import { registerPIXIRectangleMethods } from "./ClockwiseSweep/PIXIRectangle.js";
 import { registerPIXICircleMethods } from "./ClockwiseSweep/PIXICircle.js";
 import { registerPolygonVertexMethods } from "./ClockwiseSweep/SimplePolygonEdge.js";
 
-import { registerSettings, getSetting } from "./settings.js";
 import { walledTemplatesRenderMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
 import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
 import { LightMaskClockwisePolygonSweep as WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweep/LightMaskClockwisePolygonSweep.js";
 import { LimitedAngleSweepPolygon } from "./ClockwiseSweep/LimitedAngle.js";
+
+import { ClipperLib } from "./ClockwiseSweep/clipper_unminified.js";
+import { Hexagon } from "./Hexagon.js";
 
 import {
   walledTemplateGetCircleShape,
@@ -63,7 +65,9 @@ Hooks.once("init", async function() {
     walledTemplateGetConeShape,
     walledTemplateGetRectShape,
     walledTemplateGetRayShape,
-    LimitedAngleSweepPolygon
+    LimitedAngleSweepPolygon,
+    ClipperLib,
+    Hexagon
   };
 
 });
@@ -90,6 +94,19 @@ Hooks.once("setup", async function() {
   }
 });
 
+Hooks.on("getSceneControlButtons", controls => {
+  const control = controls.find(x => x.name === "measure");
+  const opt = getSetting(SETTINGS.AUTOTARGET.MENU);
+  control.tools.splice(4, 0, {
+    icon: "fas fa-crosshairs",
+    name: "autotarget",
+    title: game.i18n.localize("walledtemplates.controls.autotarget.Title"),
+    toggle: true,
+    visible: opt === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF || opt === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON,
+    active: getSetting(SETTINGS.AUTOTARGET.ENABLED),
+    onClick: toggle => toggleSetting(SETTINGS.AUTOTARGET.ENABLED) // eslint-disable-line no-unused-vars
+  });
+});
 
 /**
  * Add controls to the measured template configuration
@@ -172,12 +189,12 @@ Hooks.on("deleteWall", async (wall, opts, id) => { // eslint-disable-line no-unu
 Hooks.on("preCreateMeasuredTemplate", async (template, updateData, opts, id) => {
   // Only create if the id does not already exist
   if (typeof template.data.document.getFlag(MODULE_ID, "enabled") === "undefined") {
-    log(`Creating template ${id} with default setting ${getSetting("default-to-walled")}.`, template, updateData);
+    log(`Creating template ${id} with default setting ${getSetting(SETTINGS.DEFAULT_WALLED)}.`, template, updateData);
     // Cannot use setFlag here. E.g.,
-    // template.data.document.setFlag(MODULE_ID, "enabled", getSetting("default-to-walled"));
+    // template.data.document.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
     const flag = `flags.${MODULE_ID}.enabled`;
 
-    template.data.update({ [flag]: getSetting("default-to-walled") });
+    template.data.update({ [flag]: getSetting(SETTINGS.DEFAULT_WALLED) });
   } else {
     log(`preCreateMeasuredTemplate: template enabled flag already set to ${template.data.document.getFlag(MODULE_ID, "enabled")}`);
   }

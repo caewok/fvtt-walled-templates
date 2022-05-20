@@ -169,7 +169,7 @@ Object.defineProperty(SimplePolygonEdge.prototype, "_identifyIntersectionsWith",
 function sortKey() { return this._sortKey || (this._sortKey = (MAX_TEXTURE_SIZE * this.x) + this.y); }
 
 export function registerPolygonVertexMethods() {
-  if(!PolygonVertex.prototype.hasOwnProperty("sortKey")) {
+  if ( !Object.hasOwn(PolygonVertex.prototype, "sortKey") ) {
     Object.defineProperty(PolygonVertex.prototype, "sortKey", {
       get: sortKey
     });
