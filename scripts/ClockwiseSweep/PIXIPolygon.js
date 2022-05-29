@@ -349,15 +349,21 @@ function unscale({ position_dx = 0, position_dy = 0, size_dx = 1, size_dy = 1 } 
 
 /**
  * Translate, shifting it in the x and y direction.
- * @param {Number} delta_x  Movement in the x direction.
- * @param {Number} delta_y  Movement in the y direction.
+ * @param {Number} dx  Movement in the x direction.
+ * @param {Number} dy  Movement in the y direction.
+ * @return {PIXI.Polygon}
  */
-function translate(delta_x, delta_y) {
+function translate(dx, dy) {
+  const pts = [];
   const ln = this.points.length;
   for (let i = 0; i < ln; i += 2) {
-    this.points[i] = this.points[i] + delta_x;
-    this.points[i + 1] = this.points[i + 1] + delta_y;
+    pts.push(this.points[i] + dx, this.points[i + 1] + dy);
   }
+  const out = new this.constructor(pts);
+  out._isClockwise = this._isClockwise;
+  out._isConvex = this._isConvex;
+  out._isClosed = this._isClosed;
+  return out;
 }
 
 // ---------------- Clipper JS library ---------------------------------------------------
@@ -383,6 +389,7 @@ function fromClipperPoints(points) {
   // Flat map is slow: const out = new this(points.flatMap(pt => [pt.X, pt.Y]));
   // Switch to for loop. https://jsbench.me/eeky2ei5rw
   const pts = [];
+
   for (const pt of points) {
     pts.push(pt.X, pt.Y);
   }
@@ -459,6 +466,8 @@ function clipperClip(poly, { cliptype = ClipperLib.ClipType.ctUnion } = {}) {
   c.AddPath(subj, ClipperLib.PolyType.ptSubject, true); // True to be considered closed
   c.AddPath(clip, ClipperLib.PolyType.ptClip, true);
   c.Execute(cliptype, solution);
+  if ( solution.length === 0 ) { return PIXI.Polygon(); }
+
 
   return PIXI.Polygon.fromClipperPoints(solution[0]);
 }

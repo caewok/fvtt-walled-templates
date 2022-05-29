@@ -18,7 +18,7 @@ import { pointFromAngle } from "./ClockwiseSweep/utilities.js";
 export function boundaryPolygon(origin, radius, rotation = 0) { // eslint-disable-line no-unused-vars
   // The MeasuredTemplate already defines a polygon or other shape but at origin 0, 0.
   // Shift it to the provided origin on the canvas.
-  const shape = this.shape;
+  let shape = this.shape;
 
   log(`boundaryPolygon|origin: ${origin.x},${origin.y}, radius: ${radius}, rotation: ${rotation} and shape class ${typeof shape}`, this, shape);
 
@@ -26,21 +26,21 @@ export function boundaryPolygon(origin, radius, rotation = 0) { // eslint-disabl
   if (shape instanceof PIXI.Polygon) {
     const shifted_origin = pointFromAngle(origin, Math.toRadians(this.data.direction), -1);
     log(`boundaryPolygon|Polygon shifted origin to ${shifted_origin.x},${shifted_origin.y} for direction ${this.data.direction}`);
-    shape.translate(shifted_origin.x, shifted_origin.y);
+    shape = shape.translate(shifted_origin.x, shifted_origin.y);
 
   } else if (shape instanceof PIXI.Rectangle) {
     // Pad the rectangle by one pixel so it definitely includes origin
-    shape.translate(origin.x, origin.y);
+    shape = shape.translate(origin.x, origin.y);
     shape.pad(1, 1);
 
   } else if (shape instanceof PIXI.Circle) {
     // Pad the circle by one pixel so it better covers expected grid spaces.
     // (Rounding tends to drop spaces on the edge.)
+    shape = shape.translate(origin.x, origin.y);
     shape.radius += 1;
-    shape.translate(origin.x, origin.y);
 
   } else {
-    shape.translate(origin.x, origin.y);
+    shape = shape.translate(origin.x, origin.y);
   }
 
   log(`boundaryPolygon| returning shape class ${typeof shape}`, shape);
