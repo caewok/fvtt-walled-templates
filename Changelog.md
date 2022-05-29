@@ -1,3 +1,6 @@
+## 0.3.1
+Improve compatibility with Pathfinder 1e. Consistent grid highlighting based on autotarget settings.
+
 ## 0.3.0
 Added settings to autotarget tokens from templates.
 - Option to add a toggle to template controls.
