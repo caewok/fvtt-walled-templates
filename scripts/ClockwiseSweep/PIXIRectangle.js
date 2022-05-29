@@ -24,6 +24,14 @@ function getCenter() {
 }
 
 /**
+ * Calculate rectangle area
+ * @return {Number}
+ */
+function area() {
+  return this.width * this.height;
+}
+
+/**
  * Convert to closed PIXI.Polygon, where each corner is a vertex.
  * Ordered clockwise from top left corner.
  * @return {PIXI.Polygon}
@@ -272,20 +280,25 @@ function rectangleIntersection(other, outRect) {
 /**
  * Translate a rectangle, shifting it in the x and y direction.
  * (Basic but useful b/c it is equivalent to polygon.translate)
- * @param {Number} delta_x  Movement in the x direction.
- * @param {Number} delta_y  Movement in the y direction.
+ * @param {Number} dx  Movement in the x direction.
+ * @param {Number} dy  Movement in the y direction.
+ * @return {PIXI.Rectangle}
  */
-function translate(delta_x, delta_y) {
-  this.x += delta_x;
-  this.y += delta_y;
+function translate(dx, dy) {
+  return new this.constructor(this.x + dx, this.y + dy, this.width, this.height);
 }
 
 
 // ----------------  ADD METHODS TO THE PIXI.RECTANGLE PROTOTYPE ------------------------
 export function registerPIXIRectangleMethods() {
+  if ( !Object.hasOwn(PIXI.Rectangle.prototype, "center") ) {
+    Object.defineProperty(PIXI.Rectangle.prototype, "center", {
+      get: getCenter
+    });
+  }
 
-  Object.defineProperty(PIXI.Rectangle.prototype, "getCenter", {
-    value: getCenter,
+  Object.defineProperty(PIXI.Rectangle.prototype, "area", {
+    value: area,
     writable: true,
     configurable: true
   });

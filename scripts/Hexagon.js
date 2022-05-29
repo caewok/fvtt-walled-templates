@@ -36,6 +36,11 @@ export class Hexagon {
   }
 
   /**
+   * Get the center point for the hexagon, which is just x,y
+   */
+  get center() { return new PIXI.Point(this.x, this.y); }
+
+  /**
    * Construct either a column or a row hexagon given width and (optionally) height.
    * If height is greater than width, a row hexagon will be returned; otherwise column.
    * @param {Number}  x         Center of hexagon
@@ -116,15 +121,17 @@ export class Hexagon {
     return new PIXI.Rectangle(this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
   }
 
+
+
   /**
    * Translate the hexagon, shifting it in the x and y direction.
    * (Basic but useful b/c it is equivalent to polygon.translate)
    * @param {Number} delta_x  Movement in the x direction.
    * @param {Number} delta_y  Movement in the y direction.
+   * @return {Hexagon}  New hexagon object
    */
-  translate(delta_x, delta_y) {
-    this.x += delta_x;
-    this.y += delta_y;
+  translate(dx, dy) {
+    return new this.constructor(this.x + dx, this.y + dy, this.radius, { rotation: this.rotation });
   }
 
   /**
