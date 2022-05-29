@@ -71,6 +71,8 @@ export function circleUnion(poly, { density = 60 } = {}) {
 export function circleIntersect(poly, { density = 60 } = {}) {
   const out = _combine(poly, this, { clockwise: true, density });
 
+  if ( !out ) return out;
+
   // Intersection of two convex polygons is convex
   // Circle is always convex
   // Don't re-run convexity but add parameter if available
