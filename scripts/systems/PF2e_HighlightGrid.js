@@ -1,4 +1,8 @@
 /* globals
+canvas,
+CONST,
+Ray,
+MeasuredTemplate
 
 */
 "use strict";
@@ -97,9 +101,6 @@ export function WalledTemplatesPF2eHighlightGrid() {
       if (this.data.t === "cone" && ray.distance > 0 && !withinAngle(minAngle, maxAngle, rayAngle)) {
         continue;
       }
-
-      // Determine point we're measuring the distance to - always in the center of a grid square
-      const destination = { x: cellCenterX, y: cellCenterY };
 
       const shape = shapeForGridPixels({x: gx, y: gy});
       if ( !this.boundsOverlap(shape) ) { continue; }

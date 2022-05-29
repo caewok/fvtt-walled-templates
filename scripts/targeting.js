@@ -15,7 +15,7 @@ import { Hexagon } from "./Hexagon.js";
  */
 export function walledTemplatesMeasuredTemplateDraw(wrapped) {
   const out = wrapped();
-  getSetting(SETTINGS.AUTOTARGET.ENABLED) && this.autotargetToken();
+  getSetting(SETTINGS.AUTOTARGET.ENABLED) && this.autotargetToken(); // eslint-disable-line no-unused-expressions
   return out;
 }
 
@@ -23,9 +23,9 @@ export function autotargetToken({ only_visible = false } = {}) {
   log("autotargetToken", this);
 
   const targets = canvas.tokens.placeables.filter(token => {
-     if ( only_visible && !token.visible ) { return false; }
-     const tBounds = tokenBounds(token);
-     return this.boundsOverlap(tBounds);
+    if ( only_visible && !token.visible ) { return false; }
+    const tBounds = tokenBounds(token);
+    return this.boundsOverlap(tBounds);
   });
 
   log(`autotargetToken|${targets.length} targets.`);
@@ -49,7 +49,7 @@ export function boundsOverlap(bounds) {
   if ( !boundsOverlapShape(tBounds, this.shape) ) { return false; }
 
   const area_percentage = getSetting(SETTINGS.AUTOTARGET.AREA);
-  if ( !area_percentage  ) { return true; }
+  if ( !area_percentage ) { return true; }
 
   // Calculate the area of overlap by constructing the intersecting polygon between the
   // bounds and the template shape.
@@ -71,7 +71,7 @@ export function boundsOverlap(bounds) {
 export function shapeForGridPixels(p) {
   if ( canvas.scene.data.gridType === CONST.GRID_TYPES.GRIDLESS
     || canvas.scene.data.gridType === CONST.GRID_TYPES.SQUARE ) {
-    return new PIXI.Rectangle(p.x, p.y, canvas.dimensions.size, canvas.dimensions.size)
+    return new PIXI.Rectangle(p.x, p.y, canvas.dimensions.size, canvas.dimensions.size);
   }
 
   return Hexagon.fromDimensions(
