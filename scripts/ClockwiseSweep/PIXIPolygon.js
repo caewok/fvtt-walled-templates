@@ -389,7 +389,6 @@ function fromClipperPoints(points) {
   // Flat map is slow: const out = new this(points.flatMap(pt => [pt.X, pt.Y]));
   // Switch to for loop. https://jsbench.me/eeky2ei5rw
   const pts = [];
-  console.log("fromClipperPoints", points);
 
   for (const pt of points) {
     pts.push(pt.X, pt.Y);
