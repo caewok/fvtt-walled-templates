@@ -70,12 +70,12 @@ function get360PaddingPoints(x, y, radius, { density = 60 } = {}) {
 /**
  * Translate a circle, shifting it in the x and y direction.
  * (Basic but useful b/c it is equivalent to polygon.translate)
- * @param {Number} delta_x  Movement in the x direction.
- * @param {Number} delta_y  Movement in the y direction.
+ * @param {Number} dx  Movement in the x direction.
+ * @param {Number} dy  Movement in the y direction.
+ * @return {PIXI.Circle}
  */
-function translate(delta_x, delta_y) {
-  this.x += delta_x;
-  this.y += delta_y;
+function translate(dx, dy) {
+  return new this.constructor(this.x + dx, this.y + dy, this.radius)
 }
 
 // ----------------  ADD METHODS TO THE PIXI.CIRCLE PROTOTYPE ------------------------

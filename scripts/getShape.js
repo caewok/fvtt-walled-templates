@@ -49,12 +49,12 @@ function useBoundaryPolygon() {
     source: this
   };
 
-  const poly = new WalledTemplatesClockwiseSweepPolygon();
+  let poly = new WalledTemplatesClockwiseSweepPolygon();
   poly.initialize(origin, cfg);
   poly.compute();
 
   // Shift to origin 0,0 as expected for Template shape.
-  poly.translate(-origin.x, -origin.y);
+  poly = poly.translate(-origin.x, -origin.y);
   log("useBoundaryPolygon|returning poly", poly);
   return poly;
 }
@@ -99,11 +99,11 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
 
     this.shape = wrapped(direction, angle, distance);
     log("walledTemplateGetConeShape|shape", this.shape);
-    const poly = useBoundaryPolygon.bind(this)();
+    let poly = useBoundaryPolygon.bind(this)();
 
     // Shift back the origin from the adjustment in boundaryPolygon
     const shifted_origin = pointFromAngle({x: 0, y: 0}, Math.toRadians(this.data.direction), 1);
-    poly.translate(shifted_origin.x, shifted_origin.y);
+    poly = poly.translate(shifted_origin.x, shifted_origin.y);
     return poly;
   }
 
@@ -135,17 +135,17 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
   };
 
   log(`walledTemplateGetConeShape|Round cone. Angle ${angle}, distance ${distance}, direction ${direction} at origin ${origin.x},${origin.y}`);
-  const poly = new WalledTemplatesClockwiseSweepPolygon();
+  let poly = new WalledTemplatesClockwiseSweepPolygon();
   poly.initialize(origin, cfg);
   poly.compute();
 
   // Set polygon origin to 0, 0 as expected for Template shape.
-  poly.translate(-origin.x, -origin.y);
+  poly = poly.translate(-origin.x, -origin.y);
   log("walledTemplateGetConeShape|poly", poly);
 
   // Shift back the origin from the adjustment in boundaryPolygon
   const shifted_origin = pointFromAngle({x: 0, y: 0}, Math.toRadians(this.data.direction), 1);
-  poly.translate(shifted_origin.x, shifted_origin.y);
+  poly = poly.translate(shifted_origin.x, shifted_origin.y);
 
   return poly;
 }
