@@ -13,7 +13,8 @@ import { Hexagon } from "./Hexagon.js";
 /**
  * Wrap MeasuredTemplate.prototype.draw to target tokens after drawing.
  */
-export function walledTemplatesMeasuredTemplateDraw(wrapped) {
+export function walledTemplatesMeasuredTemplateRefresh(wrapped) {
+  log("Initiated MeasuredTemplate.prototype.refresh");
   const out = wrapped();
   getSetting(SETTINGS.AUTOTARGET.ENABLED) && this.autotargetToken(); // eslint-disable-line no-unused-expressions
   return out;
