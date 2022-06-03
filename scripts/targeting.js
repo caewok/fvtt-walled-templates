@@ -17,19 +17,19 @@ import { Hexagon } from "./Hexagon.js";
 export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false, retarget = false } = {}) {
   log(`Initiated MeasuredTemplate.prototype.refresh with current shape ${this.shape}`, this);
   retarget ||= redraw;
-
-  // Cache the template properties to skip redrawing unless redraw is true
-  const old_cache = this.data.document.getFlag(MODULE_ID, "template_refresh_cache");
+//
+//   // Cache the template properties to skip redrawing unless redraw is true
+  // get/set flag is problematic as setFlag is async and is causing issues.
+  // we may not care about database updates; instead store the cache on the object
   const new_cache = JSON.stringify(Object.entries(this.data));
-  const use_cache = old_cache && old_cache === new_cache;
+  log(`old cache\n${this._template_props_cache}\nnew cache\n${new_cache}`);
+  const use_cache = this._template_props_cache && this._template_props_cache === new_cache;
+  this._template_props_cache = new_cache;
 
   if ( redraw || !use_cache ) {
     log(`Redrawing template`);
     wrapped();
     retarget = true;
-    // Do this last just to make sure the object has not changed.
-    this.data.document.setFlag(MODULE_ID, "template_refresh_cache", JSON.stringify(Object.entries(this.data)));
-
   } else {
     log(`Keeping old data`);
     drawTemplateOutline.call(this);
