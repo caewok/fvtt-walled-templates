@@ -78,8 +78,14 @@ export function walledTemplateGetCircleShape(wrapped, distance) {
   // Make sure the default shape is constructed.
   this.shape = wrapped(distance);
   log("walledTemplateGetCircleShape|shape", this.shape);
+  const poly = useBoundaryPolygon.bind(this)();
 
-  return useBoundaryPolygon.bind(this)();
+  // Add back in original shape parameters in case modules or system need them
+  poly.x = this.shape.x;
+  poly.y = this.shape.y;
+  poly.radius = this.shape.radius;
+
+  return poly;
 }
 
 /**
@@ -147,6 +153,7 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
   const shifted_origin = pointFromAngle({x: 0, y: 0}, Math.toRadians(this.data.direction), 1);
   poly = poly.translate(shifted_origin.x, shifted_origin.y);
 
+  // Cone is already a polygon in original so no need to add parameters back
   return poly;
 }
 
@@ -164,7 +171,16 @@ export function walledTemplateGetRectShape(wrapped, direction, distance) {
   // Make sure the default shape is constructed.
   this.shape = wrapped(direction, distance);
   log("walledTemplateGetRectShape|shape", this.shape);
-  return useBoundaryPolygon.bind(this)();
+  const poly = useBoundaryPolygon.bind(this)();
+
+  // Add back in original shape.x, shape.y, shape.width, shape.height to fix issue #8
+  // (expected values for original rectangle)
+  poly.x = this.shape.x;
+  poly.y = this.shape.y;
+  poly.width = this.shape.width;
+  poly.height = this.shape.height;
+
+  return poly;
 }
 
 /**
@@ -182,5 +198,8 @@ export function walledTemplateGetRayShape(wrapped, direction, distance, width) {
   // Make sure the default shape is constructed.
   this.shape = wrapped(direction, distance, width);
   log("walledTemplateGetRayShape|shape", this.shape);
-  return useBoundaryPolygon.bind(this)();
+  const poly = useBoundaryPolygon.bind(this)();
+
+  // Ray is already a polygon in original so no need to add parameters back
+  return poly;
 }
