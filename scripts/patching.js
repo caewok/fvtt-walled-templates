@@ -19,7 +19,7 @@ import {
 import { walledTemplate5eFromItem } from "./render5eSpellTemplateConfig.js";
 import { boundaryPolygon } from "./boundaryPolygon.js";
 import {
-  walledTemplatesMeasuredTemplateDraw,
+  walledTemplatesMeasuredTemplateRefresh,
   shapeForGridPixels,
   boundsOverlap,
   autotargetToken } from "./targeting.js";
@@ -47,7 +47,7 @@ export function registerWalledTemplates() {
     libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype.getHighlightedSquares", WalledTemplatesPF1eGetHighlightedSquares, "WRAPPER");
   }
 
-  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.refresh", walledTemplatesMeasuredTemplateDraw, "WRAPPER");
+  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.refresh", walledTemplatesMeasuredTemplateRefresh, "WRAPPER");
 }
 
 Object.defineProperty(MeasuredTemplate.prototype, "boundaryPolygon", {
