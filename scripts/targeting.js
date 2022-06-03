@@ -14,9 +14,9 @@ import { Hexagon } from "./Hexagon.js";
  * Wrap MeasuredTemplate.prototype.draw to target tokens after drawing.
  */
 export function walledTemplatesMeasuredTemplateRefresh(wrapped) {
-  const out = wrapped();
+  wrapped();
   getSetting(SETTINGS.AUTOTARGET.ENABLED) && this.autotargetToken(); // eslint-disable-line no-unused-expressions
-  return out;
+  return this;
 }
 
 export function autotargetToken({ only_visible = false } = {}) {
