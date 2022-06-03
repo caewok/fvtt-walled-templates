@@ -11,6 +11,7 @@ CONST
 // Patches
 
 import { MODULE_ID } from "./settings.js";
+import { log } from "./module.js";
 import {
   walledTemplateGetCircleShape,
   walledTemplateGetConeShape,

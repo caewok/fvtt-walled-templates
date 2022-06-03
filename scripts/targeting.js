@@ -10,14 +10,62 @@ import { getSetting, SETTINGS } from "./settings.js";
 import { log } from "./module.js";
 import { Hexagon } from "./Hexagon.js";
 
+
 /**
  * Wrap MeasuredTemplate.prototype.draw to target tokens after drawing.
  */
-export function walledTemplatesMeasuredTemplateRefresh(wrapped) {
-  log("Initiated MeasuredTemplate.prototype.refresh");
-  const out = wrapped();
-  getSetting(SETTINGS.AUTOTARGET.ENABLED) && this.autotargetToken(); // eslint-disable-line no-unused-expressions
-  return out;
+export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false, retarget = false } = {}) {
+  log(`Initiated MeasuredTemplate.prototype.refresh with current shape ${this.shape}`, this);
+  retarget ||= redraw;
+
+  // Cache the template properties to skip redrawing unless redraw is true
+  let use_cache = false;
+  const old_cache = this.data.document.getFlag(MODULE_ID, "template_refresh_cache");
+  const new_cache = JSON.stringify(Object.entries(this.data));
+  let use_cache = old_cache && old_cache === new_cache;
+  this.data.document.setFlag(MODULE_ID, "template_refresh_cache", new_cache);
+
+  if ( redraw || !use_cache ) {
+    wrapped();
+    retarget = true;
+  } else {
+    drawTemplateOutline.call(this);
+    drawTemplateHUD.call(this);
+  }
+
+  retarget && getSetting(SETTINGS.AUTOTARGET.ENABLED) && this.autotargetToken(); // eslint-disable-line no-unused-expressions
+
+  // Do this last just to make sure the object has not changed.
+  this.data.document.setFlag(MODULE_ID, "template_refresh_cache", JSON.stringify(Object.entries(this.data)));
+
+  return this;
+}
+
+function drawTemplateOutline() {
+  // Draw the Template outline
+  this.template.clear().lineStyle(this._borderThickness, this.borderColor, 0.75).beginFill(0x000000, 0.0);
+
+    // Fill Color or Texture
+    if ( this.texture ) this.template.beginTextureFill({
+      texture: this.texture
+    });
+    else this.template.beginFill(0x000000, 0.0);
+
+    // Draw the shape
+    this.template.drawShape(this.shape);
+
+    // Draw origin and destination points
+    this.template.lineStyle(this._borderThickness, 0x000000)
+      .beginFill(0x000000, 0.5)
+      .drawCircle(0, 0, 6)
+      .drawCircle(this.ray.dx, this.ray.dy, 6);
+}
+
+function drawTemplateHUD() {
+   // Update the HUD
+   this.hud.icon.visible = this.layer._active;
+   this.hud.icon.border.visible = this._hover;
+   this._refreshRulerText();
 }
 
 export function autotargetToken({ only_visible = false } = {}) {

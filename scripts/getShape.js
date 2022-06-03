@@ -74,7 +74,7 @@ function useBoundaryPolygon() {
  * @return {PIXI.Polygon}
  */
 export function walledTemplateGetCircleShape(wrapped, distance) {
-  log(`walledTemplateGetCircleShape with distance ${distance}, origin ${this.data.x},${this.data.y}`, this);
+  log(`walledTemplateGetCircleShape with distance ${distance}, origin ${this.data.x},${this.data.y} and current shape ${this.shape}`, this);
   // Make sure the default shape is constructed.
   this.shape = wrapped(distance);
   log("walledTemplateGetCircleShape|shape", this.shape);
@@ -93,7 +93,7 @@ export function walledTemplateGetCircleShape(wrapped, distance) {
  * @return {PIXI.Polygon}
  */
 export function walledTemplateGetConeShape(wrapped, direction, angle, distance) {
-  log(`walledTemplateGetConeShape with direction ${direction}, angle ${angle}, distance ${distance}, origin ${this.data.x},${this.data.y}`, this);
+  log(`walledTemplateGetConeShape with direction ${direction}, angle ${angle}, distance ${distance}, origin ${this.data.x},${this.data.y} and current shape ${this.shape}`, this);
   if (game.settings.get("core", "coneTemplateType") === "flat") {
     // For flat cone, use WalledTemplatesClockwiseSweepPolygon and pass this source object.
 
@@ -160,7 +160,7 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
  * @return {PIXI.Polygon}
  */
 export function walledTemplateGetRectShape(wrapped, direction, distance) {
-  log(`walledTemplateGetRectShape with direction ${direction}, distance ${distance}, origin ${this.data.x},${this.data.y}`, this);
+  log(`walledTemplateGetRectShape with direction ${direction}, distance ${distance}, origin ${this.data.x},${this.data.y} and current shape ${this.shape}`, this);
   // Make sure the default shape is constructed.
   this.shape = wrapped(direction, distance);
   log("walledTemplateGetRectShape|shape", this.shape);
@@ -178,7 +178,7 @@ export function walledTemplateGetRectShape(wrapped, direction, distance) {
  * @return {PIXI.Polygon}
  */
 export function walledTemplateGetRayShape(wrapped, direction, distance, width) {
-  log(`walledTemplateGetRayShape with direction ${direction}, distance ${distance}, width ${width}, origin ${this.data.x},${this.data.y}`, this);
+  log(`walledTemplateGetRayShape with direction ${direction}, distance ${distance}, width ${width}, origin ${this.data.x},${this.data.y} and current shape ${this.shape}`, this);
   // Make sure the default shape is constructed.
   this.shape = wrapped(direction, distance, width);
   log("walledTemplateGetRayShape|shape", this.shape);
