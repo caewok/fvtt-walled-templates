@@ -14,31 +14,34 @@ import { Hexagon } from "./Hexagon.js";
 /**
  * Wrap MeasuredTemplate.prototype.draw to target tokens after drawing.
  */
-export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false, retarget = false } = {}) {
-  log(`Initiated MeasuredTemplate.prototype.refresh with current shape ${this.shape}`, this);
-  retarget ||= redraw;
+export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = true, retarget = false } = {}) {
+  let self = this;
+
+  log(`Initiated MeasuredTemplate.prototype.refresh with current shape ${this.shape}`, self);
+//   retarget ||= redraw;
 //
 //   // Cache the template properties to skip redrawing unless redraw is true
   // get/set flag is problematic as setFlag is async and is causing issues.
   // we may not care about database updates; instead store the cache on the object
-  const new_cache = JSON.stringify(Object.entries(this.data));
+  const new_cache = JSON.stringify(Object.entries(self.data));
   log(`old cache\n${this._template_props_cache}\nnew cache\n${new_cache}`);
-  const use_cache = this._template_props_cache && this._template_props_cache === new_cache;
-  this._template_props_cache = new_cache;
+  const use_cache = self._template_props_cache && self._template_props_cache === new_cache;
 
   if ( redraw || !use_cache ) {
     log(`Redrawing template`);
-    wrapped();
+    self = wrapped();
     retarget = true;
   } else {
     log(`Keeping old data`);
-    drawTemplateOutline.call(this);
-    drawTemplateHUD.call(this);
+    self = wrapped();
+    // drawTemplateOutline.call(self);
+//     drawTemplateHUD.call(self);
   }
 
-  retarget && getSetting(SETTINGS.AUTOTARGET.ENABLED) && this.autotargetToken(); // eslint-disable-line no-unused-expressions
+  retarget && getSetting(SETTINGS.AUTOTARGET.ENABLED) && self.autotargetToken(); // eslint-disable-line no-unused-expressions
 
-  return this;
+  self._template_props_cache = JSON.stringify(Object.entries(self.data));
+  return self;
 }
 
 function drawTemplateOutline() {
