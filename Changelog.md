@@ -1,3 +1,6 @@
+## 0.3.2
+Improve compatibility with Automated Animations and possibly other modules or systems that expect the template shape to have specific circle or rectangle properties.
+
 ## 0.3.1
 Improve compatibility with Pathfinder 1e. Consistent grid highlighting based on autotarget settings.
 
