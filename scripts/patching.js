@@ -47,7 +47,7 @@ export function registerWalledTemplates() {
     libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype.getHighlightedSquares", WalledTemplatesPF1eGetHighlightedSquares, "WRAPPER");
   }
 
-  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.refresh", walledTemplatesMeasuredTemplateRefresh, "WRAPPER");
+  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.refresh", walledTemplatesMeasuredTemplateRefresh, "MIXED");
 }
 
 Object.defineProperty(MeasuredTemplate.prototype, "boundaryPolygon", {

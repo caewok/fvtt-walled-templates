@@ -14,15 +14,16 @@ import { Hexagon } from "./Hexagon.js";
  * Wrap MeasuredTemplate.prototype.draw to target tokens after drawing.
  */
 export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false, retarget = false } = {}) {
-  retarget ||= redraw;
+  retarget ||= redraw; // Re-drawing requires re-targeting.
 
-  log("walledTemplatesMeasuredTemplateRefresh");
+  log(`walledTemplatesMeasuredTemplateRefresh redraw ${redraw} retarget ${retarget}`);
   const new_cache = JSON.stringify(Object.entries(this.data));
   const use_cache = this._template_props_cache && this._template_props_cache === new_cache;
 
   if ( redraw || !use_cache ) {
     log("redrawing template");
     wrapped();
+    // this.highlightGrid(); // appears unnecessary unless borders change
     retarget = true;
 
   } else {

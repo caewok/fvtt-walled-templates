@@ -123,7 +123,8 @@ Hooks.on("renderMeasuredTemplateConfig", async (app, html, data) => {
 Hooks.on("canvasReady", async canvas => {
   log("Refreshing templates on canvasReady.");
   canvas.templates.placeables.forEach(t => {
-    t.draw(); // Async but probably don't need to await
+    t.refresh({redraw: true}); // Async but probably don't need to await
+    t.highlightGrid(); // Force redrawing highlighting in case blocked by wall
   });
 });
 
@@ -145,7 +146,7 @@ Hooks.on("createWall", async (wall, opts, id) => { // eslint-disable-line no-unu
   log("Refreshing templates on createWall.");
   if (opts.temporary) return;
   canvas.templates.placeables.forEach(t => {
-    t.draw(); // Async but probably don't need to await
+    t.refresh(); // Async but probably don't need to await
   });
 });
 
@@ -160,7 +161,7 @@ Hooks.on("updateWall", async (wall, coords, opts, id) => { // eslint-disable-lin
   log("Refreshing templates on updateWall.");
   if (!opts.diff) return;
   canvas.templates.placeables.forEach(t => {
-    t.draw(); // Async but probably don't need to await
+    t.refresh(); // Async but probably don't need to await
   });
 });
 
@@ -173,7 +174,7 @@ Hooks.on("updateWall", async (wall, coords, opts, id) => { // eslint-disable-lin
 Hooks.on("deleteWall", async (wall, opts, id) => { // eslint-disable-line no-unused-vars
   log("Refreshing templates on deleteWall.");
   canvas.templates.placeables.forEach(t => {
-    t.draw(); // Async but probably don't need to await
+    t.refresh(); // Async but probably don't need to await
   });
 });
 
