@@ -1,3 +1,9 @@
+## 0.3.3
+Improve performance by not triggering a template shape redraw unless either the template
+changes or a wall intersecting the template changes.
+
+Requires using a MIXED libWrapper for `MeasuredTemplate.prototype.refresh`. Please file an issue if you encounter compatibility issues with other modules that may use this method.
+
 ## 0.3.2
 Improve compatibility with Automated Animations and possibly other modules or systems that expect the template shape to have specific circle or rectangle properties.
 
