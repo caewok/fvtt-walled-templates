@@ -104,7 +104,12 @@ Hooks.on("getSceneControlButtons", controls => {
     toggle: true,
     visible: opt === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF || opt === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON,
     active: getSetting(SETTINGS.AUTOTARGET.ENABLED),
-    onClick: toggle => toggleSetting(SETTINGS.AUTOTARGET.ENABLED) // eslint-disable-line no-unused-vars
+    onClick: toggle => { // eslint-disable-line no-unused-vars
+      toggleSetting(SETTINGS.AUTOTARGET.ENABLED);
+      if ( getSetting(SETTINGS.AUTOTARGET.ENABLED) ) {
+        canvas.templates.placeables.forEach(t => t.refresh({ retarget: true }));
+      }
+    }
   });
 });
 
@@ -123,13 +128,15 @@ Hooks.on("renderMeasuredTemplateConfig", async (app, html, data) => {
 Hooks.on("canvasReady", async canvas => {
   log("Refreshing templates on canvasReady.");
   canvas.templates.placeables.forEach(t => {
-    t.draw(); // Async but probably don't need to await
+    t.draw();
+    t.refresh({redraw: true}); // Async but probably don't need to await
   });
 });
 
 
 /**
  * Hook wall creation and update to refresh templates
+ * https://foundryvtt.com/api/hookEvents.html
  * updateWall
  * createWall
  * TO-DO: Only refresh templates that contain part of the wall
@@ -137,43 +144,130 @@ Hooks.on("canvasReady", async canvas => {
 
 /**
  * createWall Hook
- * @param {WallDocument} wall
- * @param {Object} opts { temporary: Boolean, renderSheet: Boolean, render: Boolean }
- * @param {string} id
+ * @param {WallDocument} document
+ * @param {Object} options { temporary: Boolean, renderSheet: Boolean, render: Boolean }
+ * @param {string} userId
  */
-Hooks.on("createWall", async (wall, opts, id) => { // eslint-disable-line no-unused-vars
-  log("Refreshing templates on createWall.");
-  if (opts.temporary) return;
+Hooks.on("createWall", async (document, options, userId) => { // eslint-disable-line no-unused-vars
+  if (options.temporary) return;
+
+  const A = document._object.A;
+  const B = document._object.B;
+  log(`Refreshing templates on createWall ${A.x},${A.y}|${B.x},${B.y}.`);
+
   canvas.templates.placeables.forEach(t => {
-    t.draw(); // Async but probably don't need to await
+    const bbox = t.shape.getBounds().translate(t.data.x, t.data.y);
+    if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
+      log(`Wall ${document.id} intersects ${t.id}`);
+      t.refresh({ redraw: true }); // Async but probably don't need to await
+    }
+  });
+});
+
+
+/**
+ * Hook for preUpdateWall, so the existing wall can be checked for whether it
+ * interacts with the template
+ * @param {WallDocument} document
+ * @param {Object} change { c: Array[], _id: String }  Array of four coordinates plus id
+ * @param {Object} options { diff: Boolean, render: Boolean }
+ * @param {string} userId
+ */
+Hooks.on("preUpdateWall", async (document, change, options, userId) => { // eslint-disable-line no-unused-vars
+  const A = { x: document.data.c[0], y: document.data.c[1] };
+  const B = { x: document.data.c[2], y: document.data.c[3] };
+  const new_A = { x: change.c[0], y: change.c[1] };
+  const new_B = { x: change.c[2], y: change.c[3] };
+  log(`Refreshing templates on preUpdateWall ${A.x},${A.y}|${B.x},${B.y} --> ${new_A.x},${new_A.y}|${new_B.x},${new_B.y}`, document, change, options, userId);
+
+  // We want to update the template if this wall is within the template, but
+  // hold until updateWall is called.
+  const promises = [];
+  canvas.templates.placeables.forEach(t => {
+    const bbox = t.shape.getBounds().translate(t.data.x, t.data.y);
+    if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
+      log(`Wall ${document.id} intersects ${t.id}`);
+      promises.push(t.document.setFlag(MODULE_ID, "redraw", true)); // Async
+    }
+  });
+  promises.length && ( await Promise.all(promises) ); // eslint-disable-line no-unused-expressions
+
+  return true;
+});
+
+/**
+ * Hook for updateWall, so the existing wall can be checked for whether it
+ * interacts with the template
+ * @param {WallDocument} document
+ * @param {Object} change { c: Array[], _id: String }  Array of four coordinates plus id
+ * @param {Object} options { diff: Boolean, render: Boolean }
+ * @param {string} userId
+ */
+Hooks.on("updateWall", async (document, change, options, userId) => { // eslint-disable-line no-unused-vars
+  if (!options.diff) return;
+
+  const A = { x: document.data.c[0], y: document.data.c[1] };
+  const B = { x: document.data.c[2], y: document.data.c[3] };
+  log(`Refreshing templates on updateWall ${A.x},${A.y}|${B.x},${B.y}`, document, change, options, userId);
+
+  canvas.templates.placeables.forEach(t => {
+    if ( t.document.getFlag(MODULE_ID, "redraw") ) {
+      t.document.setFlag(MODULE_ID, "redraw", false);
+      t.refresh({ redraw: true }); // Async but probably don't need to await
+      return;
+    }
+    const bbox = t.shape.getBounds().translate(t.data.x, t.data.y);
+    if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
+      log(`Wall ${document.id} intersects ${t.id}`);
+      t.refresh({ redraw: true }); // Async but probably don't need to await
+    }
   });
 });
 
 /**
  * Hook for updateWall.
- * @param {WallDocument} wall
- * @param {Object} coords { c: Array[], _id: String }  Array of four coordinates plus id
- * @param {Object} opts { diff: Boolean, render: Boolean }
- * @param {string} id
+ * @param {WallDocument} document
+ * @param {Object} change { c: Array[], _id: String }  Array of four coordinates plus id
+ * @param {Object} options { diff: Boolean, render: Boolean }
+ * @param {string} userId
  */
-Hooks.on("updateWall", async (wall, coords, opts, id) => { // eslint-disable-line no-unused-vars
-  log("Refreshing templates on updateWall.");
-  if (!opts.diff) return;
+Hooks.on("updateWall", async (document, change, options, userId) => { // eslint-disable-line no-unused-vars
+  if (!options.diff) return;
+
+  const A = { x: document.data.c[0], y: document.data.c[1] };
+  const B = { x: document.data.c[2], y: document.data.c[3] };
+  const new_A = { x: change.c[0], y: change.c[1] };
+  const new_B = { x: change.c[2], y: change.c[3] };
+  log(`Refreshing templates on updateWall ${A.x},${A.y}|${B.x},${B.y} --> ${new_A.x},${new_A.y}|${new_B.x},${new_B.y}`, document, change, options, userId);
+
   canvas.templates.placeables.forEach(t => {
-    t.draw(); // Async but probably don't need to await
+    const bbox = t.shape.getBounds().translate(t.data.x, t.data.y);
+    if ( bbox.lineSegmentIntersects(A, B, { inside: true })
+      || bbox.lineSegmentIntersects(new_A, new_B, { inside: true })) {
+      log(`Wall ${document.id} intersects ${t.id}`);
+      t.refresh({ redraw: true }); // Async but probably don't need to await
+    }
   });
 });
 
 /**
  * Hook for deleteWall.
- * @param {WallDocument} wall
- * @param {Object} opts { render: Boolean }
- * @param {string} id
+ * @param {WallDocument} document
+ * @param {Object} options { render: Boolean }
+ * @param {string} userId
  */
-Hooks.on("deleteWall", async (wall, opts, id) => { // eslint-disable-line no-unused-vars
-  log("Refreshing templates on deleteWall.");
+Hooks.on("deleteWall", async (document, options, userId) => { // eslint-disable-line no-unused-vars
+
+  const A = { x: document.data.c[0], y: document.data.c[1] };
+  const B = { x: document.data.c[2], y: document.data.c[3] };
+  log(`Refreshing templates on deleteWall ${A.x},${A.y}|${B.x},${B.y}.`);
+
   canvas.templates.placeables.forEach(t => {
-    t.draw(); // Async but probably don't need to await
+    const bbox = t.shape.getBounds().translate(t.data.x, t.data.y);
+    if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
+      log(`Wall ${document.id} intersects ${t.id}`);
+      t.refresh({ redraw: true }); // Async but probably don't need to await
+    }
   });
 });
 
