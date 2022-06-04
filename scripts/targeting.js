@@ -13,10 +13,60 @@ import { Hexagon } from "./Hexagon.js";
 /**
  * Wrap MeasuredTemplate.prototype.draw to target tokens after drawing.
  */
-export function walledTemplatesMeasuredTemplateDraw(wrapped) {
-  const out = wrapped();
-  getSetting(SETTINGS.AUTOTARGET.ENABLED) && this.autotargetToken(); // eslint-disable-line no-unused-expressions
-  return out;
+export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false, retarget = false } = {}) {
+
+  retarget ||= redraw; // Re-drawing requires re-targeting.
+
+  log(`walledTemplatesMeasuredTemplateRefresh redraw ${redraw} retarget ${retarget}`);
+  const new_cache = JSON.stringify(Object.entries(this.data));
+  const use_cache = this._template_props_cache && this._template_props_cache === new_cache;
+
+  if ( redraw || !use_cache ) {
+    log("redrawing template");
+    wrapped();
+
+    // Necessary when the borders change
+    Object.hasOwn(canvas.grid.highlightLayers, `Template.${this.id}`) && this.highlightGrid(); // eslint-disable-line no-unused-expressions
+
+    retarget = true;
+
+  } else {
+    log("Using cached template data.");
+    drawTemplateOutline.call(this);
+    drawTemplateHUD.call(this);
+  }
+
+  retarget && getSetting(SETTINGS.AUTOTARGET.ENABLED) && this.autotargetToken(); // eslint-disable-line no-unused-expressions
+  this._template_props_cache = JSON.stringify(Object.entries(this.data));
+
+  return this;
+}
+
+function drawTemplateOutline() {
+  // Draw the Template outline
+  this.template.clear().lineStyle(this._borderThickness, this.borderColor, 0.75).beginFill(0x000000, 0.0);
+
+  // Fill Color or Texture
+  if ( this.texture ) this.template.beginTextureFill({
+    texture: this.texture
+  });
+  else this.template.beginFill(0x000000, 0.0);
+
+  // Draw the shape
+  this.template.drawShape(this.shape);
+
+  // Draw origin and destination points
+  this.template.lineStyle(this._borderThickness, 0x000000)
+    .beginFill(0x000000, 0.5)
+    .drawCircle(0, 0, 6)
+    .drawCircle(this.ray.dx, this.ray.dy, 6);
+}
+
+function drawTemplateHUD() {
+  // Update the HUD
+  this.hud.icon.visible = this.layer._active;
+  this.hud.icon.border.visible = this._hover;
+  this._refreshRulerText();
 }
 
 export function autotargetToken({ only_visible = false } = {}) {

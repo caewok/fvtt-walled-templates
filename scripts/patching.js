@@ -19,7 +19,7 @@ import {
 import { walledTemplate5eFromItem } from "./render5eSpellTemplateConfig.js";
 import { boundaryPolygon } from "./boundaryPolygon.js";
 import {
-  walledTemplatesMeasuredTemplateDraw,
+  walledTemplatesMeasuredTemplateRefresh,
   shapeForGridPixels,
   boundsOverlap,
   autotargetToken } from "./targeting.js";
@@ -47,7 +47,7 @@ export function registerWalledTemplates() {
     libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype.getHighlightedSquares", WalledTemplatesPF1eGetHighlightedSquares, "WRAPPER");
   }
 
-  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.refresh", walledTemplatesMeasuredTemplateDraw, "WRAPPER");
+  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.refresh", walledTemplatesMeasuredTemplateRefresh, "MIXED");
 }
 
 Object.defineProperty(MeasuredTemplate.prototype, "boundaryPolygon", {
@@ -79,7 +79,7 @@ function walledTemplatesHighlightGrid() {
 
   // Clear existing highlight
   const hl = grid.getHighlightLayer(`Template.${this.id}`);
-  hl.clear();
+  hl?.clear();
 
   // If we are in gridless mode, highlight the shape directly
   if ( grid.type === CONST.GRID_TYPES.GRIDLESS ) {
