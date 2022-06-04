@@ -24,8 +24,10 @@ export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false
   if ( redraw || !use_cache ) {
     log("redrawing template");
     wrapped();
-    if ( Object.hasOwnProperty(canvas.grid.highlightLayers, `Template.${this.id}`) )  {
+    if ( Object.hasOwn(canvas.grid.highlightLayers, `Template.${this.id}`) )  {
       this.highlightGrid(); // necessary when the borders change
+    } else {
+      log("Not redrawing highlighted squares.");
     }
     retarget = true;
 
