@@ -24,16 +24,14 @@ export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false
   if ( redraw || !use_cache ) {
     log("redrawing template");
     wrapped();
-    if ( Object.hasOwn(canvas.grid.highlightLayers, `Template.${this.id}`) )  {
-      this.highlightGrid(); // necessary when the borders change
-    } else {
-      log("Not redrawing highlighted squares.");
-    }
+
+    // Necessary when the borders change
+    Object.hasOwn(canvas.grid.highlightLayers, `Template.${this.id}`) && this.highlightGrid(); // eslint-disable-line no-unused-expressions
+
     retarget = true;
 
   } else {
     log("Using cached template data.");
-//     wrapped();
     drawTemplateOutline.call(this);
     drawTemplateHUD.call(this);
   }

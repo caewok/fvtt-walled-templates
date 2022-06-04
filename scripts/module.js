@@ -104,8 +104,8 @@ Hooks.on("getSceneControlButtons", controls => {
     toggle: true,
     visible: opt === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF || opt === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON,
     active: getSetting(SETTINGS.AUTOTARGET.ENABLED),
-    onClick: toggle => {
-      toggleSetting(SETTINGS.AUTOTARGET.ENABLED) // eslint-disable-line no-unused-vars
+    onClick: toggle => { // eslint-disable-line no-unused-vars
+      toggleSetting(SETTINGS.AUTOTARGET.ENABLED);
       if ( getSetting(SETTINGS.AUTOTARGET.ENABLED) ) {
         canvas.templates.placeables.forEach(t => t.refresh({ retarget: true }));
       }
@@ -187,10 +187,10 @@ Hooks.on("preUpdateWall", async (document, change, options, userId) => { // esli
     const bbox = t.shape.getBounds().translate(t.data.x, t.data.y);
     if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
       log(`Wall ${document.id} intersects ${t.id}`);
-      promises.push(t.document.setFlag(MODULE_ID, "redraw", true)); // async
+      promises.push(t.document.setFlag(MODULE_ID, "redraw", true)); // Async
     }
   });
-  promises.length && ( await Promise.all(promises) );
+  promises.length && ( await Promise.all(promises) ); // eslint-disable-line no-unused-expressions
 
   return true;
 });
