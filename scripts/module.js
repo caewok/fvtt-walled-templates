@@ -104,7 +104,12 @@ Hooks.on("getSceneControlButtons", controls => {
     toggle: true,
     visible: opt === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF || opt === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON,
     active: getSetting(SETTINGS.AUTOTARGET.ENABLED),
-    onClick: toggle => toggleSetting(SETTINGS.AUTOTARGET.ENABLED) // eslint-disable-line no-unused-vars
+    onClick: toggle => {
+      toggleSetting(SETTINGS.AUTOTARGET.ENABLED) // eslint-disable-line no-unused-vars
+      if ( getSetting(SETTINGS.AUTOTARGET.ENABLED) ) {
+        canvas.templates.placeables.forEach(t => t.refresh({ retarget: true }));
+      }
+    }
   });
 });
 
@@ -123,8 +128,8 @@ Hooks.on("renderMeasuredTemplateConfig", async (app, html, data) => {
 Hooks.on("canvasReady", async canvas => {
   log("Refreshing templates on canvasReady.");
   canvas.templates.placeables.forEach(t => {
+    t.draw();
     t.refresh({redraw: true}); // Async but probably don't need to await
-    t.highlightGrid(); // Force redrawing highlighting in case blocked by wall
   });
 });
 
@@ -142,11 +147,19 @@ Hooks.on("canvasReady", async canvas => {
  * @param {Object} opts { temporary: Boolean, renderSheet: Boolean, render: Boolean }
  * @param {string} id
  */
-Hooks.on("createWall", async (wall, opts, id) => { // eslint-disable-line no-unused-vars
-  log("Refreshing templates on createWall.");
+Hooks.on("createWall", async (walldoc, opts, id) => { // eslint-disable-line no-unused-vars
   if (opts.temporary) return;
+
+  const A = walldoc._object.A;
+  const B = walldoc._object.B;
+  log(`Refreshing templates on createWall ${A.x},${A.y}|${B.x},${B.y}.`);
+
   canvas.templates.placeables.forEach(t => {
-    t.refresh(); // Async but probably don't need to await
+    const bbox = t.shape.getBounds().translate(t.data.x, t.data.y);
+    if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
+      log(`Wall ${walldoc.id} intersects ${t.id}`);
+      t.refresh({ redraw: true }); // Async but probably don't need to await
+    }
   });
 });
 
@@ -157,11 +170,22 @@ Hooks.on("createWall", async (wall, opts, id) => { // eslint-disable-line no-unu
  * @param {Object} opts { diff: Boolean, render: Boolean }
  * @param {string} id
  */
-Hooks.on("updateWall", async (wall, coords, opts, id) => { // eslint-disable-line no-unused-vars
-  log("Refreshing templates on updateWall.");
+Hooks.on("updateWall", async (walldoc, coords, opts, id) => { // eslint-disable-line no-unused-vars
   if (!opts.diff) return;
+
+  const A = walldoc._object.A;
+  const B = walldoc._object.B;
+  const new_A = { x: coords.c[0], y: coords.c[1] };
+  const new_B = { x: coords.c[2], y: coords.c[3] };
+  log(`Refreshing templates on updateWall ${A.x},${A.y}|${B.x},${B.y} --> ${new_A.x},${new_A.y}|${new_B.x},${new_B.y}`, walldoc, coords, opts, id);
+
   canvas.templates.placeables.forEach(t => {
-    t.refresh(); // Async but probably don't need to await
+    const bbox = t.shape.getBounds().translate(t.data.x, t.data.y);
+    if ( bbox.lineSegmentIntersects(A, B, { inside: true })
+      || bbox.lineSegmentIntersects(new_A, new_B, { inside: true })) {
+      log(`Wall ${walldoc.id} intersects ${t.id}`);
+      t.refresh({ redraw: true }); // Async but probably don't need to await
+    }
   });
 });
 
@@ -171,10 +195,18 @@ Hooks.on("updateWall", async (wall, coords, opts, id) => { // eslint-disable-lin
  * @param {Object} opts { render: Boolean }
  * @param {string} id
  */
-Hooks.on("deleteWall", async (wall, opts, id) => { // eslint-disable-line no-unused-vars
-  log("Refreshing templates on deleteWall.");
+Hooks.on("deleteWall", async (walldoc, opts, id) => { // eslint-disable-line no-unused-vars
+
+  const A = { x: walldoc.data.c[0], y: walldoc.data.c[1] };
+  const B = { x: walldoc.data.c[2], y: walldoc.data.c[3] };
+  log(`Refreshing templates on deleteWall ${A.x},${A.y}|${B.x},${B.y}.`);
+
   canvas.templates.placeables.forEach(t => {
-    t.refresh(); // Async but probably don't need to await
+    const bbox = t.shape.getBounds().translate(t.data.x, t.data.y);
+    if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
+      log(`Wall ${walldoc.id} intersects ${t.id}`);
+      t.refresh({ redraw: true }); // Async but probably don't need to await
+    }
   });
 });
 

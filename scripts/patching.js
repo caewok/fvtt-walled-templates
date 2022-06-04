@@ -79,7 +79,7 @@ function walledTemplatesHighlightGrid() {
 
   // Clear existing highlight
   const hl = grid.getHighlightLayer(`Template.${this.id}`);
-  hl.clear();
+  hl?.clear();
 
   // If we are in gridless mode, highlight the shape directly
   if ( grid.type === CONST.GRID_TYPES.GRIDLESS ) {

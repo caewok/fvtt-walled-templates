@@ -14,6 +14,7 @@ import { Hexagon } from "./Hexagon.js";
  * Wrap MeasuredTemplate.prototype.draw to target tokens after drawing.
  */
 export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false, retarget = false } = {}) {
+
   retarget ||= redraw; // Re-drawing requires re-targeting.
 
   log(`walledTemplatesMeasuredTemplateRefresh redraw ${redraw} retarget ${retarget}`);
@@ -23,7 +24,9 @@ export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false
   if ( redraw || !use_cache ) {
     log("redrawing template");
     wrapped();
-    // this.highlightGrid(); // appears unnecessary unless borders change
+    if ( Object.hasOwnProperty(canvas.grid.highlightLayers, `Template.${this.id}`) )  {
+      this.highlightGrid(); // necessary when the borders change
+    }
     retarget = true;
 
   } else {
