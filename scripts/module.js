@@ -94,6 +94,20 @@ Hooks.once("setup", async function() {
   }
 });
 
+
+Hooks.once("ready", async function() {
+  log("Ready...");
+
+  // Ensure every template has an enabled flag; set to world setting if missing.
+  // Happens if templates were created without Walled Templates module enabled
+  canvas.templates.objects.children.forEach(t => {
+    if ( typeof t.document.getFlag(MODULE_ID, "enabled") === "undefined" ) {
+      t.document.setFlag(MODULE_ID, "enabled", getSetting("default-to-walled"));
+    }
+  });
+})
+
+
 Hooks.on("getSceneControlButtons", controls => {
   const control = controls.find(x => x.name === "measure");
   const opt = getSetting(SETTINGS.AUTOTARGET.MENU);
