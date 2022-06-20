@@ -112,24 +112,42 @@ export function boundsOverlap(bounds) {
   return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%
 }
 
+
+/**
+ * Return either a square or a hexagon shape based on grid type for the current scene.
+ * If the point is on a corner, it will draw the bottom right grid location.
+ * @param {Point} p   Any point within the grid shape
+ * @return {PIXI.Rectangle|Hexagon} Rectangle for square or gridless; hexagon for hex grids.
+ */
+export function gridShapeForPixel(p) {
+  // Get the upper left corner of the grid for the pixel
+  const [gx, gy] = canvas.grid.getTopLeft(p.x, p.y);
+  return gridShapeForTopLeft({x: gx, y: gy})
+}
+
 /**
  * Return either a square or hexagon shape based on grid type.
  * Should be the grid at given p
  * @param {Point} p   Top left corner of the grid square.
- * @return {PIXI.Rectangle|Hexagon}
+ * @return {PIXI.Rectangle|Hexagon}  Rectangle for square or gridless; hexagon for hex grids.
  */
-export function shapeForGridPixels(p) {
+export function gridShapeForTopLeft(p) {
   if ( canvas.scene.data.gridType === CONST.GRID_TYPES.GRIDLESS
     || canvas.scene.data.gridType === CONST.GRID_TYPES.SQUARE ) {
     return new PIXI.Rectangle(p.x, p.y, canvas.dimensions.size, canvas.dimensions.size);
   }
 
+  // Offset from top left to center
+  const hx = Math.ceil(canvas.grid.w / 2);
+  const hy = Math.ceil(canvas.grid.h / 2);
+
   return Hexagon.fromDimensions(
-    p.x + canvas.dimensions.size,
-    p.y + canvas.dimensions.size,
+    p.x + hx,
+    p.y + hy,
     canvas.grid.grid.w,
     canvas.grid.grid.h);
 }
+
 
 /**
  * Test whether the bounds shape overlaps a given template shape.
