@@ -67,23 +67,23 @@ Note that while targeting of tokens at medium size is equivalent to highlighting
 ## Enable autotargeting
 <img
 src="https://github.com/caewok/fvtt-walled-templates/blob/feature/screenshots/screenshots/settings-autotarget.jpg" width="400" alt="Screenshot of Walled Templates Module Configuration: 'Enable autotargeting' with 'Display toggle button; default off' selected">
+<img
+src="https://github.com/caewok/fvtt-walled-templates/blob/feature/screenshots/screenshots/template-controls.jpg" align="right" width="100" alt="Screenshot of template controls with added bullseye activated as the fifth control in the set">
 
 This setting controls whether a template will automatically target tokens within the template area. There are four options:
-1. Disable autotargeting completely.
-2. Add a toggle switch to the template controls to control autotargeting; default to disabled.
-3. Add a toggle switch to the template controls to control autotargeting; default to enabled.
-3. Enable autotargeting everywhere.
+  1. Disable autotargeting completely.
+  2. Add a toggle switch to the template controls to control autotargeting; default to disabled.
+  3. Add a toggle switch to the template controls to control autotargeting; default to enabled.
+  4. Enable autotargeting everywhere.
 
 Options (2) and (3) add a toggle switch to the template controls on the left side of the canvas.
-<img
-src="https://github.com/caewok/fvtt-walled-templates/blob/feature/screenshots/screenshots/template-controls.jpg" align="left" width="100" alt="Screenshot of template controls with added bullseye activated as the fifth control in the set">
 
 ## Macros and advanced usage
 This module adds a flag to template objects, `flags.walledtemplates.enabled: true` or `flags.walledtemplates.enabled: false`, to indicate if walls should block a given template. Templates without the flag will use the world default.
 
-## Known issues
+# Known issues
 
-# Circles
+## Circles
 
 Circles templates are particularly problematic in Foundry because Foundry tests whether the center point of the template is within the circle, and so when the center point is on the edge of the circle, it can be difficult to know whether a point is in or out, given limited precision of pixels on a canvas. Hex grids can be particularly problematic.
 
