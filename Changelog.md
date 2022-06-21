@@ -1,5 +1,5 @@
 ## 0.3.4
-Use the original Foundry highlight grid method if no walls blocking and autotargeting is set to use the center point.
+Use the original Foundry highlight grid method if no walls blocking and autotargeting is set to use the center point. Fixes to improve hex grid highlighting and targeting. Tweak settings descriptions.
 
 ## 0.3.3
 Improve performance by not triggering a template shape redraw unless either the template
