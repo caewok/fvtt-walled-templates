@@ -240,9 +240,6 @@ function lineSegmentIntersects(a, b, { inside = false } = {}) {
   }
 }
 
-
-
-
 /**
  * From PIXI.js mathextras
  * https://pixijs.download/dev/docs/packages_math-extras_src_rectangleExtras.ts.html

@@ -27,14 +27,11 @@ import { LightMaskClockwisePolygonSweep as WalledTemplatesClockwiseSweepPolygon 
 function useBoundaryPolygon() {
   log("Starting useBoundaryPolygon", this);
 
-  let enabled = this.document.getFlag(MODULE_ID, "enabled");
-  if (typeof enabled === "undefined") {
-    enabled = getSetting("default-to-walled");
-  }
-  if (!enabled) {
+  if ( !this.document.getFlag(MODULE_ID, "enabled") ) {
     log("useBoundaryPolygon|not enabled. Returning shape", this.shape);
     return this.shape;
   }
+
   if (!canvas.walls.quadtree) {
     log("useBoundaryPolygon|no quadtree. Returning shape", this.shape);
     return this.shape; // Avoid error when first loading

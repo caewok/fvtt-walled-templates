@@ -1,3 +1,6 @@
+## 0.3.4
+Use the original Foundry highlight grid method if no walls blocking and autotargeting is set to use the center point.
+
 ## 0.3.3
 Improve performance by not triggering a template shape redraw unless either the template
 changes or a wall intersecting the template changes.

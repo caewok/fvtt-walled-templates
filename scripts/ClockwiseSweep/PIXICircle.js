@@ -75,7 +75,7 @@ function get360PaddingPoints(x, y, radius, { density = 60 } = {}) {
  * @return {PIXI.Circle}
  */
 function translate(dx, dy) {
-  return new this.constructor(this.x + dx, this.y + dy, this.radius)
+  return new this.constructor(this.x + dx, this.y + dy, this.radius);
 }
 
 // ----------------  ADD METHODS TO THE PIXI.CIRCLE PROTOTYPE ------------------------

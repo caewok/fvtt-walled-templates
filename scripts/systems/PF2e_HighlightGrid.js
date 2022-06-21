@@ -8,11 +8,18 @@ MeasuredTemplate
 "use strict";
 
 import { log } from "../module.js";
-import { shapeForGridPixels } from "../targeting.js";
+import { gridShapeForTopLeft } from "../targeting.js";
+import { MODULE_ID, getSetting, SETTINGS } from "../settings.js";
 
 // Same as PF2e but for the contains test
-export function WalledTemplatesPF2eHighlightGrid() {
+export function WalledTemplatesPF2eHighlightGrid(wrapped) {
   log(`WalledTemplatesPF2eHighlightGrid type ${this.type}`);
+
+  if ( !this.document.getFlag(MODULE_ID, "enabled")
+    && getSetting(SETTINGS.AUTOTARGET.METHOD) === SETTINGS.AUTOTARGET.METHODS.CENTER ) {
+    log("WalledTemplatesPF2eHighlightGrid|Using Foundry default");
+    return wrapped();
+  }
 
   if ( !["circle", "cone"].includes(this.type)
     || canvas.scene?.data.gridType !== CONST.GRID_TYPES.SQUARE ) {
@@ -102,7 +109,7 @@ export function WalledTemplatesPF2eHighlightGrid() {
         continue;
       }
 
-      const shape = shapeForGridPixels({x: gx, y: gy});
+      const shape = gridShapeForTopLeft({x: gx, y: gy});
       if ( !this.boundsOverlap(shape) ) { continue; }
 
       const color = this.fillColor;
