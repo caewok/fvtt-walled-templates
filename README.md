@@ -17,6 +17,10 @@ Add this [Manifest URL](https://github.com/caewok/fvtt-walled-templates/releases
 ## Dependencies
 - [libWrapper](https://github.com/ruipin/fvtt-lib-wrapper)
 
+## Recommended Modules
+- [Sequencer](https://github.com/fantasycalendar/FoundryVTT-Sequencer) will mask animations within templates that are blocked by walls, so that only the unblocked portion is seen.
+- [MidiQOL](https://gitlab.com/tposney/midi-qol). Select either "always" or "always ignore defeated" in the "Autotarget on template draw"  setting in MidiQOL workflows and turn on autotargeting in Walled Templates.
+
 ## Known conflicts
 - [DF Template Enhancements](https://foundryvtt.com/packages/df-templates) (See [issue #5](https://github.com/caewok/fvtt-walled-templates/issues/5))
 
@@ -45,6 +49,7 @@ Several settings specified at the "world" level allow you to specify rules for a
 ## Default to walls block
 <img
 src="https://github.com/caewok/fvtt-walled-templates/blob/feature/screenshots/screenshots/settings-walls-block.jpg" width="400" alt="Screenshot of Walled Templates Module configuration: 'Default to walls block' selected">
+
 If enabled, all newly created templates will be set to have walls block.
 
 ## Autotargeting and highlighting
@@ -62,15 +67,16 @@ Note that while targeting of tokens at medium size is equivalent to highlighting
 ## Enable autotargeting
 <img
 src="https://github.com/caewok/fvtt-walled-templates/blob/feature/screenshots/screenshots/settings-autotarget.jpg" width="400" alt="Screenshot of Walled Templates Module Configuration: 'Enable autotargeting' with 'Display toggle button; default off' selected">
+
 This setting controls whether a template will automatically target tokens within the template area. There are four options:
 1. Disable autotargeting completely.
 2. Add a toggle switch to the template controls to control autotargeting; default to disabled.
 3. Add a toggle switch to the template controls to control autotargeting; default to enabled.
 3. Enable autotargeting everywhere.
 
-Options (2) and (3) add a toggle switch to the template controls on the left side of the canvas:
+Options (2) and (3) add a toggle switch to the template controls on the left side of the canvas.
 <img
-src="https://github.com/caewok/fvtt-walled-templates/blob/feature/screenshots/screenshots/template-controls.jpg" width="400" alt="Screenshot of template controls with added bullseye activated as the fifth control in the set">
+src="https://github.com/caewok/fvtt-walled-templates/blob/feature/screenshots/screenshots/template-controls.jpg" align="left" width="100" alt="Screenshot of template controls with added bullseye activated as the fifth control in the set">
 
 ## Macros and advanced usage
 This module adds a flag to template objects, `flags.walledtemplates.enabled: true` or `flags.walledtemplates.enabled: false`, to indicate if walls should block a given template. Templates without the flag will use the world default.
