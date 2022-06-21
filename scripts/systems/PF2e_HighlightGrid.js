@@ -9,6 +9,7 @@ MeasuredTemplate
 
 import { log } from "../module.js";
 import { gridShapeForTopLeft } from "../targeting.js";
+import { MODULE_ID } from "../settings.js";
 
 // Same as PF2e but for the contains test
 export function WalledTemplatesPF2eHighlightGrid(wrapped) {

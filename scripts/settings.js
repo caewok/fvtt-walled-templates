@@ -61,24 +61,6 @@ export function registerSettings() {
     default: false
   });
 
-  game.settings.register(MODULE_ID, SETTINGS.AUTOTARGET.MENU, {
-    name: game.i18n.localize("walledtemplates.settings.autotarget-menu.Name"),
-    hint: game.i18n.localize("walledtemplates.settings.autotarget-menu.Hint"),
-    scope: "client",
-    config: true,
-    type: String,
-    choices: {
-      [SETTINGS.AUTOTARGET.CHOICES.NO]: game.i18n.localize("walledtemplates.settings.autotarget-menu.Choice.No"),
-      [SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF]: game.i18n.localize("walledtemplates.settings.autotarget-menu.Choice.Toggle_Off"),
-      [SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON]: game.i18n.localize("walledtemplates.settings.autotarget-menu.Choice.Toggle_On"),
-      [SETTINGS.AUTOTARGET.CHOICES.YES]: game.i18n.localize("walledtemplates.settings.autotarget-menu.Choice.Yes")
-    },
-    default: SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF,
-    onChange: value => setSetting(SETTINGS.AUTOTARGET.ENABLED,
-      value === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON
-      || value === SETTINGS.AUTOTARGET.CHOICES.YES)
-  });
-
   game.settings.register(MODULE_ID, SETTINGS.AUTOTARGET.METHOD, {
     name: game.i18n.localize("walledtemplates.settings.autotarget-method.Name"),
     hint: game.i18n.localize("walledtemplates.settings.autotarget-method.Hint"),
@@ -105,6 +87,26 @@ export function registerSettings() {
     scope: "world",
     config: true
   });
+
+  game.settings.register(MODULE_ID, SETTINGS.AUTOTARGET.MENU, {
+    name: game.i18n.localize("walledtemplates.settings.autotarget-menu.Name"),
+    hint: game.i18n.localize("walledtemplates.settings.autotarget-menu.Hint"),
+    scope: "client",
+    config: true,
+    type: String,
+    choices: {
+      [SETTINGS.AUTOTARGET.CHOICES.NO]: game.i18n.localize("walledtemplates.settings.autotarget-menu.Choice.No"),
+      [SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF]: game.i18n.localize("walledtemplates.settings.autotarget-menu.Choice.Toggle_Off"),
+      [SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON]: game.i18n.localize("walledtemplates.settings.autotarget-menu.Choice.Toggle_On"),
+      [SETTINGS.AUTOTARGET.CHOICES.YES]: game.i18n.localize("walledtemplates.settings.autotarget-menu.Choice.Yes")
+    },
+    default: SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF,
+    onChange: value => setSetting(SETTINGS.AUTOTARGET.ENABLED,
+      value === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON
+      || value === SETTINGS.AUTOTARGET.CHOICES.YES)
+  });
+
+
 
   // Setting to use percentage of token area on template edges
   // Setting to force token autotarget on/off?
