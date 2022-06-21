@@ -122,7 +122,7 @@ export function boundsOverlap(bounds) {
 export function gridShapeForPixel(p) {
   // Get the upper left corner of the grid for the pixel
   const [gx, gy] = canvas.grid.getTopLeft(p.x, p.y);
-  return gridShapeForTopLeft({x: gx, y: gy})
+  return gridShapeForTopLeft({x: gx, y: gy});
 }
 
 /**

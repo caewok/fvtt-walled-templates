@@ -105,7 +105,7 @@ Hooks.once("ready", async function() {
       t.document.setFlag(MODULE_ID, "enabled", getSetting("default-to-walled"));
     }
   });
-})
+});
 
 
 Hooks.on("getSceneControlButtons", controls => {

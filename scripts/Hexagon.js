@@ -121,8 +121,6 @@ export class Hexagon {
     return new PIXI.Rectangle(this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
   }
 
-
-
   /**
    * Translate the hexagon, shifting it in the x and y direction.
    * (Basic but useful b/c it is equivalent to polygon.translate)

@@ -11,7 +11,7 @@ CONST
 // Patches
 
 import { log } from "./module.js";
-import { MODULE_ID } from "./settings.js";
+import { MODULE_ID, getSetting, SETTINGS } from "./settings.js";
 import {
   walledTemplateGetCircleShape,
   walledTemplateGetConeShape,
@@ -26,7 +26,6 @@ import {
   autotargetToken } from "./targeting.js";
 import { WalledTemplatesPF1eGetHighlightedSquares } from "./systems/PF1e_HighlightGrid.js";
 import { WalledTemplatesPF2eHighlightGrid } from "./systems/PF2e_HighlightGrid.js";
-import { getSetting, SETTINGS } from "./settings.js";
 
 export function registerWalledTemplates() {
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getCircleShape", walledTemplateGetCircleShape, libWrapper.WRAPPER);
@@ -123,10 +122,10 @@ function walledTemplatesHighlightGrid(wrapped) {
     for (let c = -nc; c < nc; c++) {
       let [gx, gy] = canvas.grid.grid.getPixelsFromGridPosition(row0 + r, col0 + c);
 
-      // location of the coordinate on the grid
+      // Location of the coordinate on the grid
       // {x: gx + hx, y: gy + hy}
 
-      // translate back to template coordinates (origin 0, 0)
+      // Translate back to template coordinates (origin 0, 0)
       const testX = (gx+hx) - this.data.x;
       const testY = (gy+hy) - this.data.y;
       let contains = ((r === 0) && (c === 0) && isCenter ) || this.shape.contains(testX, testY);

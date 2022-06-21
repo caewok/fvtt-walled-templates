@@ -106,8 +106,6 @@ export function registerSettings() {
       || value === SETTINGS.AUTOTARGET.CHOICES.YES)
   });
 
-
-
   // Setting to use percentage of token area on template edges
   // Setting to force token autotarget on/off?
   // Add control button to toggle autotarget on/off?
