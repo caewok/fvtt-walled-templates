@@ -10,7 +10,8 @@ CONST
 
 // Patches
 
-import { MODULE_ID } from "./settings.js";
+import { log } from "./module.js";
+import { MODULE_ID, getSetting, SETTINGS } from "./settings.js";
 import {
   walledTemplateGetCircleShape,
   walledTemplateGetConeShape,
@@ -20,34 +21,34 @@ import { walledTemplate5eFromItem } from "./render5eSpellTemplateConfig.js";
 import { boundaryPolygon } from "./boundaryPolygon.js";
 import {
   walledTemplatesMeasuredTemplateRefresh,
-  shapeForGridPixels,
+  gridShapeForTopLeft,
   boundsOverlap,
   autotargetToken } from "./targeting.js";
 import { WalledTemplatesPF1eGetHighlightedSquares } from "./systems/PF1e_HighlightGrid.js";
 import { WalledTemplatesPF2eHighlightGrid } from "./systems/PF2e_HighlightGrid.js";
 
 export function registerWalledTemplates() {
-  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getCircleShape", walledTemplateGetCircleShape, "WRAPPER");
-  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getConeShape", walledTemplateGetConeShape, "MIXED");
-  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getRectShape", walledTemplateGetRectShape, "WRAPPER");
-  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getRayShape", walledTemplateGetRayShape, "WRAPPER");
-  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.highlightGrid", walledTemplatesHighlightGrid, "OVERRIDE");
+  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getCircleShape", walledTemplateGetCircleShape, libWrapper.WRAPPER);
+  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getConeShape", walledTemplateGetConeShape, libWrapper.MIXED);
+  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getRectShape", walledTemplateGetRectShape, libWrapper.WRAPPER);
+  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getRayShape", walledTemplateGetRayShape, libWrapper.WRAPPER);
+  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.highlightGrid", walledTemplatesHighlightGrid, libWrapper.MIXED);
 
   if ( game.system.id === "dnd5e" ) {
     // Catch when template is created from item; set walled template enabled based on item
-    libWrapper.register(MODULE_ID, "game.dnd5e.canvas.AbilityTemplate.fromItem", walledTemplate5eFromItem, "WRAPPER");
+    libWrapper.register(MODULE_ID, "game.dnd5e.canvas.AbilityTemplate.fromItem", walledTemplate5eFromItem, libWrapper.WRAPPER);
   }
 
   if ( game.system.id === "pf2e" ) {
     // Override how the grid is highlighted for cones and rays
-    libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype.highlightGrid", WalledTemplatesPF2eHighlightGrid, "OVERRIDE");
+    libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype.highlightGrid", WalledTemplatesPF2eHighlightGrid, libWrapper.MIXED);
   }
 
   if ( game.system.id === "pf1" ) {
-    libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype.getHighlightedSquares", WalledTemplatesPF1eGetHighlightedSquares, "WRAPPER");
+    libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype.getHighlightedSquares", WalledTemplatesPF1eGetHighlightedSquares, libWrapper.WRAPPER);
   }
 
-  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.refresh", walledTemplatesMeasuredTemplateRefresh, "MIXED");
+  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.refresh", walledTemplatesMeasuredTemplateRefresh, libWrapper.MIXED);
 }
 
 Object.defineProperty(MeasuredTemplate.prototype, "boundaryPolygon", {
@@ -68,7 +69,13 @@ Object.defineProperty(MeasuredTemplate.prototype, "boundsOverlap", {
   configurable: true
 });
 
-function walledTemplatesHighlightGrid() {
+function walledTemplatesHighlightGrid(wrapped) {
+  if ( !this.document.getFlag(MODULE_ID, "enabled")
+    && getSetting(SETTINGS.AUTOTARGET.METHOD) === SETTINGS.AUTOTARGET.METHODS.CENTER ) {
+    log("walledTemplatesHighlightGrid|Using Foundry default");
+    return wrapped();
+  }
+
   const grid = canvas.grid;
   const d = canvas.dimensions;
   const border = this.borderColor;
@@ -114,12 +121,17 @@ function walledTemplatesHighlightGrid() {
   for (let r = -nr; r < nr; r++) {
     for (let c = -nc; c < nc; c++) {
       let [gx, gy] = canvas.grid.grid.getPixelsFromGridPosition(row0 + r, col0 + c);
+
+      // Location of the coordinate on the grid
+      // {x: gx + hx, y: gy + hy}
+
+      // Translate back to template coordinates (origin 0, 0)
       const testX = (gx+hx) - this.data.x;
       const testY = (gy+hy) - this.data.y;
       let contains = ((r === 0) && (c === 0) && isCenter ) || this.shape.contains(testX, testY);
       if ( !contains ) continue;
 
-      const shape = shapeForGridPixels({x: gx, y: gy});
+      const shape = gridShapeForTopLeft({x: gx, y: gy});
       if ( !this.boundsOverlap(shape) ) { continue; }
 
       grid.grid.highlightGridPosition(hl, {x: gx, y: gy, border, color});
