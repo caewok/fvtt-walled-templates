@@ -7,19 +7,10 @@ canvas
 "use strict";
 
 import { registerWalledTemplates } from "./patching.js";
+import { log } from "./util.js";
 import { MODULE_ID, SETTINGS, registerSettings, getSetting, toggleSetting } from "./settings.js";
-
-import { registerPIXIPolygonMethods } from "./ClockwiseSweep/PIXIPolygon.js";
-import { registerPIXIRectangleMethods } from "./ClockwiseSweep/PIXIRectangle.js";
-import { registerPIXICircleMethods } from "./ClockwiseSweep/PIXICircle.js";
-import { registerPolygonVertexMethods } from "./ClockwiseSweep/SimplePolygonEdge.js";
-
 import { walledTemplatesRenderMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
 import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
-import { LightMaskClockwisePolygonSweep as WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweep/LightMaskClockwisePolygonSweep.js";
-import { LimitedAngleSweepPolygon } from "./ClockwiseSweep/LimitedAngle.js";
-
-import { ClipperLib } from "./ClockwiseSweep/clipper_unminified.js";
 import { Hexagon } from "./Hexagon.js";
 
 import {
@@ -27,21 +18,6 @@ import {
   walledTemplateGetConeShape,
   walledTemplateGetRectShape,
   walledTemplateGetRayShape } from "./getShape.js";
-
-/**
- * Log message only when debug flag is enabled from DevMode module.
- * @param {Object[]} args  Arguments passed to console.log.
- */
-export function log(...args) {
-  try {
-    const isDebugging = game.modules.get("_dev-mode")?.api?.getPackageDebugValue(MODULE_ID);
-    if ( isDebugging ) {
-      console.log(MODULE_ID, "|", ...args);
-    }
-  } catch(e) {
-    // Empty
-  }
-}
 
 /**
  * Tell DevMode that we want a flag for debugging this module.
@@ -60,13 +36,10 @@ Hooks.once("init", async function() {
   registerPolygonVertexMethods();
 
   game.modules.get(MODULE_ID).api = {
-    WalledTemplatesClockwiseSweepPolygon,
     walledTemplateGetCircleShape,
     walledTemplateGetConeShape,
     walledTemplateGetRectShape,
     walledTemplateGetRayShape,
-    LimitedAngleSweepPolygon,
-    ClipperLib,
     Hexagon
   };
 

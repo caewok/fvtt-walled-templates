@@ -5,7 +5,7 @@ PIXI
 "use strict";
 
 import { log } from "./module.js";
-import { pointFromAngle } from "./ClockwiseSweep/utilities.js";
+import { pointFromAngle } from "./util.js";
 
 /**
  * Callback function to create a polygon boundary in the shape of a flat cone.

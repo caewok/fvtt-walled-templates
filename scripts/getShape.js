@@ -5,10 +5,9 @@ game
 
 "use strict";
 
-import { pointFromAngle } from "./ClockwiseSweep/utilities.js";
+import { pointFromAngle } from "./util.js";
 import { log } from "./module.js";
 import { MODULE_ID, debugPolygons, getSetting } from "./settings.js";
-import { LightMaskClockwisePolygonSweep as WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweep/LightMaskClockwisePolygonSweep.js";
 
 /**
  * Use ClockwiseSweep to construct the polygon shape, passing it this template object.
@@ -43,10 +42,11 @@ function useBoundaryPolygon() {
     debug: debugPolygons(),
     type: "light",
     density: 60,
-    source: this
+    source: this,
+    boundaryShapes: this.boundaryPolygon(origin)
   };
 
-  let poly = new WalledTemplatesClockwiseSweepPolygon();
+  let poly = new ClockwiseSweepPolygon();
   poly.initialize(origin, cfg);
   poly.compute();
 
