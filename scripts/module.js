@@ -30,10 +30,10 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 Hooks.once("init", async function() {
   log("Initializing...");
   registerWalledTemplates();
-  registerPIXIPolygonMethods();
-  registerPIXIRectangleMethods();
-  registerPIXICircleMethods();
-  registerPolygonVertexMethods();
+  // registerPIXIPolygonMethods();
+//   registerPIXIRectangleMethods();
+//   registerPIXICircleMethods();
+//   registerPolygonVertexMethods();
 
   game.modules.get(MODULE_ID).api = {
     walledTemplateGetCircleShape,

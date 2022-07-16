@@ -5,8 +5,7 @@ game
 
 "use strict";
 
-import { pointFromAngle } from "./util.js";
-import { log } from "./module.js";
+import { pointFromAngle, log } from "./util.js";
 import { MODULE_ID, debugPolygons, getSetting } from "./settings.js";
 
 /**

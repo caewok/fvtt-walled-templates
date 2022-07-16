@@ -10,7 +10,7 @@ CONST
 
 // Patches
 
-import { log } from "./module.js";
+import { log, gridShapeForTopLeft } from "./util.js";
 import { MODULE_ID, getSetting, SETTINGS } from "./settings.js";
 import {
   walledTemplateGetCircleShape,
@@ -21,7 +21,6 @@ import { walledTemplate5eFromItem } from "./render5eSpellTemplateConfig.js";
 import { boundaryPolygon } from "./boundaryPolygon.js";
 import {
   walledTemplatesMeasuredTemplateRefresh,
-  gridShapeForTopLeft,
   boundsOverlap,
   autotargetToken } from "./targeting.js";
 import { WalledTemplatesPF1eGetHighlightedSquares } from "./systems/PF1e_HighlightGrid.js";

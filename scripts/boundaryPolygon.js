@@ -4,8 +4,7 @@ PIXI
 
 "use strict";
 
-import { log } from "./module.js";
-import { pointFromAngle } from "./util.js";
+import { pointFromAngle, log } from "./util.js";
 
 /**
  * Callback function to create a polygon boundary in the shape of a flat cone.

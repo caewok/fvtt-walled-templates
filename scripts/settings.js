@@ -4,7 +4,7 @@ game
 
 "use strict";
 
-import { log } from "./module.js";
+import { log } from "./util.js";
 
 export const MODULE_ID = "walledtemplates";
 export const SETTINGS = {
