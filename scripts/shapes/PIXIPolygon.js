@@ -55,6 +55,15 @@ function* iterateEdges({close = true} = {}) {
   }
 }
 
+/**
+ * Area of polygon
+ * @returns {number}
+ */
+function area() {
+  const path = this.toClipperPoints();
+  return Math.abs(ClipperLib.Clipper.Area(path));
+}
+
 // ----------------  ADD METHODS TO THE PIXI.POLYGON PROTOTYPE --------------------------
 export function registerPIXIPolygonMethods() {
 
@@ -72,6 +81,12 @@ export function registerPIXIPolygonMethods() {
 
   Object.defineProperty(PIXI.Polygon.prototype, "iterateEdges", {
     value: iterateEdges,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(PIXI.Polygon.prototype, "area", {
+    value: area,
     writable: true,
     configurable: true
   });
