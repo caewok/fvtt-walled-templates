@@ -24,11 +24,9 @@
       }
     ]
   },
-
   "esmodules": [
     "/scripts/module.js"
   ],
-
   "languages": [
     {
       "lang": "en",
