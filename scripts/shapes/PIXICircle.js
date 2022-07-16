@@ -14,6 +14,15 @@ function translate(dx, dy) {
   return new this.constructor(this.x + dx, this.y + dy, this.radius);
 }
 
+/**
+ * Intersect this circle with a polygon
+ * @param {PIXI.Polygon} poly
+ * @returns {PIXI.Polygon}
+ */
+function intersectPolygon(poly, {density} = {}) {
+  return poly.intersectCircle(this, {density});
+}
+
 // ----------------  ADD METHODS TO THE PIXI.CIRCLE PROTOTYPE ------------------------
 export function registerPIXICircleMethods() {
   Object.defineProperty(PIXI.Circle.prototype, "translate", {
@@ -22,4 +31,9 @@ export function registerPIXICircleMethods() {
     configurable: true
   });
 
+  Object.defineProperty(PIXI.Circle.prototype, "intersectPolygon", {
+    value: intersectPolygon,
+    writable: true,
+    configurable: true
+  });
 }
