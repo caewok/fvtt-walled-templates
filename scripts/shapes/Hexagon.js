@@ -4,7 +4,7 @@ PIXI
 */
 "use strict";
 
-import { hasIntersectionBruteRedBlack } from "./util.js";
+import { hasIntersectionBruteRedBlack } from "../util.js";
 
 /**
  * Hexagon class structured similarly to PIXI.Rectangle or PIXI.Circle
