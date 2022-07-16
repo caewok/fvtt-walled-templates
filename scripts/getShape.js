@@ -42,7 +42,7 @@ function useBoundaryPolygon() {
     type: "light",
     density: 60,
     source: this,
-    boundaryShapes: this.boundaryPolygon(origin)
+    boundaryShapes: [this.boundaryPolygon(origin)]
   };
 
   let poly = new ClockwiseSweepPolygon();
@@ -73,6 +73,8 @@ export function walledTemplateGetCircleShape(wrapped, distance) {
   log(`walledTemplateGetCircleShape with distance ${distance}, origin ${this.data.x},${this.data.y}`, this);
   // Make sure the default shape is constructed.
   this.shape = wrapped(distance);
+  if ( !canvas.walls.innerBounds.length ) return this.shape;
+
   log("walledTemplateGetCircleShape|shape", this.shape);
   const poly = useBoundaryPolygon.bind(this)();
 
@@ -96,6 +98,8 @@ export function walledTemplateGetCircleShape(wrapped, distance) {
  */
 export function walledTemplateGetConeShape(wrapped, direction, angle, distance) {
   log(`walledTemplateGetConeShape with direction ${direction}, angle ${angle}, distance ${distance}, origin ${this.data.x},${this.data.y}`, this);
+  if ( !canvas.walls.innerBounds.length ) return wrapped(direction, angle, distance);
+
   if (game.settings.get("core", "coneTemplateType") === "flat") {
     // For flat cone, use WalledTemplatesClockwiseSweepPolygon and pass this source object.
 
@@ -167,6 +171,8 @@ export function walledTemplateGetRectShape(wrapped, direction, distance) {
   // Make sure the default shape is constructed.
   this.shape = wrapped(direction, distance);
   log("walledTemplateGetRectShape|shape", this.shape);
+  if ( !canvas.walls.innerBounds.length ) return this.shape;
+
   const poly = useBoundaryPolygon.bind(this)();
 
   // Add back in original shape.x, shape.y, shape.width, shape.height to fix issue #8
@@ -194,6 +200,8 @@ export function walledTemplateGetRayShape(wrapped, direction, distance, width) {
   // Make sure the default shape is constructed.
   this.shape = wrapped(direction, distance, width);
   log("walledTemplateGetRayShape|shape", this.shape);
+  if ( !canvas.walls.innerBounds.length ) return this.shape;
+
   const poly = useBoundaryPolygon.bind(this)();
 
   // Ray is already a polygon in original so no need to add parameters back
