@@ -18,7 +18,7 @@ export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false
   retarget ||= redraw; // Re-drawing requires re-targeting.
 
   log(`walledTemplatesMeasuredTemplateRefresh redraw ${redraw} retarget ${retarget}`);
-  const new_cache = JSON.stringify(Object.entries(this.data));
+  const new_cache = this.document.toJSON();
   const use_cache = this._template_props_cache && this._template_props_cache === new_cache;
 
   if ( redraw || !use_cache ) {
@@ -37,7 +37,7 @@ export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false
   }
 
   retarget && getSetting(SETTINGS.AUTOTARGET.ENABLED) && this.autotargetToken(); // eslint-disable-line no-unused-expressions
-  this._template_props_cache = JSON.stringify(Object.entries(this.data));
+  this._template_props_cache = this.document.toJSON();
 
   return this;
 }
