@@ -7,7 +7,7 @@
   "compatibility": {
     "minimum": "10.272",
     "verified": "10",
-  }
+  },
   "authors": [
     {
       "name": "caewok",
@@ -23,7 +23,7 @@
         "manifest": "https://raw.githubusercontent.com/ruipin/fvtt-lib-wrapper/master/module.json"
       }
     ]
-  }
+  },
 
   "esmodules": [
     "/scripts/module.js"
