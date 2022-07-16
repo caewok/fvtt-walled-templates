@@ -6,12 +6,20 @@ canvas
 
 "use strict";
 
-import { registerWalledTemplates } from "./patching.js";
+// Basics
 import { log } from "./util.js";
 import { MODULE_ID, SETTINGS, registerSettings, getSetting, toggleSetting } from "./settings.js";
+
+// Rendering and main methods
+import { registerWalledTemplates } from "./patching.js";
 import { walledTemplatesRenderMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
 import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
-import { Hexagon } from "./Hexagon.js";
+
+// Shapes and shape methods
+import { Hexagon } from "./shapes/Hexagon.js";
+import { registerPIXICircleMethods } from "./shapes/PIXICircle.js";
+import { registerPIXIPolygonMethods } from "./shapes/PIXIPolygon.js";
+import { registerPIXIRectangleMethods } from "./shapes/PIXIRectangle.js";
 
 import {
   walledTemplateGetCircleShape,
@@ -30,9 +38,9 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 Hooks.once("init", async function() {
   log("Initializing...");
   registerWalledTemplates();
-  // registerPIXIPolygonMethods();
-//   registerPIXIRectangleMethods();
-//   registerPIXICircleMethods();
+  registerPIXIPolygonMethods();
+  registerPIXIRectangleMethods();
+  registerPIXICircleMethods();
 //   registerPolygonVertexMethods();
 
   game.modules.get(MODULE_ID).api = {
