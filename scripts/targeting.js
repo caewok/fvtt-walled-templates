@@ -96,7 +96,7 @@ export function boundsOverlap(bounds) {
   }
 
   // Using SETTINGS.AUTOTARGET.METHODS.OVERLAP
-  if ( !boundsOverlapShape(tBounds, this.shape) ) { return false; }
+  if ( !tBounds.overlaps(this.shape) ) { return false; }
 
   const area_percentage = getSetting(SETTINGS.AUTOTARGET.AREA);
   if ( !area_percentage ) { return true; }
@@ -110,24 +110,6 @@ export function boundsOverlap(bounds) {
   const target_area = b_area * area_percentage;
 
   return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%
-}
-
-/**
- * Test whether the bounds shape overlaps a given template shape.
- * Bounds shape should already be translated to the template {0, 0} origin.
- * @param {PIXI.Rectangle|Hexagon}  tBounds
- * @param {PIXI.Polygon
-          |PIXI.Circle
-          |PIXI.Rectangle}  shape
- * @return {Boolean}
- */
-function boundsOverlapShape(tBounds, shape) {
-  if ( shape instanceof PIXI.Polygon ) { return tBounds.overlapsPolygon(shape); }
-  if ( shape instanceof PIXI.Circle ) { return tBounds.overlapsCircle(shape); }
-  if ( shape instanceof PIXI.Rectangle ) { return tBounds.overlapsRectangle(shape); }
-
-  console.warn("tokenOverlapsShape|shape not recognized.", shape);
-  return false;
 }
 
 /**
