@@ -45,12 +45,12 @@ function useBoundaryPolygon() {
     boundaryShapes: [this.boundaryPolygon(origin)]
   };
 
-  let poly = new ClockwiseSweepPolygon();
-  poly.initialize(origin, cfg);
-  poly.compute();
+  const sweep = new ClockwiseSweepPolygon();
+  sweep.initialize(origin, cfg);
+  sweep.compute();
 
   // Shift to origin 0,0 as expected for Template shape.
-  poly = poly.translate(-origin.x, -origin.y);
+  const poly = sweep.translate(-origin.x, -origin.y);
   log("useBoundaryPolygon|returning poly", poly);
   return poly;
 }

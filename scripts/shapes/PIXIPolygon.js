@@ -15,7 +15,8 @@ function translate(dx, dy) {
   for (let i = 0; i < ln; i += 2) {
     pts.push(this.points[i] + dx, this.points[i + 1] + dy);
   }
-  const out = new this.constructor(pts);
+//   const out = new this.constructor(pts);
+  const out = new PIXI.Polygon(pts); // Don't use the constructor b/c ClockwiseSweep will screw this up
   out._isClosed = this._isClosed;
   return out;
 }
