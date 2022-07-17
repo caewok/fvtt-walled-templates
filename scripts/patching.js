@@ -12,9 +12,10 @@ import {
   walledTemplateGetCircleShape,
   walledTemplateGetConeShape,
   walledTemplateGetRectShape,
-  walledTemplateGetRayShape } from "./getShape.js";
+  walledTemplateGetRayShape,
+  getBoundaryShapes,
+  computeSweepPolygon } from "./getShape.js";
 import { walledTemplate5eFromItem } from "./render5eSpellTemplateConfig.js";
-import { boundaryPolygon } from "./boundaryPolygon.js";
 import {
   walledTemplatesMeasuredTemplateRefresh,
   boundsOverlap,
@@ -26,7 +27,7 @@ import {
 
 export function registerWalledTemplates() {
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getCircleShape", walledTemplateGetCircleShape, libWrapper.WRAPPER);
-  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getConeShape", walledTemplateGetConeShape, libWrapper.MIXED);
+  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getConeShape", walledTemplateGetConeShape, libWrapper.WRAPPER);
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getRectShape", walledTemplateGetRectShape, libWrapper.WRAPPER);
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getRayShape", walledTemplateGetRayShape, libWrapper.WRAPPER);
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getGridHighlightPositions", getGridHighlightPositionsMeasuredTemplate, libWrapper.WRAPPER);
@@ -49,25 +50,33 @@ export function registerWalledTemplates() {
   //   }
 
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.refresh", walledTemplatesMeasuredTemplateRefresh, libWrapper.MIXED);
+
+  Object.defineProperty(MeasuredTemplate.prototype, "getBoundaryShapes", {
+    value: getBoundaryShapes,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(MeasuredTemplate.prototype, "computeSweepPolygon", {
+    value: computeSweepPolygon,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(MeasuredTemplate.prototype, "autotargetToken", {
+    value: autotargetToken,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(MeasuredTemplate.prototype, "boundsOverlap", {
+    value: boundsOverlap,
+    writable: true,
+    configurable: true
+  });
 }
 
-Object.defineProperty(MeasuredTemplate.prototype, "boundaryPolygon", {
-  value: boundaryPolygon,
-  writable: true,
-  configurable: true
-});
 
-Object.defineProperty(MeasuredTemplate.prototype, "autotargetToken", {
-  value: autotargetToken,
-  writable: true,
-  configurable: true
-});
-
-Object.defineProperty(MeasuredTemplate.prototype, "boundsOverlap", {
-  value: boundsOverlap,
-  writable: true,
-  configurable: true
-});
 
 /**
  * Wrap MeasuredTemplate.prototype._getGridHighlightPositions

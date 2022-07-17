@@ -6,6 +6,14 @@ canvas
 
 "use strict";
 
+/* Benchmark template construction
+fn = function(t) { return t.computeSweepPolygon(); }
+let [t] = canvas.templates.placeables;
+await foundry.utils.benchmark(fn, 1e04, t)
+
+*/
+
+
 // Basics
 import { log } from "./util.js";
 import { MODULE_ID, SETTINGS, registerSettings, getSetting, toggleSetting } from "./settings.js";
