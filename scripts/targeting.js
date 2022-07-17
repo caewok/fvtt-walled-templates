@@ -21,7 +21,7 @@ export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false
   const new_cache = this.document.toJSON();
   const use_cache = this._template_props_cache && this._template_props_cache === new_cache;
 
-  if ( redraw && !use_cache ) {
+  if ( redraw || !use_cache ) {
     log("redrawing template");
     wrapped();
 
@@ -32,7 +32,8 @@ export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false
 
   } else {
     log("Using cached template data.");
-    this._refreshTemplate();
+//     this._refreshTemplate();
+//     this.highlightGrid();
 
     // Update the HUD
     this._refreshControlIcon;
