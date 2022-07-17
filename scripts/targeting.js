@@ -99,7 +99,7 @@ export function boundsOverlap(bounds) {
  * @return {PIXI.Polygon}
  */
 function boundsShapeIntersection(tBounds, shape) {
-  log("boundsShapeIntersection", tBounds, shape);
+//   log("boundsShapeIntersection", tBounds, shape);
 
   if ( shape instanceof PIXI.Polygon ) {
     return shape.intersectPolygon(tBounds.toPolygon());

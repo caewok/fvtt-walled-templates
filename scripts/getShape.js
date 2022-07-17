@@ -194,7 +194,7 @@ export function getBoundaryShapes() {
       ? getFlatConeBoundaryShapes(this.originalShape, origin)
       : getRoundedConeBoundaryShapes(this.originalShape, origin, direction, angle, distance);
     case "rect": return getRectBoundaryShapes(this.originalShape, origin);
-    case "ray": getRayBoundaryShapes(this.originalShape, origin);
+    case "ray": return getRayBoundaryShapes(this.originalShape, origin);
   }
 }
 

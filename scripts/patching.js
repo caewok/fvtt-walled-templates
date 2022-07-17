@@ -6,8 +6,7 @@ MeasuredTemplate
 
 "use strict";
 
-import { log, gridShapeForTopLeft } from "./util.js";
-import { MODULE_ID, getSetting, SETTINGS } from "./settings.js";
+import { MODULE_ID } from "./settings.js";
 import {
   walledTemplateGetCircleShape,
   walledTemplateGetConeShape,
@@ -20,10 +19,11 @@ import {
   walledTemplatesMeasuredTemplateRefresh,
   boundsOverlap,
   autotargetToken } from "./targeting.js";
+import { getGridHighlightPositionsMeasuredTemplate } from "./highlighting/Foundry_highlighting.js";
 
 // Disable for now until PF2 and PF1 are updated for v10; may not need these
-// import { WalledTemplatesPF1eGetHighlightedSquares } from "./systems/PF1e_HighlightGrid.js";
-// import { WalledTemplatesPF2eHighlightGrid } from "./systems/PF2e_HighlightGrid.js";
+// import { WalledTemplatesPF1eGetHighlightedSquares } from "./highlighting/PF1e_highlighting.js";
+// import { WalledTemplatesPF2eHighlightGrid } from "./highlighting/PF2e_highlighting.js";
 
 export function registerWalledTemplates() {
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getCircleShape", walledTemplateGetCircleShape, libWrapper.WRAPPER);
@@ -73,28 +73,5 @@ export function registerWalledTemplates() {
     value: boundsOverlap,
     writable: true,
     configurable: true
-  });
-}
-
-
-
-/**
- * Wrap MeasuredTemplate.prototype._getGridHighlightPositions
- * @returns {Points[]}
- */
-function getGridHighlightPositionsMeasuredTemplate(wrapper) {
-  const positions = wrapper();
-
-  const enabled = this.document.getFlag(MODULE_ID, "enabled");
-  const need_targeting = !getSetting(SETTINGS.AUTOTARGET.METHOD) === SETTINGS.AUTOTARGET.METHODS.CENTER;
-
-  if ( !(enabled || need_targeting) ) {
-    log("walledTemplatesHighlightGrid|Using Foundry default");
-    return positions;
-  }
-
-  return positions.filter(p => {
-    const shape = gridShapeForTopLeft(p);
-    return this.boundsOverlap(shape);
   });
 }
