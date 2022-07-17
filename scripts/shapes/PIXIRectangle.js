@@ -15,6 +15,26 @@ function translate(dx, dy) {
 }
 
 /**
+ * Is this point contained by the rectangle?
+ * Default PIXI.Rectangle.prototype.contains is problematic, in that it just compares
+ * using "<", so points on the west and south edges are not included and points very
+ * near an edge may or may not be included.
+ * @param {Point} p
+ * @param {number} e  Some permitted epsilon, by default 1e-8
+ * @returns {boolean} Is the point contained by or on the edge of the rectangle?
+ */
+function containsPoint(p, e = 1e-8) {
+  // Follow how contains method handles this
+  if (this.width <= 0 || this.height <= 0) { return false; }
+
+  const x_inside = (p.x > this.x && p.x < this.right) || p.x.almostEqual(this.x, e) || p.x.almostEqual(this.right, e);
+  if (!x_inside) return false;
+
+  // Y inside
+  return (p.y > this.y && p.y < this.bottom) || p.y.almostEqual(this.y, e) || p.y.almostEqual(this.bottom, e);
+}
+
+/**
  * Does this rectangle overlap something else?
  * @param {PIXI.Rectangle|PIXI.Circle|PIXI.Polygon} shape
  * @returns {boolean}
@@ -123,6 +143,12 @@ export function registerPIXIRectangleMethods() {
 
   Object.defineProperty(PIXI.Rectangle.prototype, "area", {
     value: area,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(PIXI.Rectangle.prototype, "containsPoint", {
+    value: containsPoint,
     writable: true,
     configurable: true
   });
