@@ -183,9 +183,6 @@ export function walledTemplateGetRayShape(wrapped, direction, distance, width) {
 
 export function getBoundaryShapes() {
   let { x, y, direction, angle, distance } = this.document;
-  const d = canvas.dimensions;
-  distance *= (d.size / d.distance);
-  direction = Math.toRadians(direction);
   const origin = { x, y };
 
   switch ( this.document.t ) {
@@ -233,16 +230,16 @@ function getRectBoundaryShapes(shape, origin) {
  * Use a circle + limited radius for the bounding shapes.
  * @param {PIXI.Polygon} shape
  * @param {Point} origin
- * @param {number} direction
- * @param {number} angle
- * @param {number} distance
+ * @param {number} direction    In degrees
+ * @param {number} angle        In degrees
+ * @param {number} distance     From the template document, before adjusting for canvas dimensions
  * @returns {[PIXI.Circle, LimitedAnglePolygon]}
  */
 function getRoundedConeBoundaryShapes(shape, origin, direction, angle, distance) {
   // Use a circle + limited radius for the bounding shapes
   const pts = shape.points;
   const radius = Math.hypot(pts[2] - pts[0], pts[3] - pts[1]);
-  const rotation = Math.normalizeDegrees(direction - 90);
+  const rotation = direction - 90;
 
   const circle = new PIXI.Circle(origin.x, origin.y, radius);
   const la = new LimitedAnglePolygon(origin, {radius, angle, rotation});
