@@ -17,11 +17,11 @@ export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false
 
   retarget ||= redraw; // Re-drawing requires re-targeting.
 
-  log(`walledTemplatesMeasuredTemplateRefresh redraw ${redraw} retarget ${retarget}`);
+  log(`walledTemplatesMeasuredTemplateRefresh ${this.id} redraw ${redraw} retarget ${retarget}`);
   const new_cache = this.document.toJSON();
   const use_cache = this._template_props_cache && this._template_props_cache === new_cache;
 
-  if ( redraw || !use_cache ) {
+  if ( redraw && !use_cache ) {
     log("redrawing template");
     wrapped();
 
@@ -32,41 +32,17 @@ export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false
 
   } else {
     log("Using cached template data.");
-    drawTemplateOutline.call(this);
-    drawTemplateHUD.call(this);
+    this._refreshTemplate();
+
+    // Update the HUD
+    this._refreshControlIcon;
+    this._refreshRulerText();
   }
 
   retarget && getSetting(SETTINGS.AUTOTARGET.ENABLED) && this.autotargetToken(); // eslint-disable-line no-unused-expressions
   this._template_props_cache = this.document.toJSON();
 
   return this;
-}
-
-function drawTemplateOutline() {
-  // Draw the Template outline
-  this.template.clear().lineStyle(this._borderThickness, this.borderColor, 0.75).beginFill(0x000000, 0.0);
-
-  // Fill Color or Texture
-  if ( this.texture ) this.template.beginTextureFill({
-    texture: this.texture
-  });
-  else this.template.beginFill(0x000000, 0.0);
-
-  // Draw the shape
-  this.template.drawShape(this.shape);
-
-  // Draw origin and destination points
-  this.template.lineStyle(this._borderThickness, 0x000000)
-    .beginFill(0x000000, 0.5)
-    .drawCircle(0, 0, 6)
-    .drawCircle(this.ray.dx, this.ray.dy, 6);
-}
-
-function drawTemplateHUD() {
-  // Update the HUD
-  this.hud.icon.visible = this.layer._active;
-  this.hud.icon.border.visible = this._hover;
-  this._refreshRulerText();
 }
 
 export function autotargetToken({ only_visible = false } = {}) {
