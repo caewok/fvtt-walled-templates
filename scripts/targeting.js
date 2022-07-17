@@ -7,8 +7,8 @@ CONST
 "use strict";
 
 import { getSetting, SETTINGS } from "./settings.js";
-import { log } from "./module.js";
-import { Hexagon } from "./Hexagon.js";
+import { log } from "./util.js";
+import { Hexagon } from "./shapes/Hexagon.js";
 
 /**
  * Wrap MeasuredTemplate.prototype.draw to target tokens after drawing.
@@ -17,8 +17,8 @@ export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false
 
   retarget ||= redraw; // Re-drawing requires re-targeting.
 
-  log(`walledTemplatesMeasuredTemplateRefresh redraw ${redraw} retarget ${retarget}`);
-  const new_cache = JSON.stringify(Object.entries(this.data));
+  log(`walledTemplatesMeasuredTemplateRefresh ${this.id} redraw ${redraw} retarget ${retarget}`);
+  const new_cache = this.document.toJSON();
   const use_cache = this._template_props_cache && this._template_props_cache === new_cache;
 
   if ( redraw || !use_cache ) {
@@ -32,41 +32,18 @@ export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false
 
   } else {
     log("Using cached template data.");
-    drawTemplateOutline.call(this);
-    drawTemplateHUD.call(this);
+//     this._refreshTemplate();
+//     this.highlightGrid();
+
+    // Update the HUD
+    this._refreshControlIcon;
+    this._refreshRulerText();
   }
 
   retarget && getSetting(SETTINGS.AUTOTARGET.ENABLED) && this.autotargetToken(); // eslint-disable-line no-unused-expressions
-  this._template_props_cache = JSON.stringify(Object.entries(this.data));
+  this._template_props_cache = this.document.toJSON();
 
   return this;
-}
-
-function drawTemplateOutline() {
-  // Draw the Template outline
-  this.template.clear().lineStyle(this._borderThickness, this.borderColor, 0.75).beginFill(0x000000, 0.0);
-
-  // Fill Color or Texture
-  if ( this.texture ) this.template.beginTextureFill({
-    texture: this.texture
-  });
-  else this.template.beginFill(0x000000, 0.0);
-
-  // Draw the shape
-  this.template.drawShape(this.shape);
-
-  // Draw origin and destination points
-  this.template.lineStyle(this._borderThickness, 0x000000)
-    .beginFill(0x000000, 0.5)
-    .drawCircle(0, 0, 6)
-    .drawCircle(this.ray.dx, this.ray.dy, 6);
-}
-
-function drawTemplateHUD() {
-  // Update the HUD
-  this.hud.icon.visible = this.layer._active;
-  this.hud.icon.border.visible = this._hover;
-  this._refreshRulerText();
 }
 
 export function autotargetToken({ only_visible = false } = {}) {
@@ -96,7 +73,7 @@ export function boundsOverlap(bounds) {
   }
 
   // Using SETTINGS.AUTOTARGET.METHODS.OVERLAP
-  if ( !boundsOverlapShape(tBounds, this.shape) ) { return false; }
+  if ( !tBounds.overlaps(this.shape) ) { return false; }
 
   const area_percentage = getSetting(SETTINGS.AUTOTARGET.AREA);
   if ( !area_percentage ) { return true; }
@@ -112,61 +89,6 @@ export function boundsOverlap(bounds) {
   return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%
 }
 
-
-/**
- * Return either a square or a hexagon shape based on grid type for the current scene.
- * If the point is on a corner, it will draw the bottom right grid location.
- * @param {Point} p   Any point within the grid shape
- * @return {PIXI.Rectangle|Hexagon} Rectangle for square or gridless; hexagon for hex grids.
- */
-export function gridShapeForPixel(p) {
-  // Get the upper left corner of the grid for the pixel
-  const [gx, gy] = canvas.grid.getTopLeft(p.x, p.y);
-  return gridShapeForTopLeft({x: gx, y: gy});
-}
-
-/**
- * Return either a square or hexagon shape based on grid type.
- * Should be the grid at given p
- * @param {Point} p   Top left corner of the grid square.
- * @return {PIXI.Rectangle|Hexagon}  Rectangle for square or gridless; hexagon for hex grids.
- */
-export function gridShapeForTopLeft(p) {
-  if ( canvas.scene.data.gridType === CONST.GRID_TYPES.GRIDLESS
-    || canvas.scene.data.gridType === CONST.GRID_TYPES.SQUARE ) {
-    return new PIXI.Rectangle(p.x, p.y, canvas.dimensions.size, canvas.dimensions.size);
-  }
-
-  // Offset from top left to center
-  const hx = Math.ceil(canvas.grid.w / 2);
-  const hy = Math.ceil(canvas.grid.h / 2);
-
-  return Hexagon.fromDimensions(
-    p.x + hx,
-    p.y + hy,
-    canvas.grid.grid.w,
-    canvas.grid.grid.h);
-}
-
-
-/**
- * Test whether the bounds shape overlaps a given template shape.
- * Bounds shape should already be translated to the template {0, 0} origin.
- * @param {PIXI.Rectangle|Hexagon}  tBounds
- * @param {PIXI.Polygon
-          |PIXI.Circle
-          |PIXI.Rectangle}  shape
- * @return {Boolean}
- */
-function boundsOverlapShape(tBounds, shape) {
-  if ( shape instanceof PIXI.Polygon ) { return tBounds.overlapsPolygon(shape); }
-  if ( shape instanceof PIXI.Circle ) { return tBounds.overlapsCircle(shape); }
-  if ( shape instanceof PIXI.Rectangle ) { return tBounds.overlapsRectangle(shape); }
-
-  console.warn("tokenOverlapsShape|shape not recognized.", shape);
-  return false;
-}
-
 /**
  * Return the intersection of the bounds shape with the template shape.
  * Bounds shape should already be translated to the template {0, 0} origin.
@@ -177,7 +99,7 @@ function boundsOverlapShape(tBounds, shape) {
  * @return {PIXI.Polygon}
  */
 function boundsShapeIntersection(tBounds, shape) {
-  log("boundsShapeIntersection", tBounds, shape);
+//   log("boundsShapeIntersection", tBounds, shape);
 
   if ( shape instanceof PIXI.Polygon ) {
     return shape.intersectPolygon(tBounds.toPolygon());
