@@ -15,11 +15,22 @@ Each can be intersected quickly using WA
 */
 
 /** Testing **/
-tri = new RegularPolygon({x: 1000, y: 1000}, 100);
-tri._fixedPoints.forEach(pt => drawPoint(pt))
-tri._fixedPoints.forEach(pt => drawPoint(tri.toCartesianCoords(pt)))
+rotation = 0
+numSides = 3
+
+clearDrawings()
+poly = new RegularPolygon({x: 1000, y: 1000}, 100, { rotation, numSides });
+poly.fixedPoints.forEach(pt => drawPoint(pt))
+poly.fixedPoints.forEach(pt => drawPoint(poly.toCartesianCoords(pt)))
+drawShape(poly)
+drawShape(poly.getBounds())
+
+tri = new EquilateralTriangle(poly.center, poly.radius, { rotation })
+tri.fixedPoints.forEach(pt => drawPoint(pt))
+tri.fixedPoints.forEach(pt => drawPoint(tri.toCartesianCoords(pt)))
 drawShape(tri)
-drawShape(tri.getBounds())
+drawShape(tri.getBounds(), {color: COLORS.blue})
+
 
 
 export class RegularPolygon extends PIXI.Polygon {
@@ -31,9 +42,8 @@ export class RegularPolygon extends PIXI.Polygon {
     this.radius = radius;
     this.rotation = Math.normalizeDegrees(rotation);
 
-    this._fixedPoints = this.#generateFixedPoints();
-
     // Placeholders for getters
+    this._fixedPoints = undefined; // So that subclasses can override generateFixedPoints
     this._points = undefined;
 
     // Polygon properties
@@ -46,6 +56,32 @@ export class RegularPolygon extends PIXI.Polygon {
   get points() { return this._points || (this._points = this.#generatePoints()); }
 
   set points(value) { }
+
+  get fixedPoints() { return this._fixedPoints || (this._fixedPoints = this.#generateFixedPoints()); }
+
+  /**
+   * Calculate the distance of the line segment from the center to the midpoint of a side.
+   * @type {number}
+   */
+  get apothem() {
+    this.sideLength / (2 * Math.tan(180 / this.numSides ));
+  }
+
+  /**
+   * Calculate length of a side of this regular polygon.
+   * @type {number}
+   */
+  get sideLength() {
+    return 2 * this.radius * Math.sin(Math.PI / this.numSides);
+  }
+
+  /**
+   * Calculate area of the regular polygon.
+   * @type {number}
+   */
+  get area() {
+    return this.numSides * this.sideLength * this.apothem;
+  }
 
   /**
    * Generate the points of the shape in shape-space (before rotation or translation)
@@ -66,7 +102,7 @@ export class RegularPolygon extends PIXI.Polygon {
   #generatePoints() {
     // Faster to use for loop rather than flatten
     const pts = [];
-    const { numSides, _fixedPoints: fp } = this;
+    const { numSides, fixedPoints: fp } = this;
     for ( let i = 0; i < numSides; i += 1 ) {
       const pt = this.toCartesianCoords(fp[i]);
       pts.push(pt.x, pt.y);
@@ -97,7 +133,7 @@ export class RegularPolygon extends PIXI.Polygon {
    * @param {Point} a
    * @returns {Point}
    */
-  toCartesianCoords(a) { return rotatePoint(translatePoint(a, this.x, this.y), this.rotation); }
+  toCartesianCoords(a) { return translatePoint(rotatePoint(a, this.rotation), this.x, this.y); }
 
   /**
    * Does the triangle contain the point?
@@ -128,7 +164,7 @@ export class RegularPolygon extends PIXI.Polygon {
     b = this.fromCartesianCoords(b);
 
     const ixs = [];
-    const fp = this._fixedPoints;
+    const fp = this.fixedPoints;
     const ln = fp.length;
     for ( let i = 0; i < ln; i += 1 ) {
       const x = foundry.utils.lineSegmentIntersection(fp[i], fp[(i + 1) % ln], a, b);
@@ -159,7 +195,7 @@ export class RegularPolygon extends PIXI.Polygon {
     if ( ~bSide ) return []; // B is inside
 
     const pts = [];
-    const { numSides, _fixedPoints: fp } = this;
+    const { numSides, fixedPoints: fp } = this;
 
     if ( aSide === bSide ) {
       // Either a is before b moving clockwise (no points)
@@ -202,8 +238,8 @@ export class RegularPolygon extends PIXI.Polygon {
    */
   _checkSide(point, side) {
     const numSides = this.numSides;
-    const fp0 = this._fixedPoints[side];
-    const fp1 = this._fixedPoints[(side + 1) % numSides];
+    const fp0 = this.fixedPoints[side];
+    const fp1 = this.fixedPoints[(side + 1) % numSides];
 
     if ( fp1.x.almostEqual(point.x) && fp1.y.almostEqual(point.y) ) return (side + 1) % numSides;
 
@@ -212,266 +248,91 @@ export class RegularPolygon extends PIXI.Polygon {
   }
 }
 
-
-export class EquilateralTriangle extends PIXI.Polygon {
+export class EquilateralTriangle extends RegularPolygon {
   constructor(origin, radius, {rotation = 0} = {}) {
-    super([]);
-    this.x = origin.x;
-    this.y = origin.y;
-    this.radius = radius;
-    this.rotation = Math.normalizeDegrees(rotation);
-
-    // Basic calculations
-    // https://en.wikipedia.org/wiki/Equilateral_triangle
-    this.altitude = 1.5 * radius;
-    this.apothem = radius * 0.5; // Radius of inscribed circle
-
-    this.#generateFixedPoints();
-
-    // Placeholders for getters
-    this._points = undefined;
+    super(origin, radius, { rotation, numSides: 3 });
   }
 
-  get center() { return { x: this.x, y: this.y }; }
+  /**
+   * Calculate the distance from a side midpoint to the opposite point.
+   * @type {number}
+   */
+  get altitude() { return 1.5 * this.radius; }
 
-  get points() { return this._points || (this._points = this.#generatePoints); }
+  /**
+   * Calculate the distance of the line segment from the center to the midpoint of a side.
+   * @type {number}
+   */
+  get apothem() { return this.radius * 0.5; }
 
-  set points(value) { }
+  /**
+   * Calculate length of a side of this equilateral triangle.
+   * @type {number}
+   */
+  get sideLength() { return this.radius * Math.SQRT3; }
 
-  _lengthSide() { return this.radius * Math.SQRT3; }
-
-  area() { return Math.pow(this.altitude, 2) / Math.SQRT3; }
+  /**
+   * Calculate area of this equilateral triangle.
+   * @type {number}
+   */
+  get area() { Math.pow(this.altitude, 2) / Math.SQRT3; }
 
   /**
    * Generate the points of the equilateral triangle using the provided configuration.
+   * Simpler and more mathematically precise than the default version.
+   * @returns {Point[]}
    */
   #generateFixedPoints() {
-    // At rotation 0:
-    // { r, y }
-    // { -r/2, .86... * r }
-    // { -r/2, -.86... * r}
-
     // Shape before rotation is ∆ turned clockwise 90º
     const sqrt3_2 = Math.SQRT3 / 2;
     const { radius, apothem } = this;
-    this._fixedPoints = [
+    return [
       { x: radius, y: 0 },
       { x: -apothem, y: sqrt3_2 * radius },
       { x: -apothem, y: -sqrt3_2 * radius }
     ];
-
-    // Using angles:
-    // const angles = [0, 120, 240];
-    // this.points = geometricShapePoints(angles, this.origin, this.radius, this.rotation);
-    //  geometricShapePoints(angles, tri.origin, tri.radius, tri.rotation);
   }
 
-  #generatePoints() {
-    return this._fixedPoints.map(pt => rotatePoint(translatePoint(pt, this.x, this.y), this.rotation));
-  }
-
-  /**
-   * Generate the bounding box
-   * @returns {PIXI.Rectangle}
-   */
   getBounds() {
     // If an edge is on the bounding box, use it as the border
-    const { x, y, radius, apothem, _fixedPoints: fp } = this;
-
-    const w = radius + apothem;
-    const h = this._lengthSide();
+    const { x, y, sideLength, altitude, apothem, fixedPoints: fp } = this;
 
     switch ( this.rotation ) {
+      // PIXI.Rectangle(x, y, width, height)
       case 0:
         // ∆ rotated clockwise 90º
-        return new PIXI.Rectangle(fp[0].x + x, fp[0].y + y, w, h);
+        return new PIXI.Rectangle(
+          fp[2].x + x,
+          fp[2].y + y,
+          altitude, sideLength)
 
       case 90:
         // ∆ upside down
-        return new PIXI.Rectangle(fp[1].x + x, fp[1].y + y, h, w);
+        return new PIXI.Rectangle(
+          -(sideLength / 2) + x,
+          -apothem + y,
+          sideLength, altitude);
 
       case 180:
         // ∆ rotated counterclockwise 90º
-        return new PIXI.Rectangle(fp[0].x + x, fp[1].y + y, w, h);
+        return new PIXI.Rectangle(
+          -altitude + apothem + x,
+          fp[2].y + y,
+          altitude, sideLength)
 
       case 270:
         // ∆
-        return new PIXI.Rectangle(fp[3].x + x, fp[0].y + y, h, w);
+        return new PIXI.Rectangle(
+          -(sideLength / 2) + x,
+          -altitude + apothem + y,
+          sideLength, altitude);
     }
 
-    // Default to the bounding box of the radius circle
-    const r2 = Math.pow(radius, 2);
-    return new PIXI.Rectangle(x - radius, y - radius, r2, r2);
+    return super.getBounds();
   }
-
-  /**
-   * Does the triangle contain the point?
-   * @param {number} x
-   * @param {number} y
-   * @returns {boolean} True if point {x,y} is contained within the triangle.
-   */
-  contains(x, y) {
-    const bounds = this.getBounds();
-    if ( !bounds.contains(x, y) ) return false;
-
-    // Move the point to triangle-space
-    const tPt = translatePoint({x: x, y: y}, -this.origin.x, -this.origin.y);
-    const pt = rotatePoint(tPt, -this.rotation);
-
-    // Use orientation to test the point
-    // Moving clockwise, must be clockwise to each side
-    const fp = this._fixedPoints;
-    if ( foundry.utils.orient2dFast(fp[0], fp[1], pt) > 0 ) return false;
-    if ( foundry.utils.orient2dFast(fp[1], fp[2], pt) > 0 ) return false;
-    if ( foundry.utils.orient2dFast(fp[2], fp[0], pt) > 0 ) return false;
-    return true;
-  }
-
-  /**
-   * Convert the triangle to a polygon
-   * @returns {PIXI.Polygon}
-   */
-  toPolygon() { return this; }
-
-  /**
-   * Get all intersection points for a segment A|B
-   * Intersections must be sorted from A to B.
-   * @param {Point} a
-   * @param {Point} b
-   * @returns {Point[]}
-   */
-  segmentIntersections(a, b) {
-    const { x, y, rotation, _fixedPoints: fp } = this;
-
-    // Move to triangle-space
-    a = rotate(translate(a, -x, -y), -rotation);
-    b = rotate(translate(b, -x, -y), -rotation);
-
-    // If both are counterclockwise to the same side, no intersection.
-    const orientA0 = foundry.utils.orient2dFast(fp[0], fp[1], a);
-    const orientB0 = foundry.utils.orient2dFast(fp[0], fp[1], b);
-    if ( orientA0 > 0 && orientB0 > 0 ) return [];
-
-    const orientA1 = foundry.utils.orient2dFast(fp[1], fp[2], a);
-    const orientB1 = foundry.utils.orient2dFast(fp[1], fp[2], b);
-    if ( orientA1 > 0 && orientB1 > 0 ) return [];
-
-    const orientA2 = foundry.utils.orient2dFast(fp[2], fp[0], a);
-    const orientB2 = foundry.utils.orient2dFast(fp[2], fp[0], b);
-    if ( orientA2 > 0 && orientB2 > 0 ) return [];
-
-    // If both points inside the triangle, no intersection
-    const aInside = orientA0 < 0 && orientA1 < 0 && orientA2 < 0;
-    const bInside = orientB0 < 0 && orientB1 < 0 && orientB2 < 0;
-    if ( aInside && bInside ) return [];
-
-    // Orientation tells us which side(s) to test
-    const ixs = [];
-
-    // If point is counter to a side, test that side
-    if ( orientA0 > 0 || orientB0 > 0 ) {
-      const x = foundry.utils.lineSegmentIntersection(fp[0], fp[1], a, b);
-      if ( x ) ixs.push(x);
-    }
-
-    if ( orientA1 > 0 || orientB1 > 0 ) {
-      const x = foundry.utils.lineSegmentIntersection(fp[1], fp[2], a, b);
-      if ( x ) ixs.push(x);
-    }
-
-    if ( orientA2 > 0 || orientB2 > 0 ) {
-      const x = foundry.utils.lineSegmentIntersection(fp[2], fp[3], a, b);
-      if ( x ) ixs.push(x);
-    }
-
-    return ixs.map(pt => rotatePoint(translatePoint(pt, x, y), rotation));
-  }
-
-  /**
-   * Get all the points (corners) of the triangle between
-   * two points on (or nearly on) the triangle.
-   * Points must be sorted clockwise around the triangle.
-   * @param {Point} a
-   * @param {Point} b
-   * @returns {Point[]}
-   */
-  pointsBetween(a, b) {
-    if ( a.x.almostEqual(b.x) && a.y.almostEqual(b.y) ) return [];
-
-    const { x, y, rotation, _fixedPoints: fp } = this;
-
-    // Move to triangle-space
-    a = this._toTriangleSpace(a);
-    b = this._toTriangleSpace(b);
-
-    const aSide = this._getSide(a);
-    if ( ~aSide ) return []; // a is inside
-
-    const bSide = this._getSide(b);
-    if ( ~bSide ) return []; // b is inside
-
-    const pts = [];
-
-    if ( aSide === bSide ) {
-      // Either a is before b moving clockwise (no points)
-      // or a is after b moving clockwise (all points)
-      if ( foundry.utils.orient2dFast({x: 0, y: 0}, a, b) > 0 ) return [];
-      pts.push([0,1,2].map(i => fp[(i + aSide + 1) % 3]));
-    } else {
-      let currSide = aSide;
-      while ( currSide !== bSide ) {
-        currSide = (currSide + 1) % 3
-        pts.push(fp[currSide])
-      }
-    }
-
-    return pts.map(pt => this._fromTriangleSpace(pt));
-  }
-
-  /**
-   * Convert a point to triangle-space
-   * @param {Point} a
-   * @returns {Point}
-   */
-  _toTriangleSpace(a) { return rotatePoint(translatePoint(a, -this.x, -this.y), -this.rotation); }
-
-  /**
-   * Convert a point from triangle-space
-   * @param {Point} a
-   * @returns {Point}
-   */
-  _fromTriangleSpace(a) { return rotatePoint(translatePoint(a, this.x, this.y), this.rotation); }
-
-  /**
-   * Determine on which side a point lies.
-   * @param {Point} point  Point, in triangle-space
-   * @returns {number} 0, 1, or 2 for the side. If point is on a corner, returns the next side
-   *                   Returns -1 if inside.
-   */
-  _getSide(point) {
-    for ( let i = 0; i < 3; i += 1 ) {
-      const side = this._checkSide(point, i);
-      if ( ~side ) return side;
-    }
-    return -1;
-  }
-
-  /**
-   * Determine if a point is on this side
-   * Returns the side number or -1 if not on this side
-   */r
-  _checkSide(point, side) {
-    const fp0 = this._fixedPoints[side];
-    const fp1 = this._fixedPoints[(side + 1) % 3];
-
-    if ( fp1.x.almostEqual(point.x) && fp1.y.almostEqual(point.y) ) return (side + 1) % 3;
-
-    const orient = foundry.utils.orient2dFast(fp0, fp1, point);
-    return orient >= 0 ? side : -1;
-  }
-
 }
 
+// Store √3 as a constant
 Math.SQRT3 = Math.sqrt(3);
 
 /**
