@@ -38,7 +38,7 @@ export class Hexagon {
   /**
    * Get the center point for the hexagon, which is just x,y
    */
-  get center() { return new PIXI.Point(this.x, this.y); }
+  get center() { return { x: this.x, y: this.y }; }
 
   /**
    * Construct either a column or a row hexagon given width and (optionally) height.
@@ -141,6 +141,8 @@ export class Hexagon {
   contains(x, y) {
     // Check bounding box first b/c it can deal with easy cases.
     if ( !this.getBounds().containsPoint({x, y}) ) { return false; }
+
+
 
     // Check the polygon
     return this.toPolygon().contains(x, y);
