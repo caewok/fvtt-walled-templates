@@ -65,6 +65,8 @@ function area() {
   return Math.abs(ClipperLib.Clipper.Area(path));
 }
 
+
+
 // ----------------  ADD METHODS TO THE PIXI.POLYGON PROTOTYPE --------------------------
 export function registerPIXIPolygonMethods() {
 
@@ -91,4 +93,5 @@ export function registerPIXIPolygonMethods() {
     writable: true,
     configurable: true
   });
+
 }

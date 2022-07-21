@@ -130,20 +130,23 @@ export class WeilerAthertonClipper extends PIXI.Polygon {
 
   /**
    * Clip the polygon with the clipObject, assuming no holes will be created.
+   * For a union or intersect with no holes, a single pass through the intersections will
+   * build the resulting union shape.
    * @param {PolygonVertex[]} trackingArray
    * @param {Object} clipObject
    * @returns {[PIXI.Polygon]}
    */
   _combineNoHoles(trackingArray, clipObject, { union = this.config.union } = {}) {
-    // For a union or intersect with no holes, a single pass through the intersections will
-    // build the resulting union shape.
+    const { opts } = this.config;
+
     let prevIx = trackingArray[0];
     let tracePolygon = (prevIx.type === this.constructor.INTERSECTION_TYPES.OUT_IN) ^ union;
     const points = [prevIx];
     const ln = trackingArray.length;
     for ( let i = 1; i < ln; i += 1 ) {
       const ix = trackingArray[i];
-      tracePolygon = this._processIntersection(ix, prevIx, tracePolygon, points, clipObject);
+      this._processIntersection(ix, prevIx, tracePolygon, points, clipObject);
+      tracePolygon = !tracePolygon;
       prevIx = ix;
     }
 
@@ -159,18 +162,14 @@ export class WeilerAthertonClipper extends PIXI.Polygon {
    * @param {PolygonVertex} ix
    * @param {Object} clipObject
    * @param {boolean} tracePolygon  Whether we are tracing the polygon (true) or the clipObject (false).
-   * @returns {boolean} The new state of tracePolygon
    */
   _processIntersection(ix, prevIx, tracePolygon, points, clipObject) {
     const { opts } = this.config;
-
-    if ( ix.equals(prevIx) ) return tracePolygon; // This can happen if intersections are very close to one another.
 
     if ( tracePolygon ) points.push(...ix.leadingPoints);
     else points.push(...clipObject.pointsBetween(prevIx, ix, {opts}));
 
     points.push(ix);
-    return !tracePolygon;
   }
 
   /**
@@ -198,7 +197,7 @@ export class WeilerAthertonClipper extends PIXI.Polygon {
 
     // Option 2: Circle contained within polygon
     const center = clipObject.center;
-    const clipObjectInPolygon = polygonInClipObject ? false : polygon.contains(center.x, center.y);
+    const clipObjectInPolygon = polygonInClipObject ? false : this.contains(center.x, center.y);
     if ( clipObjectInPolygon ) return union ? [this] : [clipObject];
 
     // Option 3: Neither contains the other
@@ -239,27 +238,31 @@ export class WeilerAthertonClipper extends PIXI.Polygon {
     // Edges: a|b, b|c, c|a
     // If ix0 is on a|b and ix1 is on c|a, leading points for ix1 are b and c.
     // The trick is not doubling up the a point
+
+    // You would think if you find an intersection at an endpoint, it would also show up
+    // next round, but you would be (sometimes) wrong. For example,
+    // an intersection for a -- b near b on a -- b -- c could be rounded to "b" but then
+    // b -- c may have no intersection.
+
     for ( let i = 2; i < ln; i += 2 ) {
       const b = new PolygonVertex(points[i], points[i + 1]);
-      const ixs = clipObject.segmentIntersections(a, b).map(ix => PolygonVertex.fromPoint(ix));
+      const ixs = clipObject.segmentIntersections(a, b).map(ix => {
+        const v = PolygonVertex.fromPoint(ix)
+        v.leadingPoints = []; // Ensure leadingPoints is defined.
+        return v;
+      });
 
-      // If the first intersection equals b, get it next round.
       const ixsLn = ixs.length;
-      if ( ixsLn && !ixs[0].equals(b) ) {
+      if ( ixsLn ) {
         // If the intersection is the starting endpoint, prefer the intersection.
         if ( ixs[0].equals(a) ) leadingPoints.pop();
         ixs[0].leadingPoints = leadingPoints;
-
-        // If the last intersection equals b, get it next round
-        if ( ixsLn > 1 && ixs[ixsLn - 1].equals(b) ) ixs.pop();
-
-        if ( this.constructor._labelIntersections(ixs, leadingPoints[leadingPoints.length - 1] || prevPt, b, clipObject) ) {
-          trackingArray.push(...ixs);
-          leadingPoints = [];
-        }
+        trackingArray.push(...ixs);
+        leadingPoints = [];
       }
 
-      leadingPoints.push(b); // eslint-disable-line no-unused-expressions
+      // Always add b unless we already did because it is an intersection.
+      if ( !ixsLn || (trackingArray.length && !b.equals(trackingArray[trackingArray.length - 1])) ) leadingPoints.push(b);
 
       // Cycle to next edge
       prevPt = a;
@@ -268,8 +271,19 @@ export class WeilerAthertonClipper extends PIXI.Polygon {
 
     // Add the points at the end of the points array leading up to the initial intersection
     // Pop the last leading point to avoid repetition (closed polygon)
+    const tLn = trackingArray.length;
+    if ( !tLn ) return trackingArray;
+
     leadingPoints.pop();
-    trackingArray.length && trackingArray[0].leadingPoints.unshift(...leadingPoints); // eslint-disable-line no-unused-expressions
+    trackingArray[0].leadingPoints.unshift(...leadingPoints);
+
+    // Determine the first intersection label
+    const ix = trackingArray[0];
+    const priorIx = trackingArray[tLn - 1];
+    let nextIx = trackingArray[1] || ix;
+    const priorPt = ix.leadingPoints[ix.leadingPoints.length - 1] || priorIx;
+    const nextPt = nextIx.leadingPoints[0] || nextIx;
+    this.constructor._labelIntersections([ix], priorPt, nextPt, clipObject)
 
     return trackingArray;
   }
@@ -289,7 +303,7 @@ export class WeilerAthertonClipper extends PIXI.Polygon {
     const aInside = clipObject.contains(a.x, a.y);
     const bInside = clipObject.contains(b.x, b.y);
 
-    if ( !(aInside ^ bInside) && ixs.length === 1 ) return types.TANGENT;
+    //if ( !(aInside ^ bInside) && ixs.length === 1 ) return types.TANGENT;
 
     const type = aInside ? types.IN_OUT : types.OUT_IN;
     let sign = 1;
@@ -302,6 +316,101 @@ export class WeilerAthertonClipper extends PIXI.Polygon {
     return true;
   }
 }
+
+
+// Needed to change 1 line in the quadraticIntersection, but cannot override, so...
+// May as well trim down lineCircleIntersection a bit while we are at it...
+/**
+ * Determine the intersection between a candidate wall and the circular radius of the polygon.
+ * @memberof helpers
+ *
+ * @param {Point} a                   The initial vertex of the candidate edge
+ * @param {Point} b                   The second vertex of the candidate edge
+ * @param {Point} center              The center of the bounding circle
+ * @param {number} radius             The radius of the bounding circle
+ * @param {number} epsilon            A small tolerance for floating point precision
+ *
+ * @returns {LineCircleIntersection}  The intersection of the segment AB with the circle
+ */
+function lineCircleIntersection(a, b, center, radius, epsilon=1e-8) {
+  const r2 = Math.pow(radius, 2);
+  let intersections = [];
+
+  // Test whether endpoint A is contained
+  const ar2 = Math.pow(a.x - center.x, 2) + Math.pow(a.y - center.y, 2);
+  const aInside = ar2 <= r2 + epsilon;
+
+  // Test whether endpoint B is contained
+  const br2 = Math.pow(b.x - center.x, 2) + Math.pow(b.y - center.y, 2);
+  const bInside = br2 <= r2 + epsilon;
+
+  // Find quadratic intersection points
+  const contained = aInside && bInside;
+  if ( !contained ) {
+    intersections = quadraticIntersection(a, b, center, radius, epsilon);
+  }
+
+  // Return the intersection data
+  return {
+    aInside,
+    bInside,
+    contained,
+    intersections
+  };
+}
+
+
+/**
+ * Determine the points of intersection between a line segment (p0,p1) and a circle.
+ * There will be zero, one, or two intersections
+ * See https://math.stackexchange.com/a/311956
+ * @memberof helpers
+ *
+ * @param {Point} p0            The initial point of the line segment
+ * @param {Point} p1            The terminal point of the line segment
+ * @param {Point} center        The center of the circle
+ * @param {number} radius       The radius of the circle
+ * @param {number} [epsilon=0]  A small tolerance for floating point precision
+ */
+function quadraticIntersection(p0, p1, center, radius, epsilon=0) {
+  const dx = p1.x - p0.x;
+  const dy = p1.y - p0.y;
+  // Quadratic terms where at^2 + bt + c = 0
+  const a = Math.pow(dx, 2) + Math.pow(dy, 2);
+  const b = (2 * dx * (p0.x - center.x)) + (2 * dy * (p0.y - center.y));
+  const c = Math.pow(p0.x - center.x, 2) + Math.pow(p0.y - center.y, 2) - Math.pow(radius, 2);
+
+  // Discriminant
+  const disc2 = Math.pow(b, 2) - (4 * a * c);
+  if ( disc2 < 0 ) return []; // No intersections
+
+  // Roots
+  const disc = Math.sqrt(disc2);
+  const t1 = (-b - disc) / (2 * a);
+  const t2 = (-b + disc) / (2 * a);
+  // If t1 hits (between 0 and 1) it indicates an "entry"
+  const intersections = [];
+  if ( t1.between(0-epsilon, 1+epsilon) ) {
+    intersections.push({
+      x: p0.x + (dx * t1),
+      y: p0.y + (dy * t1)
+    });
+  }
+
+  // If the discriminant is exactly 0, a segment endpoint touches the circle
+  // (and only one intersection point)
+  if ( disc2 === 0 ) return intersections;
+
+  // If t2 hits (between 0 and 1) it indicates an "exit"
+  if ( t2.between(0-epsilon, 1+epsilon) ) {
+    intersections.push({
+      x: p0.x + (dx * t2),
+      y: p0.y + (dy * t2)
+    });
+  }
+  return intersections;
+}
+
 
 export function addWeilerAthertonMethods() {
 
@@ -347,9 +456,19 @@ PIXI.Polygon.prototype.reverseOrientation = function() {
 
 // ------ METHODS FOR PIXI.CIRCLE --------------- //
 
-// PIXI.Circle has center getter
 // PIXI.Circle has contains method
 // PIXI.Circle has toPolygon method
+
+/**
+ * Get the center point of the circle
+ * @type {Point}
+ */
+Object.defineProperty(PIXI.Circle.prototype, "center", {
+  get: function() {
+    return { x: this.x, y: this.y };
+  },
+  enumerable: false
+});
 
 /**
  * Get all intersection points for a segment A|B
@@ -359,7 +478,7 @@ PIXI.Polygon.prototype.reverseOrientation = function() {
  * @returns {Point[]}
  */
 PIXI.Circle.prototype.segmentIntersections = function(a, b) {
-  const ixs = foundry.utils.lineCircleIntersection(a, b, this, this.radius);
+  const ixs = lineCircleIntersection(a, b, this, this.radius);
   return ixs.intersections;
 };
 

@@ -101,21 +101,17 @@ export function boundsOverlap(bounds) {
 function boundsShapeIntersection(tBounds, shape) {
 //   log("boundsShapeIntersection", tBounds, shape);
 
-  if ( shape instanceof PIXI.Polygon ) {
-    return shape.intersectPolygon(tBounds.toPolygon());
+  if ( tBounds instanceof PIXI.Rectangle ) {
+    if ( shape instanceof PIXI.Polygon ) return shape.intersectRectangle(tBounds);
+    if ( shape instanceof PIXI.Circle ) return tBounds.toPolygon.intersectCircle(shape);
+    if ( shape instanceof PIXI.Rectangle ) return tBounds.intersection(shape).toPolygon; // Intersection of two PIXI.Rectangles returns PIXI.Rectangle
   }
 
-  if ( shape instanceof PIXI.Circle ) {
-    // Intersecting a polygon with a circle is faster than two polygons
-    return shape.intersectPolygon(tBounds.toPolygon(), { density: 12});
-  }
-
-  if ( shape instanceof PIXI.Rectangle ) {
-    // Intersecting rectangles is easier, so do that if possible
-    if ( tBounds instanceof PIXI.Rectangle ) {
-      return tBounds.intersection(shape).toPolygon(); // Intersection of two PIXI.Rectangles returns PIXI.Rectangle
-    }
-    return tBounds.toPolygon().intersectPolygon(shape.toPolygon());
+  if ( tBounds instanceof Hexagon ) {
+    tPoly = tBounds.toPolygon();
+    if ( shape instanceof PIXI.Polygon ) return shape.intersectPolygon(tPoly);
+    if ( shape instanceof PIXI.Circle ) return tPoly.intersectCircle(shape);
+    if ( shape instanceof PIXI.Rectangle ) return tPoly.intersectRectangle(shape); // Intersection of two PIXI.Rectangles returns PIXI.Rectangle
   }
 
   console.warn("tokenOverlapsShape|shape not recognized.", shape);
