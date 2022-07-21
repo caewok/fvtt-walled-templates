@@ -20,18 +20,65 @@ numSides = 3
 
 clearDrawings()
 poly = new RegularPolygon({x: 1000, y: 1000}, 100, { rotation, numSides });
-poly.fixedPoints.forEach(pt => drawPoint(pt))
-poly.fixedPoints.forEach(pt => drawPoint(poly.toCartesianCoords(pt)))
+poly.fixedPoints.forEach(pt => drawPoint(pt, {color: COLORS.blue}))
+poly.fixedPoints.forEach(pt => drawPoint(poly.toCartesianCoords(pt), {color: COLORS.blue, radius: 2}))
 drawShape(poly)
 drawShape(poly.getBounds())
 
 tri = new EquilateralTriangle(poly.center, poly.radius, { rotation })
-tri.fixedPoints.forEach(pt => drawPoint(pt))
-tri.fixedPoints.forEach(pt => drawPoint(tri.toCartesianCoords(pt)))
+tri.fixedPoints.forEach(pt => drawPoint(pt, {color: COLORS.blue}))
+tri.fixedPoints.forEach(pt => drawPoint(tri.toCartesianCoords(pt), {color: COLORS.blue}))
 drawShape(tri)
 drawShape(tri.getBounds(), {color: COLORS.blue})
 
+// points
+pts = {
+  inside: {x: 1000, y: 1000},
+  left: { x: 500, y: 1000},
+  right: { x: 1500, y: 1000},
+  top: { x: 1000, y: 500},
+  bottom: {x: 1000, y: 1500}
+}
 
+Object.values(pts).forEach(pt => drawPoint(pt, { color: COLORS.black}))
+
+for ( const [key, pt] of Object.entries(pts) ) {
+  const res = poly.contains(pt.x, pt.y)
+  console.log(`${key}: ${res}`)
+}
+
+
+segments = {
+  li: {A: pts.left, B: pts.inside},
+  ri: {A: pts.right, B: pts.inside},
+  ti: {A: pts.top, B: pts.inside},
+  bi: {A: pts.bottom, B: pts.inside},
+  ii: {A: pts.inside, B: {x: pts.inside.x + 20, y: pts.inside.y - 20}},
+  lr: {A: pts.left, B: pts.right},
+  tb: {A: pts.top, B: pts.bottom},
+  lt: {A: pts.left, B: pts.top},
+  lb: {A: pts.left, B: pts.bottom},
+  tl: {A: pts.top, B: pts.left},
+  rt: {A: pts.right, B: pts.top},
+}
+
+Object.values(segments).forEach(s => drawSegment(s))
+
+for ( const [key, s] of Object.entries(segments) ) {
+  const x = poly.segmentIntersections(s.A, s.B)
+  x.forEach(ix => drawPoint(ix))
+  console.log(`${key}: ${x[0]?.x},${x[0]?.y} & ${x[1]?.x},${x[1]?.y}`)
+}
+
+
+for ( const [key, s] of Object.entries(segments) ) {
+  const res = poly.pointsBetween(s.A, s.B)
+  console.log(`${key}:`, res)
+}
+
+poly.pointsBetween(pts.left, pts.bottom)
+poly.pointsBetween(pts.left, {x: pts.left.x, y: pts.left.y + 10})
+poly.pointsBetween(pts.left, {x: pts.left.x, y: pts.left.y - 10})
 
 export class RegularPolygon extends PIXI.Polygon {
   constructor(origin, radius, {numSides = 3, rotation = 0} = {}) {
@@ -144,6 +191,19 @@ export class RegularPolygon extends PIXI.Polygon {
   contains(x, y) {
     const bounds = this.getBounds();
     if ( !bounds.contains(x, y) ) return false;
+
+    const pt = this.fromCartesianCoords({ x, y });
+
+    // Use orientation to test the point.
+    // Moving clockwise, must be clockwise to each side.
+    const { fixedPoints: fp, numSides } = this;
+    for ( let i = 0; i < numSides; i += 1 ) {
+      const fp0 = fp[i];
+      const fp1 = fp[(i + 1) % numSides];
+      if ( foundry.utils.orient2dFast(fp0, fp1, pt) >= 0 ) return false;
+    }
+
+    return true;
   }
 
   /**
@@ -189,10 +249,10 @@ export class RegularPolygon extends PIXI.Polygon {
     b = this.fromCartesianCoords(b);
 
     const aSide = this._getSide(a);
-    if ( ~aSide ) return []; // A is inside
+    if ( !~aSide ) return []; // A is inside
 
     const bSide = this._getSide(b);
-    if ( ~bSide ) return []; // B is inside
+    if ( !~bSide ) return []; // B is inside
 
     const pts = [];
     const { numSides, fixedPoints: fp } = this;
@@ -200,8 +260,8 @@ export class RegularPolygon extends PIXI.Polygon {
     if ( aSide === bSide ) {
       // Either a is before b moving clockwise (no points)
       // or a is after b moving clockwise (all points)
-      if ( foundry.utils.orient2dFast({x: 0, y: 0}, a, b) > 0 ) return [];
-      pts.push([0, 1, 2].map(i => fp[(i + aSide + 1) % numSides]));
+      if ( foundry.utils.orient2dFast({x: 0, y: 0}, a, b) < 0 ) return [];
+      pts.push(...[0, 1, 2].map(i => fp[(i + aSide + 1) % numSides]));
     } else {
       let currSide = aSide;
       while ( currSide !== bSide ) {
@@ -209,6 +269,9 @@ export class RegularPolygon extends PIXI.Polygon {
         pts.push(fp[currSide]);
       }
     }
+
+    // If the last point is collinear to the center, drop
+    if ( !foundry.utils.orient2dFast({x: 0, y: 0}, pts[pts.length - 1], b )) pts.pop();
 
     return pts.map(pt => this.toCartesianCoords(pt));
   }
@@ -241,10 +304,19 @@ export class RegularPolygon extends PIXI.Polygon {
     const fp0 = this.fixedPoints[side];
     const fp1 = this.fixedPoints[(side + 1) % numSides];
 
+
+
     if ( fp1.x.almostEqual(point.x) && fp1.y.almostEqual(point.y) ) return (side + 1) % numSides;
 
-    const orient = foundry.utils.orient2dFast(fp0, fp1, point);
-    return orient >= 0 ? side : -1;
+    const orient01 = foundry.utils.orient2dFast(fp0, fp1, point);
+
+    // If clockwise, the point is inside relative to this side
+    if ( orient01 < 0 ) return -1;
+
+    // If counterclockwise, the point is on this side, but might be equivalent to fp1
+    const orientC = foundry.utils.orient2dFast({x: 0, y: 0}, fp1, point);
+    if ( !orientC ) return (side + 1) % numSides;
+    return side;
   }
 }
 
