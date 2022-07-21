@@ -31,6 +31,18 @@ tri.fixedPoints.forEach(pt => drawPoint(tri.toCartesianCoords(pt), {color: COLOR
 drawShape(tri)
 drawShape(tri.getBounds(), {color: COLORS.blue})
 
+sq = Square.fromPoint(poly.center, 100)
+sq.fixedPoints.forEach(pt => drawPoint(pt, {color: COLORS.blue}))
+sq.fixedPoints.forEach(pt => drawPoint(sq.toCartesianCoords(pt), {color: COLORS.blue}))
+drawShape(sq)
+drawShape(sq.getBounds(), {color: COLORS.blue})
+
+sq2 = new Square(sq.center, Math.SQRT2 * 100, {rotation: 45})
+sq2.fixedPoints.forEach(pt => drawPoint(pt, {color: COLORS.blue}))
+sq2.fixedPoints.forEach(pt => drawPoint(sq2.toCartesianCoords(pt), {color: COLORS.blue}))
+drawShape(sq2)
+drawShape(sq2.getBounds(), {color: COLORS.blue})
+
 // points
 pts = {
   inside: {x: 1000, y: 1000},
@@ -81,6 +93,14 @@ poly.pointsBetween(pts.left, {x: pts.left.x, y: pts.left.y + 10})
 poly.pointsBetween(pts.left, {x: pts.left.x, y: pts.left.y - 10})
 
 export class RegularPolygon extends PIXI.Polygon {
+
+ /**
+  * @param {Point} origin   Center point of the polygon.
+  * @param {number} radius  Circumscribed circle radius.
+  * @param {object} options Options that affect the polygon shape
+  * @param {number} options.numSides  Number of sides for this polygon
+  * @param {number} options.rotation  Rotation, in degrees, from a starting point due east
+  */
   constructor(origin, radius, {numSides = 3, rotation = 0} = {}) {
     super([]);
     this.x = origin.x;
@@ -111,7 +131,7 @@ export class RegularPolygon extends PIXI.Polygon {
    * @type {number}
    */
   get apothem() {
-    this.sideLength / (2 * Math.tan(180 / this.numSides ));
+    return this.radius * Math.cos(Math.PI / this.numSides);
   }
 
   /**
@@ -398,6 +418,91 @@ export class EquilateralTriangle extends RegularPolygon {
           -(sideLength / 2) + x,
           -altitude + apothem + y,
           sideLength, altitude);
+    }
+
+    return super.getBounds();
+  }
+}
+
+/**
+ * Square is oriented at 0º rotation like a diamond.
+ * Special case when square is rotate 45º or some multiple thereof
+ * @param {Point} origin  Center point of the square
+ * @param {number} radius Circumscribed circle radius
+ * @param {object} options
+ * @param {number} [options.rotation]   Rotation in degrees
+ * @param {number} [options.width]      Alternative specification when skipping radius
+ */
+export class Square extends RegularPolygon {
+  constructor(origin, radius, {rotation = 0, width} = {}) {
+    radius ??= Math.sqrt(Math.pow(width, 2) * 2);
+    super(origin, radius, { rotation, numSides: 4 });
+
+    this.width = width ?? (this.radius * Math.SQRT2);
+  }
+
+  /**
+   * Calculate the distance of the line segment from the center to the midpoint of a side.
+   * @type {number}
+   */
+  get apothem() { return this.width; }
+
+  /**
+   * Calculate length of a side of this square.
+   * @type {number}
+   */
+  get sideLength() { return this.apothem * 2; }
+
+  /**
+   * Calculate area of this square.
+   * @type {number}
+   */
+  get area() { this.sideLength * 2; }
+
+  /**
+   * Construct a square like a PIXI.Rectangle, where the point is the top left corner.
+   */
+  static fromPoint(point, width) {
+    const w1_2 = width / 2;
+    return new this({x: point.x + w1_2, y: point.y + w1_2}, undefined, { rotation: 45, width })
+  }
+
+  /**
+   * Generate the points of the equilateral triangle using the provided configuration.
+   * Simpler and more mathematically precise than the default version.
+   * @returns {Point[]}
+   */
+  #generateFixedPoints() {
+    // Shape before rotation is [] rotated 45º
+    const r = this.radius;
+
+    return [
+      { x: r, y: 0 },
+      { x: 0, y: r },
+      { x: -r, y: r },
+      { x: 0, y: -r }
+    ];
+  }
+
+  getBounds() {
+    // If an edge is on the bounding box, use it as the border
+    const { x, y, sideLength, apothem, fixedPoints: fp } = this;
+
+    switch ( this.rotation ) {
+      // PIXI.Rectangle(x, y, width, height)
+      // oriented []
+      case 45:
+      case 135:
+      case 225:
+      case 315:
+        return new PIXI.Rectangle(-apothem + x, -apothem + y, sideLength, sideLength);
+
+      // oriented [] turned 45º
+      case 0:
+      case 90:
+      case 180:
+      case 270:
+        return new PIXI.Rectangle(fp[2], fp[3], sideLenth, sideLength);
     }
 
     return super.getBounds();
