@@ -103,8 +103,8 @@ function boundsShapeIntersection(tBounds, shape) {
 
   if ( tBounds instanceof PIXI.Rectangle ) {
     if ( shape instanceof PIXI.Polygon ) return shape.intersectRectangle(tBounds);
-    if ( shape instanceof PIXI.Circle ) return tBounds.toPolygon.intersectCircle(shape);
-    if ( shape instanceof PIXI.Rectangle ) return tBounds.intersection(shape).toPolygon; // Intersection of two PIXI.Rectangles returns PIXI.Rectangle
+    if ( shape instanceof PIXI.Circle ) return tBounds.toPolygon().intersectCircle(shape);
+    if ( shape instanceof PIXI.Rectangle ) return tBounds.intersection(shape).toPolygon(); // Intersection of two PIXI.Rectangles returns PIXI.Rectangle
   }
 
   if ( tBounds instanceof Hexagon ) {

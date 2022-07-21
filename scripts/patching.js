@@ -111,9 +111,9 @@ function intersectCirclePIXIPolygon(circle, { density } = {}) {
 
 function intersectRectanglePIXIPolygon(rect) {
   if ( !rect.width || !rect.height ) return new PIXI.Polygon();
-  const res = WeilerAthertonClipper.intersect(this, circle, { density })[0];
+  const res = WeilerAthertonClipper.intersect(this, rect)[0];
 
-  // Weiler might return a circle if it is encompassed by the polygon
+  // Weiler might return a rectangle if it is encompassed by the polygon
   // For consistency with current LOS expectations, return polygon
   return res instanceof PIXI.Polygon ? res : res.toPolygon();
 }

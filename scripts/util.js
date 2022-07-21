@@ -4,6 +4,7 @@
 "use strict";
 
 import { MODULE_ID } from "./settings.js";
+import { Hexagon } from "./shapes/Hexagon.js";
 
 /**
  * Log message only when debug flag is enabled from DevMode module.
