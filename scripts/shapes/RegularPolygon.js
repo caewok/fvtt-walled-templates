@@ -108,6 +108,7 @@ export class RegularPolygon extends PIXI.Polygon {
     this.numSides = numSides;
     this.radius = radius;
     this.rotation = Math.normalizeDegrees(rotation);
+    this.radians = Math.toRadians(this.rotation);
 
     // Placeholders for getters
     this._fixedPoints = undefined; // So that subclasses can override generateFixedPoints
@@ -193,14 +194,14 @@ export class RegularPolygon extends PIXI.Polygon {
    * @param {Point} a
    * @returns {Point}
    */
-  fromCartesianCoords(a) { return rotatePoint(translatePoint(a, -this.x, -this.y), -this.rotation); }
+  fromCartesianCoords(a) { return rotatePoint(translatePoint(a, -this.x, -this.y), -this.radians); }
 
   /**
    * Shift to cartesian coordinates from the shape space.
    * @param {Point} a
    * @returns {Point}
    */
-  toCartesianCoords(a) { return translatePoint(rotatePoint(a, this.rotation), this.x, this.y); }
+  toCartesianCoords(a) { return translatePoint(rotatePoint(a, this.radians), this.x, this.y); }
 
   /**
    * Does the triangle contain the point?
@@ -720,11 +721,10 @@ Math.SQRT3 = Math.sqrt(3);
 /**
  * Rotate a point around a given angle
  * @param {Point} point
- * @param {number} angle  In degrees
+ * @param {number} angle  In radians
  * @returns {Point}
  */
 function rotatePoint(point, angle) {
-  angle = Math.toRadians(angle);
   return {
     x: point.x * Math.cos(angle) - point.y * Math.sin(angle),
     y: point.y * Math.cos(angle) + point.x * Math.sin(angle)
@@ -748,14 +748,14 @@ function translatePoint(point, dx, dy) {
 
 /**
  * Build a geometric shape given a set of angles.
- * @param {Number[]} angles      Array of angles indicating vertex positions.
+ * @param {Number[]} angles      Array of angles, in degrees, indicating vertex positions.
  * @param {Point}    origin      Center of the shape.
  * @param {Number}   radius      Distance from origin to each vertex.
  * @param {Number}   rotation    Angle in degrees describing rotation from due east.
  * @returns {Points[]} Array of vertices.
  */
 function geometricShapePoints(angles, origin, radius, rotation = 0) {
-  const a_translated = angles.map(a => Math.normalizeRadians(Math.toRadians(a + rotation)));
+  const a_translated = angles.map(a => Math.toRadians(Math.normalizeDegrees(a + rotation)));
   return a_translated.map(a => pointFromAngle(origin, a, radius));
 }
 
