@@ -120,7 +120,7 @@ export class RegularPolygon extends PIXI.Polygon {
 
   get center() { return { x: this.x, y: this.y }; }
 
-  get points() { return this._points || (this._points = this.#generatePoints()); }
+  get points() { return this._points || (this._points = this._generatePoints()); }
 
   set points(value) { }
 
@@ -166,7 +166,7 @@ export class RegularPolygon extends PIXI.Polygon {
    * Generate the points that represent this shape as a polygon in Cartesian space.
    * @return {Points[]}
    */
-  #generatePoints() {
+  _generatePoints() {
     // Faster to use for loop rather than flatten
     const pts = [];
     const { numSides, fixedPoints: fp } = this;
@@ -468,7 +468,21 @@ export class Square extends RegularPolygon {
   }
 
   /**
-   * Generate the points of the equilateral triangle using the provided configuration.
+   * Construct a square from a token's hitArea.
+   * @param {Token} token
+   * @return {Hexagon}
+   */
+  static fromToken(token) {
+    const { x, y } = this.token.center;
+    const { width, height } = this.token.hitArea;
+
+    if ( width !== height ) return new PIXI.Rectangle(x, y, width, height);
+
+    return this.fromPoint({x, y}, width);
+  }
+
+  /**
+   * Generate the points of the square using the provided configuration.
    * Simpler and more mathematically precise than the default version.
    * @returns {Point[]}
    */
@@ -482,6 +496,42 @@ export class Square extends RegularPolygon {
       { x: -r, y: r },
       { x: 0, y: -r }
     ];
+  }
+
+  /**
+   * Generate the points that represent this shape as a polygon in Cartesian space.
+   * @return {Points[]}
+   */
+  _generatePoints() {
+    const { x, y, rotation, apothem } = this;
+
+    switch ( rotation ) {
+      // oriented []
+      case 45:
+      case 135:
+      case 225:
+      case 315:
+        return [
+          { x: apothem + x, y: apothem + y },
+          { x: -apothem + x, y: apothem + y },
+          { x: -apothem + x, y: -apothem + y },
+          { x: apothem + x, y: -apothem + y },
+        ]
+
+      // oriented [] turned 45º
+      case 0:
+      case 90:
+      case 180:
+      case 270:
+        return [
+          { x: r + x, y},
+          { x, y: r + y },
+          { x: -r + x, y: r + y},
+          { x, y: -r + y }
+        ];
+    }
+
+    return super._generatePoints();
   }
 
   getBounds() {
@@ -503,6 +553,161 @@ export class Square extends RegularPolygon {
       case 180:
       case 270:
         return new PIXI.Rectangle(fp[2], fp[3], sideLenth, sideLength);
+    }
+
+    return super.getBounds();
+  }
+}
+
+/**
+ * "Column" hexagon with points at W and E
+ * If height is greater than width, a row hexagon will be returned; otherwise column or rotated.
+ * @param {Number}  width     Distance from left to right, through center.
+ * @param {Number}  height    Distance from top to bottom, through center.
+ */
+export class Hexagon extends RegularPolygon {
+  constructor(origin, radius, { rotation = 0, width, height = 0 } = {}) {
+    radius ??= Math.max(width, height) / 2;
+    if ( width && height > width ) rotation = 90;
+
+    super(origin, radius, {rotation});
+
+    switch ( rotation ) {
+      case 0:
+      case 180:
+        this._apothem = height || (Math.SQRT3 * this.radius * 0.5);
+        break;
+
+      case 90:
+      case 270:
+        this._apothem = width || (Math.SQRT3 * this.radius * 0.5);
+        break;
+
+      default:
+        this._apothem = Math.SQRT3 * this.radius * 0.5;
+    }
+
+    this.radius2 = Math.pow(this.radius, 2);
+  }
+
+  /**
+   * Calculate the distance of the line segment from the center to the midpoint of a side.
+   * For column hexagon, this is height / 2
+   * For row hexagon, this is width / 2
+   * @type {number}
+   */
+  get apothem() {
+    return this._apothem;
+  }
+
+  /**
+   * Calculate length of a side of this hexagon
+   * @type {number}
+   */
+  get sideLength() {
+    return this.radius;
+  }
+
+  /**
+   * Calculate area of this hexagon
+   * @type {number}
+   */
+  get area() {
+    // https://en.wikipedia.org/wiki/Hexagon
+    return 1.5 * Math.SQRT3 * this.radius2;
+  }
+
+  /**
+   * Construct a hexagon from a token's hitArea.
+   * @param {Token} token
+   * @return {Hexagon}
+   */
+  static fromToken(token) {
+    const { width, height } = token.hitArea;
+    return new this(token.center, undefined, { width, height });
+  }
+
+  /**
+   * Generate the points of the hexagon using the provided configuration.
+   * Simpler and more mathematically precise than the default version.
+   * @returns {Point[]}
+   */
+  #generateFixedPoints() {
+    // Shape before rotation is [] rotated 45º
+    const { radius, apothem } = this;
+    const r1_2 = radius * 0.5;
+
+    // Points at W and E
+    return [
+      { x: radius, y: 0 },
+      { x: r1_2, y: apothem },
+      { x: -r1_2, y: apothem },
+      { x: -radius, y: 0 },
+      { x: -r1_2, y: -apothem },
+      { x: r1_2, y: -apothem }
+    ];
+  }
+
+  /**
+   * Generate the points that represent this shape as a polygon in Cartesian space.
+   * @return {Points[]}
+   */
+  _generatePoints() {
+    const { x, y, rotation, radius, apothem } = this;
+    const r1_2 = radius * 0.5;
+
+    switch ( rotation ) {
+      // pointy-side E/W
+      case 0:
+      case 180:
+        return [
+          { x: radius + x, y },
+          { x: r1_2 + x, y: apothem + y },
+          { x: -r1_2 + x, y: apothem + y },
+          { x: -radius + x, y },
+          { x: -r1_2 + x, y: -apothem + y },
+          { x: r1_2 + x, y: -apothem + y }
+        ];
+
+      // pointy-side N/S
+      case 90:
+      case 270:
+        return [
+          { x: apothem + x, y: r1_2 + y },
+          { x, y: radius + y },
+          { x: -apothem + x, y: r1_2 + y },
+          { x: -apothem + x, y: -r1_2 + y },
+          { x, y: -radius + y },
+          { x: apothem + x, y: -r1_2 + y }
+        ];
+    }
+
+    return super._generatePoints();
+  }
+
+  getBounds() {
+    // If an edge is on the bounding box, use it as the border
+    const { x, y, radius, apothem, fixedPoints: fp } = this;
+
+    switch ( this.rotation ) {
+      // PIXI.Rectangle(x, y, width, height)
+      // pointy-side E/W
+      case 0:
+      case 180:
+        return new PIXI.Rectangle(
+          fp[3].x + x,
+          fp[4].y + y,
+          radius * 2,
+          apothem * 2)
+
+      // pointy-side N/S
+      case 90:
+      case 270:
+        return new PIXI.Rectangle(
+          -apothem + x,
+          -radius + y,
+          apothem * 2,
+          radius * 2);
     }
 
     return super.getBounds();
