@@ -28,12 +28,14 @@ import { Hexagon } from "./shapes/Hexagon.js";
 import { registerPIXICircleMethods } from "./shapes/PIXICircle.js";
 import { registerPIXIPolygonMethods } from "./shapes/PIXIPolygon.js";
 import { registerPIXIRectangleMethods } from "./shapes/PIXIRectangle.js";
-
 import {
   walledTemplateGetCircleShape,
   walledTemplateGetConeShape,
   walledTemplateGetRectShape,
   walledTemplateGetRayShape } from "./getShape.js";
+
+// Weiler Atherton clipping
+import { WeilerAthertonClipper, addWeilerAthertonMethods } from "./WeilerAtherton.js";
 
 /**
  * Tell DevMode that we want a flag for debugging this module.
@@ -50,13 +52,15 @@ Hooks.once("init", async function() {
   registerPIXIRectangleMethods();
   registerPIXICircleMethods();
 //   registerPolygonVertexMethods();
+  addWeilerAthertonMethods();
 
   game.modules.get(MODULE_ID).api = {
     walledTemplateGetCircleShape,
     walledTemplateGetConeShape,
     walledTemplateGetRectShape,
     walledTemplateGetRayShape,
-    Hexagon
+    Hexagon,
+    WeilerAthertonClipper
   };
 
 });

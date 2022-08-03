@@ -4,6 +4,7 @@
 "use strict";
 
 import { MODULE_ID } from "./settings.js";
+import { Hexagon } from "./shapes/Hexagon.js";
 
 /**
  * Log message only when debug flag is enabled from DevMode module.
@@ -21,16 +22,15 @@ export function log(...args) {
 }
 
 /**
- * Test if two points are almost equal within some epsilon
- * @param {Point} p0
- * @param {Point} p1
- * @param {number} e Some permitted epsilon, by default 1e-8
- * @return {boolean} Are the points almost equal?
+ * Test if two points are almost equal, within some small epsilon.
+ * @param {Point} a
+ * @param {Point} b
+ * @param {number} epsilon    Optional. If coordinates within this amount, will be considered equal.
+ * @returns {booleam}
  */
-export function pointsAlmostEqual(p0, p1, e = 1e-8) {
-  return p0.x.almostEqual(p1.x, e) && p0.y.almostEqual(p1.y, e);
+export function pointsAlmostEqual(a, b, epsilon = 1e-8) {
+  return a.x.almostEqual(b.x, epsilon) && a.y.almostEqual(b.y, epsilon);
 }
-
 /**
  * Determine if at least one segment from black intersects one segment from red.
  * @param {Segments[]} red      Array of objects that contain points A.x, A.y, B.x, B.y.
