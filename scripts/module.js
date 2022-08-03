@@ -24,18 +24,18 @@ import { walledTemplatesRenderMeasuredTemplateConfig } from "./renderMeasuredTem
 import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
 
 // Shapes and shape methods
+import { RegularPolygon } from "./shapes/RegularPolygon.js";
+import { Square } from "./shapes/Square.js";
 import { Hexagon } from "./shapes/Hexagon.js";
+
+import * as getShape from "./getShape.js";
+
 import { registerPIXICircleMethods } from "./shapes/PIXICircle.js";
 import { registerPIXIPolygonMethods } from "./shapes/PIXIPolygon.js";
 import { registerPIXIRectangleMethods } from "./shapes/PIXIRectangle.js";
-import {
-  walledTemplateGetCircleShape,
-  walledTemplateGetConeShape,
-  walledTemplateGetRectShape,
-  walledTemplateGetRayShape } from "./getShape.js";
 
 // Weiler Atherton clipping
-import { WeilerAthertonClipper, addWeilerAthertonMethods } from "./WeilerAtherton.js";
+import { WeilerAthertonClipper } from "./WeilerAtherton.js";
 
 /**
  * Tell DevMode that we want a flag for debugging this module.
@@ -51,18 +51,16 @@ Hooks.once("init", async function() {
   registerPIXIPolygonMethods();
   registerPIXIRectangleMethods();
   registerPIXICircleMethods();
-//   registerPolygonVertexMethods();
-  addWeilerAthertonMethods();
 
   game.modules.get(MODULE_ID).api = {
-    walledTemplateGetCircleShape,
-    walledTemplateGetConeShape,
-    walledTemplateGetRectShape,
-    walledTemplateGetRayShape,
-    Hexagon,
+    getShape,
+    shapes: {
+     RegularPolygon,
+     Square
+     Hexagon
+    },
     WeilerAthertonClipper
   };
-
 });
 
 Hooks.once("setup", async function() {
