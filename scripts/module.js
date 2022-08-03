@@ -56,7 +56,7 @@ Hooks.once("init", async function() {
     getShape,
     shapes: {
      RegularPolygon,
-     Square
+     Square,
      Hexagon
     },
     WeilerAthertonClipper

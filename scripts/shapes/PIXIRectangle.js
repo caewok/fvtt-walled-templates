@@ -4,7 +4,7 @@ foundry
 */
 "use strict";
 
-import { MODULE_ID } from "../const.js";
+import { MODULE_ID } from "../settings.js";
 
 // ----------------  ADD METHODS TO THE PIXI.RECTANGLE PROTOTYPE ------------------------
 
