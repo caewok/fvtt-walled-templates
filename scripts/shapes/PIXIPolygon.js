@@ -33,6 +33,19 @@ export function registerPIXIPolygonMethods() {
     writable: true,
     configurable: true
   });
+
+  /**
+   * Translate, shifting this polygon in the x and y direction. Return new polygon.
+   * @param {Number} dx  Movement in the x direction.
+   * @param {Number} dy  Movement in the y direction.
+   * @return {PIXI.Polygon}
+   */
+  Object.defineProperty(PIXI.Polygon.prototype, "translate", {
+    value: translate,
+    writable: true,
+    configurable: true
+  });
+
 }
 
 function isClockwise() {
@@ -54,4 +67,16 @@ function reverseOrientation() {
   this.points = reversed_pts;
   if ( typeof this._isClockwise !== "undefined" ) this._isClockwise = !this._isClockwise;
   return this;
+}
+
+function translate(dx, dy) {
+  const pts = [];
+  const ln = this.points.length;
+  for (let i = 0; i < ln; i += 2) {
+    pts.push(this.points[i] + dx, this.points[i + 1] + dy);
+  }
+  const out = new this.constructor(pts);
+  out._isClockwise = this._isClockwise;
+  out._isClosed = this._isClosed;
+  return out;
 }

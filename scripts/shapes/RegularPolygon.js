@@ -96,6 +96,19 @@ export class RegularPolygon extends PIXI.Polygon {
   get interiorAngle() { return (180 + (180 * (this.numSides - 3))) / this.numSides; }
 
   /**
+   * Shift this polygon to a new position.
+   * @param {number} dx   Change in x position
+   * @param {number} dy   Change in y position
+   * @returns {RegularPolygon}    This polygon
+   */
+  translate(dx, dy) {
+    this.x = this.x + dx;
+    this.y = this.y + dy;
+    this._points = undefined;
+    return this;
+  }
+
+  /**
    * Generate the points of the shape in shape-space (before rotation or translation)
    * @return {Points[]}
    */

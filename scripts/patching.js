@@ -52,6 +52,9 @@ export function registerWalledTemplates() {
 
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.refresh", walledTemplatesMeasuredTemplateRefresh, libWrapper.MIXED);
 
+
+  // ----- New methods ----- //
+
   Object.defineProperty(MeasuredTemplate.prototype, "getBoundaryShapes", {
     value: getBoundaryShapes,
     writable: true,
@@ -76,46 +79,4 @@ export function registerWalledTemplates() {
     configurable: true
   });
 
-  Object.defineProperty(PIXI.Polygon.prototype, "intersectCircle", {
-    value: intersectCirclePIXIPolygon,
-    writable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(PIXI.Polygon.prototype, "intersectRectangle", {
-    value: intersectRectanglePIXIPolygon,
-    writable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(PIXI.Rectangle.prototype, "intersectPolygon", {
-    value: intersectPolygonPIXIRectangle,
-    writable: true,
-    configurable: true
-  });
 }
-
-function intersectPolygonPIXIRectangle(poly) {
-  return poly.intersectRectangle(this);
-}
-
-function intersectCirclePIXIPolygon(circle, { density } = {}) {
-  if ( !circle.radius ) return new PIXI.Polygon();
-  density ??= PIXI.Circle.approximateVertexDensity(circle.radius);
-  const res = WeilerAthertonClipper.intersect(this, circle, { density })[0];
-
-  // Weiler might return a circle if it is encompassed by the polygon
-  // For consistency with current LOS expectations, return polygon
-  return res instanceof PIXI.Polygon ? res : res.toPolygon({density});
-}
-
-function intersectRectanglePIXIPolygon(rect) {
-  if ( !rect.width || !rect.height ) return new PIXI.Polygon();
-  const res = WeilerAthertonClipper.intersect(this, rect)[0];
-
-  // Weiler might return a rectangle if it is encompassed by the polygon
-  // For consistency with current LOS expectations, return polygon
-  return res instanceof PIXI.Polygon ? res : res.toPolygon();
-}
-
-

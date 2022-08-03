@@ -65,6 +65,20 @@ export function registerPIXIRectangleMethods() {
   });
 
   /**
+   * Move the rectangle by given x,y delta. Return new rectangle.
+   * @param {number} dx
+   * @param {number} dy
+   * @returns {PIXI.Circle}
+   */
+  Object.defineProperty(PIXI.Rectangle.prototype, "translate", {
+    value: function(dx, dy) {
+      return new PIXI.Rectangle(this.x + dx, this.y + dy, this.width, this.height);
+    },
+    writable: true,
+    configurable: true
+  });
+
+  /**
    * Intersect this PIXI.Rectangle with a PIXI.Polygon.
    * Use the WeilerAtherton algorithm
    * @param {PIXI.Polygon} polygon      A PIXI.Polygon
