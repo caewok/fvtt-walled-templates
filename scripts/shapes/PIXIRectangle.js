@@ -5,6 +5,7 @@ foundry
 "use strict";
 
 import { MODULE_ID } from "../settings.js";
+import { WeilerAthertonClipper } from "../WeilerAtherton.js";
 
 // ----------------  ADD METHODS TO THE PIXI.RECTANGLE PROTOTYPE ------------------------
 
@@ -177,7 +178,8 @@ function pointsBetween(a, b) {
   return pts;
 }
 
-function intersectPolygonPIXIRectangle(wrapped, polygon, {clipType, scalingFactor}={}) {
+// options: clipType, scalingFactor
+function intersectPolygonPIXIRectangle(wrapped, polygon, options) {
   if ( !this.width || !this.height ) return new PIXI.Polygon([]);
   options.clipType ??= ClipperLib.ClipType.ctIntersection;
 
@@ -191,4 +193,3 @@ function intersectPolygonPIXIRectangle(wrapped, polygon, {clipType, scalingFacto
   const res = wa.combine(this)[0];
   return res instanceof PIXI.Polygon ? res : res.toPolygon();
 }
-
