@@ -159,8 +159,8 @@ function releaseAndAcquireTargets(targets) {
  * @return {PIXI.Rectangle|Hexagon}
  */
 function tokenBounds(token) {
-  if ( canvas.scene.data.gridType === CONST.GRID_TYPES.GRIDLESS
-    || canvas.scene.data.gridType === CONST.GRID_TYPES.SQUARE ) {
+  if ( canvas.scene.grid.type === CONST.GRID_TYPES.GRIDLESS
+    || canvas.scene.grid.type === CONST.GRID_TYPES.SQUARE ) {
     return Square.fromToken(token);
   }
   return Hexagon.fromToken(token);
