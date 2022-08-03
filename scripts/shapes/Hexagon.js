@@ -142,8 +142,6 @@ export class Hexagon {
     // Check bounding box first b/c it can deal with easy cases.
     if ( !this.getBounds().containsPoint({x, y}) ) { return false; }
 
-
-
     // Check the polygon
     return this.toPolygon().contains(x, y);
   }
