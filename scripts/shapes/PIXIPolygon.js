@@ -78,5 +78,7 @@ function translate(dx, dy) {
   const out = new this.constructor(pts);
   out._isClockwise = this._isClockwise;
   out._isClosed = this._isClosed;
+  if ( this.bounds ) out.bounds = out.getBounds(); // Bounds will have changed due to translate
+
   return out;
 }
