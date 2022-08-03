@@ -79,7 +79,7 @@ export function autotargetToken({ only_visible = false } = {}) {
  * @return {Boolean}
  */
 export function boundsOverlap(bounds) {
-  const tBounds = bounds.translate(-this.data.x, -this.data.y);
+  const tBounds = bounds.translate(-this.x, -this.y);
 
   if ( getSetting(SETTINGS.AUTOTARGET.METHOD) === SETTINGS.AUTOTARGET.METHODS.CENTER ) {
     return this.shape.contains(tBounds.center.x, tBounds.center.y);

@@ -84,8 +84,8 @@ export function gridShapeForPixel(p) {
  * @return {PIXI.Rectangle|Hexagon}  Rectangle for square or gridless; hexagon for hex grids.
  */
 export function gridShapeForTopLeft(p) {
-  if ( canvas.scene.data.gridType === CONST.GRID_TYPES.GRIDLESS
-    || canvas.scene.data.gridType === CONST.GRID_TYPES.SQUARE ) {
+  if ( canvas.scene.grid.type === CONST.GRID_TYPES.GRIDLESS
+    || canvas.scene.grid.type === CONST.GRID_TYPES.SQUARE ) {
     return new PIXI.Rectangle(p.x, p.y, canvas.dimensions.size, canvas.dimensions.size);
   }
 
