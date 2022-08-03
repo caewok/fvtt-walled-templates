@@ -18,9 +18,21 @@ export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false
 
   retarget ||= redraw; // Re-drawing requires re-targeting.
 
-  log(`walledTemplatesMeasuredTemplateRefresh ${this.id} redraw ${redraw} retarget ${retarget}`);
+  // for debugging
+  const shape_type = this.shape instanceof ClockwiseSweepPolygon ? "ClockwiseSweep"
+    : this.shape instanceof PIXI.Circle ? "circle"
+    : this.shape instanceof PIXI.Rectangle ? "rectangle" : "undefined";
+
+  log(`walledTemplatesMeasuredTemplateRefresh ${this.id} redraw ${redraw} retarget ${retarget} shape ${shape_type}`);
   const new_cache = this.document.toJSON();
   const use_cache = this._template_props_cache && this._template_props_cache === new_cache;
+
+  // Can sometimes fail to have bounds set
+  if ( this.shape instanceof ClockwiseSweepPolygon
+    && !this.shape.bounds ) {
+    log("Updating bounds for shape.");
+    this.shape.bounds = this.shape.getBounds();
+  }
 
   if ( redraw || !use_cache ) {
     log("redrawing template");
