@@ -51,6 +51,9 @@ export function registerWalledTemplates() {
 
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.refresh", walledTemplatesMeasuredTemplateRefresh, libWrapper.MIXED);
 
+  // For debugging
+  libWrapper.register(MODULE_ID, "ClockwiseSweepPolygon.prototype._executeSweep", executeSweepClockwiseSweepPolygon, libWrapper.WRAPPER, { perf_mode: libWrapper.PERF_FAST});
+
 
   // ----- New methods ----- //
 
@@ -77,5 +80,11 @@ export function registerWalledTemplates() {
     writable: true,
     configurable: true
   });
-
 }
+
+// For debugging
+function executeSweepClockwiseSweepPolygon(wrapper) {
+  wrapper();
+  this._preWApoints = [...this.points];
+}
+

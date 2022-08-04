@@ -44,6 +44,7 @@ export function computeSweepPolygon() {
 
   // Shift to origin 0,0 as expected for Template shape.
   const poly = sweep.translate(-origin.x, -origin.y);
+  poly._sweep = sweep; // For debugging
   return poly;
 }
 

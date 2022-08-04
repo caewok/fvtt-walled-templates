@@ -167,15 +167,20 @@ function segmentIntersections(a, b) {
   if ( zones.length === 2 && !this.lineSegmentIntersects(a, b) ) return [];
 
   const CSZ = PIXI.Rectangle.CS_ZONES;
+  const lsi = foundry.utils.lineSegmentIntersects;
   const lli = foundry.utils.lineLineIntersection;
   const { leftEdge, rightEdge, bottomEdge, topEdge } = this;
   const ixs = [];
   for ( const z of zones ) {
     let ix;
-    if ( z & CSZ.LEFT ) ix = lli(leftEdge.A, leftEdge.B, a, b);
-    if ( !ix && (z & CSZ.RIGHT) ) ix = lli(rightEdge.A, rightEdge.B, a, b);
-    if ( !ix && (z & CSZ.TOP) ) ix = lli(topEdge.A, topEdge.B, a, b);
-    if ( !ix && (z & CSZ.BOTTOM) ) ix = lli(bottomEdge.A, bottomEdge.B, a, b);
+    if ( (z & CSZ.LEFT)
+      && lsi(leftEdge.A, leftEdge.B, a, b)) ix = lli(leftEdge.A, leftEdge.B, a, b);
+    if ( !ix && (z & CSZ.RIGHT)
+      && lsi(rightEdge.A, rightEdge.B, a, b)) ix = lli(rightEdge.A, rightEdge.B, a, b);
+    if ( !ix && (z & CSZ.TOP)
+      && lsi(topEdge.A, topEdge.B, a, b)) ix = lli(topEdge.A, topEdge.B, a, b);
+    if ( !ix && (z & CSZ.BOTTOM)
+      && lsi(bottomEdge.A, bottomEdge.B, a, b)) ix = lli(bottomEdge.A, bottomEdge.B, a, b);
 
     // The ix should always be a point by now
     if ( !ix ) console.warn("PIXI.Rectangle.prototype.segmentIntersections returned a null point.");
