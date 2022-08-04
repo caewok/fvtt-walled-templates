@@ -10,7 +10,7 @@ LimitedAnglePolygon
 
 import { log } from "./util.js";
 import { debugPolygons } from "./settings.js";
-import { MODULE_ID } from "const.js";
+import { MODULE_ID } from "./const.js";
 
 /**
  * Use ClockwiseSweep to construct the polygon shape, passing it this template object.

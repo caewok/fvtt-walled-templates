@@ -6,7 +6,8 @@ renderTemplate
 "use strict";
 
 import { log } from "./util.js";
-import { getSetting, MODULE_ID } from "./settings.js";
+import { getSetting } from "./settings.js";
+import { MODULE_ID } from "./const.js";
 
 /**
  * Inject html to add controls to the measured template configuration:
