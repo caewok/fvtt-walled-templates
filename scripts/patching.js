@@ -52,8 +52,9 @@ export function registerWalledTemplates() {
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.refresh", walledTemplatesMeasuredTemplateRefresh, libWrapper.MIXED);
 
   // For debugging
-  libWrapper.register(MODULE_ID, "ClockwiseSweepPolygon.prototype._executeSweep", executeSweepClockwiseSweepPolygon, libWrapper.WRAPPER, { perf_mode: libWrapper.PERF_FAST});
-
+  if ( game.modules.get("_dev-mode")?.api?.getPackageDebugValue(MODULE_ID) ) {
+    libWrapper.register(MODULE_ID, "ClockwiseSweepPolygon.prototype._executeSweep", executeSweepClockwiseSweepPolygon, libWrapper.WRAPPER, { perf_mode: libWrapper.PERF_FAST});
+  }
 
   // ----- New methods ----- //
 
