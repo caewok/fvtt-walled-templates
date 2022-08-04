@@ -3,8 +3,9 @@
 
 "use strict";
 
-import { MODULE_ID } from "./settings.js";
+import { MODULE_ID } from "./const.js";
 import { Hexagon } from "./shapes/Hexagon.js";
+import { Square } from "./shapes/Square.js";
 
 /**
  * Log message only when debug flag is enabled from DevMode module.
@@ -84,9 +85,10 @@ export function gridShapeForPixel(p) {
  * @return {PIXI.Rectangle|Hexagon}  Rectangle for square or gridless; hexagon for hex grids.
  */
 export function gridShapeForTopLeft(p) {
-  if ( canvas.scene.data.gridType === CONST.GRID_TYPES.GRIDLESS
-    || canvas.scene.data.gridType === CONST.GRID_TYPES.SQUARE ) {
-    return new PIXI.Rectangle(p.x, p.y, canvas.dimensions.size, canvas.dimensions.size);
+  if ( canvas.scene.grid.type === CONST.GRID_TYPES.GRIDLESS
+    || canvas.scene.grid.type === CONST.GRID_TYPES.SQUARE ) {
+
+    return Square.fromPoint(p, canvas.dimensions.size);
   }
 
   // Offset from top left to center

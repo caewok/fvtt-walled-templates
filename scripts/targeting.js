@@ -9,6 +9,7 @@ CONST
 import { getSetting, SETTINGS } from "./settings.js";
 import { log } from "./util.js";
 import { Hexagon } from "./shapes/Hexagon.js";
+import { Square } from "./shapes/Square.js";
 
 /**
  * Wrap MeasuredTemplate.prototype.draw to target tokens after drawing.
@@ -32,11 +33,12 @@ export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false
 
   } else {
     log("Using cached template data.");
-//     this._refreshTemplate();
-//     this.highlightGrid();
+    // Skipping due to cache:
+    // this._refreshTemplate();
+    // this.highlightGrid();
 
     // Update the HUD
-    this._refreshControlIcon;
+    this._refreshControlIcon();
     this._refreshRulerText();
   }
 
@@ -66,7 +68,7 @@ export function autotargetToken({ only_visible = false } = {}) {
  * @return {Boolean}
  */
 export function boundsOverlap(bounds) {
-  const tBounds = bounds.translate(-this.data.x, -this.data.y);
+  const tBounds = bounds.translate(-this.x, -this.y);
 
   if ( getSetting(SETTINGS.AUTOTARGET.METHOD) === SETTINGS.AUTOTARGET.METHODS.CENTER ) {
     return this.shape.contains(tBounds.center.x, tBounds.center.y);
@@ -82,8 +84,8 @@ export function boundsOverlap(bounds) {
   // bounds and the template shape.
   const poly = boundsShapeIntersection(tBounds, this.shape);
   if ( !poly || poly.points.length < 3 ) return false;
-  const b_area = bounds.area();
-  const p_area = poly.area();
+  const b_area = bounds.area;
+  const p_area = poly.area;
   const target_area = b_area * area_percentage;
 
   return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%
@@ -92,30 +94,21 @@ export function boundsOverlap(bounds) {
 /**
  * Return the intersection of the bounds shape with the template shape.
  * Bounds shape should already be translated to the template {0, 0} origin.
- * @param {PIXI.Rectangle|Hexagon}           tBounds
+ * @param {PIXI.Rectangle|Hexagon|Square}           tBounds
  * @param {PIXI.Polygon
           |PIXI.Circle
           |PIXI.Rectangle}  shape
  * @return {PIXI.Polygon}
  */
 function boundsShapeIntersection(tBounds, shape) {
-//   log("boundsShapeIntersection", tBounds, shape);
+  // Intersection of two PIXI.Rectangles returns PIXI.Rectangle; convert to Polygon
+  if ( shape instanceof PIXI.Rectangle
+    && tBounds instanceof PIXI.Rectangle ) return tBounds.intersection(shape).toPolygon();
 
-  if ( tBounds instanceof PIXI.Rectangle ) {
-    if ( shape instanceof PIXI.Polygon ) return shape.intersectRectangle(tBounds);
-    if ( shape instanceof PIXI.Circle ) return tBounds.toPolygon().intersectCircle(shape);
-    if ( shape instanceof PIXI.Rectangle ) return tBounds.intersection(shape).toPolygon(); // Intersection of two PIXI.Rectangles returns PIXI.Rectangle
-  }
+  if ( shape instanceof PIXI.Polygon ) return tBounds.intersectPolygon(shape);
 
-  if ( tBounds instanceof Hexagon ) {
-    tPoly = tBounds.toPolygon();
-    if ( shape instanceof PIXI.Polygon ) return shape.intersectPolygon(tPoly);
-    if ( shape instanceof PIXI.Circle ) return tPoly.intersectCircle(shape);
-    if ( shape instanceof PIXI.Rectangle ) return tPoly.intersectRectangle(shape); // Intersection of two PIXI.Rectangles returns PIXI.Rectangle
-  }
-
-  console.warn("tokenOverlapsShape|shape not recognized.", shape);
-  return new PIXI.Polygon(); // Null polygon b/c we expect a polygon on return
+  // Shape should be circle
+  return shape.intersectPolygon(tBounds.toPolygon());
 }
 
 /**
@@ -165,12 +158,9 @@ function releaseAndAcquireTargets(targets) {
  * @return {PIXI.Rectangle|Hexagon}
  */
 function tokenBounds(token) {
-  if ( canvas.scene.data.gridType === CONST.GRID_TYPES.GRIDLESS
-    || canvas.scene.data.gridType === CONST.GRID_TYPES.SQUARE ) {
-    const w = token.hitArea.width;
-    const h = token.hitArea.height;
-    return new PIXI.Rectangle(token.center.x - (w / 2), token.center.y - (h /2), w, h);
+  if ( canvas.scene.grid.type === CONST.GRID_TYPES.GRIDLESS
+    || canvas.scene.grid.type === CONST.GRID_TYPES.SQUARE ) {
+    return Square.fromToken(token);
   }
-
   return Hexagon.fromToken(token);
 }

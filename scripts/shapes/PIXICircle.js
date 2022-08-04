@@ -110,6 +110,20 @@ export function registerPIXICircleMethods() {
   });
 
   /**
+   * Move the circle center by given x,y delta. Return new circle.
+   * @param {number} dx
+   * @param {number} dy
+   * @returns {PIXI.Circle}
+   */
+  Object.defineProperty(PIXI.Circle.prototype, "translate", {
+    value: function(dx, dy) {
+      return new PIXI.Circle(this.x + dx, this.y + dy, this.radius);
+    },
+    writable: true,
+    configurable: true
+  });
+
+  /**
    * Intersect this PIXI.Circle with a PIXI.Polygon.
    * Use the WeilerAtherton algorithm
    * @param {PIXI.Polygon} polygon      A PIXI.Polygon
@@ -140,7 +154,7 @@ function pointsForArc(fromAngle, toAngle, {density, includeEndpoints=true} = {})
   return points;
 }
 
-function intersectPolygonPIXICircle(wrapped, polygon, options) {
+function intersectPolygonPIXICircle(wrapped, polygon, options = {}) {
   if ( !this.radius ) return new PIXI.Polygon([]);
   options.clipType ??= ClipperLib.ClipType.ctIntersection;
 

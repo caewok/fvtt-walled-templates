@@ -32,7 +32,7 @@ export class Square extends RegularPolygon {
    * Calculate the distance of the line segment from the center to the midpoint of a side.
    * @type {number}
    */
-  get apothem() { return this.width; }
+  get apothem() { return this.width / 2; }
 
   /**
    * Calculate length of a side of this square.
@@ -44,7 +44,7 @@ export class Square extends RegularPolygon {
    * Calculate area of this square.
    * @type {number}
    */
-  get area() { return this.sideLength * 2; }
+  get area() { return Math.pow(this.sideLength, 2); }
 
   /**
    * Construct a square like a PIXI.Rectangle, where the point is the top left corner.
@@ -60,12 +60,16 @@ export class Square extends RegularPolygon {
    * @return {Hexagon}
    */
   static fromToken(token) {
-    const { x, y } = token.center;
     const { width, height } = token.hitArea;
 
-    if ( width !== height ) return new PIXI.Rectangle(x, y, width, height);
+    if ( width !== height ) {
+      const { x, y } = token.center;
+      const w1_2 = width * 0.5;
+      const h1_2 = height * 0.5;
+      return new PIXI.Rectangle(x - w1_2, y - h1_2, width, height);
+    }
 
-    return this.fromPoint({x, y}, width);
+    return new this(token.center, undefined, { rotation: 45, width});
   }
 
   /**
@@ -123,9 +127,9 @@ export class Square extends RegularPolygon {
 
   getBounds() {
     // If an edge is on the bounding box, use it as the border
-    const { x, y, sideLength, apothem, fixedPoints: fp } = this;
+    const { x, y, sideLength, apothem, rotation, fixedPoints: fp } = this;
 
-    switch ( this.rotation ) {
+    switch ( rotation ) {
       // PIXI.Rectangle(x, y, width, height)
       // Oriented []
       case 45:
@@ -143,5 +147,20 @@ export class Square extends RegularPolygon {
     }
 
     return super.getBounds();
+  }
+
+  overlaps(other) {
+    switch ( this.rotation ) {
+      // Oriented []
+      case 45:
+      case 135:
+      case 225:
+      case 315: {
+        const rect = this.getBounds();
+        return rect.overlaps(other);
+      }
+    }
+
+    return super.overlaps(other);
   }
 }

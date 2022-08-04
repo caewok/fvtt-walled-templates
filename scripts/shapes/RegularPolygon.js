@@ -96,6 +96,19 @@ export class RegularPolygon extends PIXI.Polygon {
   get interiorAngle() { return (180 + (180 * (this.numSides - 3))) / this.numSides; }
 
   /**
+   * Shift this polygon to a new position.
+   * @param {number} dx   Change in x position
+   * @param {number} dy   Change in y position
+   * @returns {RegularPolygon}    This polygon
+   */
+  translate(dx, dy) {
+    this.x = this.x + dx;
+    this.y = this.y + dy;
+    this._points = undefined;
+    return this;
+  }
+
+  /**
    * Generate the points of the shape in shape-space (before rotation or translation)
    * @return {Points[]}
    */
@@ -291,10 +304,10 @@ export class RegularPolygon extends PIXI.Polygon {
     // If point is in the triangle formed by AOB, it is on this side (where AB is a side).
     // Recall that a, b oriented clockwise around the shape.
     const oa = foundry.utils.orient2dFast(o, a, point);
-    if ( oa > 0 ) return -1; // point is ccw to OA
+    if ( oa > 0 ) return -1; // Point is ccw to OA
 
     const ob = foundry.utils.orient2dFast(o, b, point);
-    if ( ob < 0 ) return -1; // point is cw to OB
+    if ( ob < 0 ) return -1; // Point is cw to OB
 
     return side;
   }
@@ -308,19 +321,18 @@ export class RegularPolygon extends PIXI.Polygon {
    * @param {number} [options.scalingFactor]  A scaling factor passed to Polygon#toClipperPoints to preserve precision
    * @returns {PIXI.Polygon|null}       The intersected polygon or null if no solution was present
    */
-  intersectPolygon(polygon, {clipType, scalingFactor}={}) {
+  _intersectPolygon(polygon, options = {}) {
     if ( !this.radius ) return new PIXI.Polygon([]);
-    clipType ??= ClipperLib.ClipType.ctIntersection;
+    options.clipType ??= ClipperLib.ClipType.ctIntersection;
 
-    if ( clipType !== ClipperLib.ClipType.ctIntersection
-      && clipType !== ClipperLib.ClipType.ctUnion) {
-      // polygon.intersectPolygon(this.toPolygon(), {clipType, scalingFactor});
-      return super.intersectPolygon(polygon, {clipType, scalingFactor});
+    if ( options.clipType !== ClipperLib.ClipType.ctIntersection
+      && options.clipType !== ClipperLib.ClipType.ctUnion) {
+      return super.intersectPolygon(polygon, options);
     }
 
     polygon._preWApoints = [...polygon.points];
 
-    const union = clipType === ClipperLib.ClipType.ctUnion;
+    const union = options.clipType === ClipperLib.ClipType.ctUnion;
     const wa = WeilerAthertonClipper.fromPolygon(polygon, { union });
     const res = wa.combine(this)[0];
 
@@ -330,6 +342,29 @@ export class RegularPolygon extends PIXI.Polygon {
     }
 
     return res instanceof PIXI.Polygon ? res : res.toPolygon();
+  }
+
+  // Overlaps method added to PIXI.Polygon in PIXIPolygon.js
+
+  /**
+   * Does this polygon overlap a circle?
+   * @param {PIXI.Circle} circle
+   * @returns {boolean}
+   */
+  _overlapsCircle(circle) {
+    // Determine closest point to circle center
+
+    // If further than the radius of both, then outside
+    const dx = this.center.x - circle.x;
+    const dy = this.center.y - circle.y;
+    const distXY2 = Math.pow(dx, 2) + Math.pow(dy, 2);
+    if ( distXY2 > Math.pow(circle.radius + this.radius, 2) ) return false;
+
+    // If within inner circle radius, then inside
+    if ( distXY2 <= Math.pow(circle.radius + this.apothem, 2) ) return true;
+
+    // Default to polygon approach
+    return super._overlapsCircle(circle);
   }
 
 }

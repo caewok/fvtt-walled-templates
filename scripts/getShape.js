@@ -9,7 +9,8 @@ LimitedAnglePolygon
 "use strict";
 
 import { log } from "./util.js";
-import { MODULE_ID, debugPolygons } from "./settings.js";
+import { debugPolygons } from "./settings.js";
+import { MODULE_ID } from "./const.js";
 
 /**
  * Use ClockwiseSweep to construct the polygon shape, passing it this template object.
@@ -86,7 +87,7 @@ function useSweep(template) {
  * @return {PIXI.Polygon}
  */
 export function walledTemplateGetCircleShape(wrapped, distance) {
-  log(`walledTemplateGetCircleShape with distance ${distance}, origin ${this.data.x},${this.data.y}`, this);
+  log(`walledTemplateGetCircleShape with distance ${distance}, origin ${this.x},${this.y}`, this);
 
   // Make sure the default shape is constructed.
   this.originalShape = wrapped(distance);
@@ -114,7 +115,7 @@ export function walledTemplateGetCircleShape(wrapped, distance) {
  * @return {PIXI.Polygon}
  */
 export function walledTemplateGetConeShape(wrapped, direction, angle, distance) {
-  log(`walledTemplateGetConeShape with direction ${direction}, angle ${angle}, distance ${distance}, origin ${this.data.x},${this.data.y}`, this);
+  log(`walledTemplateGetConeShape with direction ${direction}, angle ${angle}, distance ${distance}, origin ${this.x},${this.y}`, this);
 
   // Make sure the default shape is constructed.
   this.originalShape = wrapped(direction, angle, distance);
@@ -137,7 +138,7 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
  * @return {PIXI.Polygon}
  */
 export function walledTemplateGetRectShape(wrapped, direction, distance) {
-  log(`walledTemplateGetRectShape with direction ${direction}, distance ${distance}, origin ${this.data.x},${this.data.y}`, this);
+  log(`walledTemplateGetRectShape with direction ${direction}, distance ${distance}, origin ${this.x},${this.y}`, this);
 
   // Make sure the default shape is constructed.
   this.originalShape = wrapped(direction, distance);
@@ -167,7 +168,7 @@ export function walledTemplateGetRectShape(wrapped, direction, distance) {
  * @return {PIXI.Polygon}
  */
 export function walledTemplateGetRayShape(wrapped, direction, distance, width) {
-  log(`walledTemplateGetRayShape with direction ${direction}, distance ${distance}, width ${width}, origin ${this.data.x},${this.data.y}`, this);
+  log(`walledTemplateGetRayShape with direction ${direction}, distance ${distance}, width ${width}, origin ${this.x},${this.y}`, this);
 
   // Make sure the default shape is constructed.
   this.originalShape = wrapped(direction, distance, width);
@@ -256,9 +257,9 @@ function getRoundedConeBoundaryShapes(shape, origin, direction, angle, distance)
 function getFlatConeBoundaryShapes(shape, origin) {
   // Use the existing triangle polygon for the bounding shape
 //
-//   const shifted_origin = pointFromAngle(origin, Math.toRadians(this.data.direction), -1);
+//   const shifted_origin = pointFromAngle(origin, Math.toRadians(this.direction), -1);
 //     log(`boundaryPolygon|Polygon shifted origin to ${shifted_origin.x},${shifted_origin.y}
-//    for direction ${this.data.direction}`);
+//    for direction ${this.direction}`);
 //     shape = shape.translate(shifted_origin.x, shifted_origin.y);
   return [shape.translate(origin.x, origin.y)];
 }
@@ -272,9 +273,9 @@ function getFlatConeBoundaryShapes(shape, origin) {
  */
 function getRayBoundaryShapes(shape, origin) {
   // Dow we need to shift the origin for polygons?
-  //   const shifted_origin = pointFromAngle(origin, Math.toRadians(this.data.direction), -1);
+  //   const shifted_origin = pointFromAngle(origin, Math.toRadians(this.direction), -1);
   //     log(`boundaryPolygon|Polygon shifted origin to ${shifted_origin.x},${shifted_origin.y}
-  // for direction ${this.data.direction}`);
+  // for direction ${this.direction}`);
   //     shape = shape.translate(shifted_origin.x, shifted_origin.y);
   const ray = shape.translate(origin.x, origin.y);
   return [ray];

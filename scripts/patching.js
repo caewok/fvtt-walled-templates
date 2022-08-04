@@ -6,7 +6,7 @@ MeasuredTemplate
 
 "use strict";
 
-import { MODULE_ID } from "./settings.js";
+import { MODULE_ID } from "./const.js";
 import {
   walledTemplateGetCircleShape,
   walledTemplateGetConeShape,
@@ -20,7 +20,6 @@ import {
   boundsOverlap,
   autotargetToken } from "./targeting.js";
 import { getGridHighlightPositionsMeasuredTemplate } from "./highlighting/Foundry_highlighting.js";
-import { WeilerAthertonClipper } from "./WeilerAtherton.js";
 
 // Disable for now until PF2 and PF1 are updated for v10; may not need these
 // import { WalledTemplatesPF1eGetHighlightedSquares } from "./highlighting/PF1e_highlighting.js";
@@ -52,6 +51,9 @@ export function registerWalledTemplates() {
 
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.refresh", walledTemplatesMeasuredTemplateRefresh, libWrapper.MIXED);
 
+
+  // ----- New methods ----- //
+
   Object.defineProperty(MeasuredTemplate.prototype, "getBoundaryShapes", {
     value: getBoundaryShapes,
     writable: true,
@@ -76,46 +78,4 @@ export function registerWalledTemplates() {
     configurable: true
   });
 
-  Object.defineProperty(PIXI.Polygon.prototype, "intersectCircle", {
-    value: intersectCirclePIXIPolygon,
-    writable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(PIXI.Polygon.prototype, "intersectRectangle", {
-    value: intersectRectanglePIXIPolygon,
-    writable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(PIXI.Rectangle.prototype, "intersectPolygon", {
-    value: intersectPolygonPIXIRectangle,
-    writable: true,
-    configurable: true
-  });
 }
-
-function intersectPolygonPIXIRectangle(poly) {
-  return poly.intersectRectangle(this);
-}
-
-function intersectCirclePIXIPolygon(circle, { density } = {}) {
-  if ( !circle.radius ) return new PIXI.Polygon();
-  density ??= PIXI.Circle.approximateVertexDensity(circle.radius);
-  const res = WeilerAthertonClipper.intersect(this, circle, { density })[0];
-
-  // Weiler might return a circle if it is encompassed by the polygon
-  // For consistency with current LOS expectations, return polygon
-  return res instanceof PIXI.Polygon ? res : res.toPolygon({density});
-}
-
-function intersectRectanglePIXIPolygon(rect) {
-  if ( !rect.width || !rect.height ) return new PIXI.Polygon();
-  const res = WeilerAthertonClipper.intersect(this, rect)[0];
-
-  // Weiler might return a rectangle if it is encompassed by the polygon
-  // For consistency with current LOS expectations, return polygon
-  return res instanceof PIXI.Polygon ? res : res.toPolygon();
-}
-
-

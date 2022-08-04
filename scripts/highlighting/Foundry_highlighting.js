@@ -4,7 +4,8 @@
 "use strict";
 
 import { log, gridShapeForTopLeft } from "../util.js";
-import { MODULE_ID, getSetting, SETTINGS } from "../settings.js";
+import { getSetting, SETTINGS } from "../settings.js";
+import { MODULE_ID } from "../const.js";
 
 /**
  * Wrap MeasuredTemplate.prototype._getGridHighlightPositions
@@ -12,6 +13,7 @@ import { MODULE_ID, getSetting, SETTINGS } from "../settings.js";
  */
 export function getGridHighlightPositionsMeasuredTemplate(wrapper) {
   log("getGridHighlightPositionsMeasuredTemplate");
+
   const positions = wrapper();
 
   const enabled = this.document.getFlag(MODULE_ID, "enabled");
@@ -20,6 +22,8 @@ export function getGridHighlightPositionsMeasuredTemplate(wrapper) {
     log("walledTemplatesHighlightGrid|Using Foundry default");
     return positions;
   }
+
+  log("getGridHighlightPositionsMeasuredTemplate: filtering positions");
 
   return positions.filter(p => {
     const shape = gridShapeForTopLeft(p);

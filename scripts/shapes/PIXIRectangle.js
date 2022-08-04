@@ -1,16 +1,18 @@
 /* globals
 PIXI,
-foundry
+foundry,
+libWrapper,
+ClipperLib
 */
 "use strict";
 
 import { MODULE_ID } from "../const.js";
+import { WeilerAthertonClipper } from "../WeilerAtherton.js";
 
 // ----------------  ADD METHODS TO THE PIXI.RECTANGLE PROTOTYPE ------------------------
 
 export function registerPIXIRectangleMethods() {
   // ----- Weiler Atherton Methods ----- //
-
 
   /**
    * Get the center point of the rectangle
@@ -60,6 +62,77 @@ export function registerPIXIRectangleMethods() {
    */
   Object.defineProperty(PIXI.Rectangle.prototype, "pointsBetween", {
     value: pointsBetween,
+    writable: true,
+    configurable: true
+  });
+
+  // ----- Walled Template methods ----- //
+
+  /**
+   * Measure the area of this rectangle
+   * @type {number}
+   */
+  Object.defineProperty(PIXI.Rectangle.prototype, "area", {
+    get: function() {
+      return this.width * this.height;
+    },
+    enumerable: false
+  });
+
+  /**
+   * Move the rectangle by given x,y delta. Return new rectangle.
+   * @param {number} dx
+   * @param {number} dy
+   * @returns {PIXI.Circle}
+   */
+  Object.defineProperty(PIXI.Rectangle.prototype, "translate", {
+    value: function(dx, dy) {
+      return new PIXI.Rectangle(this.x + dx, this.y + dy, this.width, this.height);
+    },
+    writable: true,
+    configurable: true
+  });
+
+  /**
+   * Does this rectangle overlap something else?
+   * @param {PIXI.Rectangle|PIXI.Circle|PIXI.Polygon} shape
+   * @returns {boolean}
+   */
+  Object.defineProperty(PIXI.Rectangle.prototype, "overlaps", {
+    value: overlaps,
+    writable: true,
+    configurable: true
+  });
+
+  /**
+   * Does this rectangle overlap another?
+   * @param {PIXI.Rectangle} other
+   * @return {Boolean}
+   */
+  Object.defineProperty(PIXI.Rectangle.prototype, "_overlapsRectangle", {
+    value: overlapsRectangle,
+    writable: true,
+    configurable: true
+  });
+
+  /**
+   * Does this rectangle overlap a circle?
+   * @param {PIXI.Circle} circle
+   * @return {Boolean}
+   */
+  Object.defineProperty(PIXI.Rectangle.prototype, "_overlapsCircle", {
+    value: overlapsCircle,
+    writable: true,
+    configurable: true
+  });
+
+  /**
+   * Does this rectangle overlap a polygon?
+   * @param {PIXI.Polygon} poly
+   * @return {Boolean}
+   */
+  Object.defineProperty(PIXI.Rectangle.prototype, "_overlapsPolygon", {
+    value: overlapsPolygon,
     writable: true,
     configurable: true
   });
@@ -163,13 +236,14 @@ function pointsBetween(a, b) {
   return pts;
 }
 
-function intersectPolygonPIXIRectangle(wrapped, polygon, {clipType, scalingFactor}={}) {
+// Options: clipType, scalingFactor
+function intersectPolygonPIXIRectangle(wrapped, polygon, options = {}) {
   if ( !this.width || !this.height ) return new PIXI.Polygon([]);
   options.clipType ??= ClipperLib.ClipType.ctIntersection;
 
   if ( options.clipType !== ClipperLib.ClipType.ctIntersection
     && options.clipType !== ClipperLib.ClipType.ctUnion) {
-    return wrapped(polygon, {clipType, scalingFactor});
+    return wrapped(polygon, options);
   }
 
   const union = options.clipType === ClipperLib.ClipType.ctUnion;
@@ -178,3 +252,75 @@ function intersectPolygonPIXIRectangle(wrapped, polygon, {clipType, scalingFacto
   return res instanceof PIXI.Polygon ? res : res.toPolygon();
 }
 
+/**
+ * Does this rectangle overlap something else?
+ * @param {PIXI.Rectangle|PIXI.Circle|PIXI.Polygon} shape
+ * @returns {boolean}
+ */
+function overlaps(shape) {
+  if ( shape instanceof PIXI.Polygon ) { return this._overlapsPolygon(shape); }
+  if ( shape instanceof PIXI.Circle ) { return this._overlapsCircle(shape); }
+  if ( shape instanceof PIXI.Rectangle ) { return this._overlapsRectangle(shape); }
+
+  if ( shape.toPolygon) return this._overlapsPolygon(shape.toPolygon());
+
+  console.warn("overlaps|shape not recognized.", shape);
+  return false;
+}
+
+/**
+ * Does this rectangle overlap another?
+ * @param {PIXI.Rectangle} other
+ * @return {Boolean}
+ */
+function overlapsRectangle(other) {
+  // https://www.geeksforgeeks.org/find-two-rectangles-overlap
+  // One rectangle is completely above the other
+  if ( this.top > other.bottom || other.top > this.bottom ) return false;
+
+  // One rectangle is completely to the left of the other
+  if ( this.left > other.right || other.left > this.right ) return false;
+
+  return true;
+}
+
+/**
+ * Does this rectangle overlap a circle?
+ * @param {PIXI.Circle} circle
+ * @return {Boolean}
+ */
+function overlapsCircle(circle) {
+  // https://www.geeksforgeeks.org/check-if-any-point-overlaps-the-given-circle-and-rectangle
+  // {xn,yn} is the nearest point on the rectangle to the circle center
+  const xn = Math.max(this.right, Math.min(circle.x, this.left));
+  const yn = Math.max(this.top, Math.min(circle.y, this.bottom));
+
+  // Find the distance between the nearest point and the center of the circle
+  const dx = xn - circle.x;
+  const dy = yn - circle.y;
+  return (Math.pow(dx, 2) + Math.pow(dy, 2)) <= Math.pow(circle.radius, 2);
+}
+
+/**
+ * Does this rectangle overlap a polygon?
+ * @param {PIXI.Polygon} poly
+ * @return {Boolean}
+ */
+function overlapsPolygon(poly) {
+  if ( poly.contains(this.left, this.top)
+    || poly.contains(this.right, this.top)
+    || poly.contains(this.left, this.bottom)
+    || poly.contains(this.right, this.bottom)) return true;
+
+  poly.close();
+  const pts = poly.points;
+  const ln = pts.length;
+  let a = { x: pts[0], y: pts[1] };
+  if ( this.contains(a.x, a.y) ) return true;
+  for ( let i = 2; i < ln; i += 2 ) {
+    const b = { x: pts[i], y: pts[i+1] };
+    if ( this.lineSegmentIntersects(a, b) || this.contains(b.x, b.y) ) return true;
+    a = b;
+  }
+  return false;
+}
