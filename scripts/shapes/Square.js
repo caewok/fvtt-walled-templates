@@ -150,16 +150,16 @@ export class Square extends RegularPolygon {
   }
 
   overlaps(other) {
-//     switch ( rotation ) {
-//       // Oriented []
-//       case 45:
-//       case 135:
-//       case 225:
-//       case 315: {
-//         const rect = this.getBounds();
-//         return rect.overlaps(other);
-//       }
-//     }
+    switch ( rotation ) {
+      // Oriented []
+      case 45:
+      case 135:
+      case 225:
+      case 315: {
+        const rect = this.getBounds();
+        return rect.overlaps(other);
+      }
+    }
 
     return super.overlaps(other);
   }
