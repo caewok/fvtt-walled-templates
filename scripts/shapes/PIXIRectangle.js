@@ -6,7 +6,7 @@ ClipperLib
 */
 "use strict";
 
-import { MODULE_ID } from "../settings.js";
+import { MODULE_ID } from "../const.js";
 import { WeilerAthertonClipper } from "../WeilerAtherton.js";
 
 // ----------------  ADD METHODS TO THE PIXI.RECTANGLE PROTOTYPE ------------------------

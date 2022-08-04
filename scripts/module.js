@@ -16,7 +16,8 @@ await foundry.utils.benchmark(fn, 1e04, t)
 
 // Basics
 import { log } from "./util.js";
-import { MODULE_ID, SETTINGS, registerSettings, getSetting, toggleSetting } from "./settings.js";
+import { SETTINGS, registerSettings, getSetting, toggleSetting } from "./settings.js";
+import { MODULE_ID } from "const.js";
 
 // Rendering and main methods
 import { registerWalledTemplates } from "./patching.js";

@@ -68,7 +68,7 @@ export class Hexagon extends RegularPolygon {
    * @param {Token} token
    * @return {Hexagon}
    */
-  static  (token) {
+  static fromToken(token) {
     const { width, height } = token.hitArea;
     return new this(token.center, undefined, { width, height });
   }

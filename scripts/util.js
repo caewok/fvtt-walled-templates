@@ -3,7 +3,7 @@
 
 "use strict";
 
-import { MODULE_ID } from "./settings.js";
+import { MODULE_ID } from "./const.js";
 import { Hexagon } from "./shapes/Hexagon.js";
 import { Square } from "./shapes/Square.js";
 

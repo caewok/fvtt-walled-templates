@@ -4,7 +4,8 @@
 "use strict";
 
 import { log, gridShapeForTopLeft } from "../util.js";
-import { MODULE_ID, getSetting, SETTINGS } from "../settings.js";
+import { getSetting, SETTINGS } from "../settings.js";
+import { MODULE_ID } from "const.js";
 
 /**
  * Wrap MeasuredTemplate.prototype._getGridHighlightPositions

@@ -6,7 +6,7 @@ libWrapper
 "use strict";
 
 import { WeilerAthertonClipper } from "../WeilerAtherton.js";
-import { MODULE_ID } from "../settings.js";
+import { MODULE_ID } from "../const.js";
 
 // ----------------  ADD METHODS TO THE PIXI.CIRCLE PROTOTYPE ------------------------
 export function registerPIXICircleMethods() {

@@ -5,8 +5,8 @@ game
 "use strict";
 
 import { log } from "./util.js";
+import { MODULE_ID } from "./const.js";
 
-export const MODULE_ID = "walledtemplates";
 export const SETTINGS = {
   DEFAULT_WALLED: "default-to-walled",
 
