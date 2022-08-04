@@ -49,7 +49,7 @@ export class Square extends RegularPolygon {
   /**
    * Construct a square like a PIXI.Rectangle, where the point is the top left corner.
    */
-  static fromPoint(point, width) {
+  static fromTopLeft(point, width) {
     const w1_2 = width / 2;
     return new this({x: point.x + w1_2, y: point.y + w1_2}, undefined, { rotation: 45, width });
   }

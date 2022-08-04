@@ -88,16 +88,9 @@ export function gridShapeForTopLeft(p) {
   if ( canvas.scene.grid.type === CONST.GRID_TYPES.GRIDLESS
     || canvas.scene.grid.type === CONST.GRID_TYPES.SQUARE ) {
 
-    return Square.fromPoint(p, canvas.dimensions.size);
+    return Square.fromTopLeft(p, canvas.dimensions.size);
   }
 
-  // Offset from top left to center
-  const hx = Math.ceil(canvas.grid.w / 2);
-  const hy = Math.ceil(canvas.grid.h / 2);
-
-  return Hexagon.fromDimensions(
-    p.x + hx,
-    p.y + hy,
-    canvas.grid.grid.w,
-    canvas.grid.grid.h);
+  const { h, w } = canvas.grid.grid;
+  return Hexagon.fromTopLeft(p, undefined, { width: w, height: h });
 }

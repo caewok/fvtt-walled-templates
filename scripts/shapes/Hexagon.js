@@ -74,6 +74,19 @@ export class Hexagon extends RegularPolygon {
   }
 
   /**
+   * Construct a hexagon from top left corner of the grid space
+   * @param {Point} point   Top left point
+   * @param {object} args   Arguments passed to constructor
+   * @returns {Hexagon}
+   */
+  static fromTopLeft(point, ...args) {
+      // Offset from top left to center
+    const hx = Math.ceil(canvas.grid.w / 2);
+    const hy = Math.ceil(canvas.grid.h / 2);
+    return new Hexagon({x: point.x + hx, y: point.y + hy}, ...args);
+  }
+
+  /**
    * Generate the points of the hexagon using the provided configuration.
    * Simpler and more mathematically precise than the default version.
    * @returns {Point[]}
