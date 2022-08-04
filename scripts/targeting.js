@@ -33,11 +33,12 @@ export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false
 
   } else {
     log("Using cached template data.");
-//     this._refreshTemplate();
-//     this.highlightGrid();
+    // Skipping due to cache:
+    // this._refreshTemplate();
+    // this.highlightGrid();
 
     // Update the HUD
-    this._refreshControlIcon;
+    this._refreshControlIcon();
     this._refreshRulerText();
   }
 
@@ -100,8 +101,6 @@ export function boundsOverlap(bounds) {
  * @return {PIXI.Polygon}
  */
 function boundsShapeIntersection(tBounds, shape) {
-//   log("boundsShapeIntersection", tBounds, shape);
-
   // Intersection of two PIXI.Rectangles returns PIXI.Rectangle; convert to Polygon
   if ( shape instanceof PIXI.Rectangle
     && tBounds instanceof PIXI.Rectangle ) return tBounds.intersection(shape).toPolygon();

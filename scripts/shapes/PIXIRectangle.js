@@ -1,6 +1,8 @@
 /* globals
 PIXI,
-foundry
+foundry,
+libWrapper,
+ClipperLib
 */
 "use strict";
 
@@ -234,14 +236,14 @@ function pointsBetween(a, b) {
   return pts;
 }
 
-// options: clipType, scalingFactor
+// Options: clipType, scalingFactor
 function intersectPolygonPIXIRectangle(wrapped, polygon, options = {}) {
   if ( !this.width || !this.height ) return new PIXI.Polygon([]);
   options.clipType ??= ClipperLib.ClipType.ctIntersection;
 
   if ( options.clipType !== ClipperLib.ClipType.ctIntersection
     && options.clipType !== ClipperLib.ClipType.ctUnion) {
-    return wrapped(polygon, {clipType, scalingFactor});
+    return wrapped(polygon, options);
   }
 
   const union = options.clipType === ClipperLib.ClipType.ctUnion;
@@ -313,7 +315,7 @@ function overlapsPolygon(poly) {
   poly.close();
   const pts = poly.points;
   const ln = pts.length;
-  let a = { x: pts[0], y: pts[1] }
+  let a = { x: pts[0], y: pts[1] };
   if ( this.contains(a.x, a.y) ) return true;
   for ( let i = 2; i < ln; i += 2 ) {
     const b = { x: pts[i], y: pts[i+1] };

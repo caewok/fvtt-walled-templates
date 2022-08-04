@@ -150,7 +150,7 @@ export class Square extends RegularPolygon {
   }
 
   overlaps(other) {
-    switch ( rotation ) {
+    switch ( this.rotation ) {
       // Oriented []
       case 45:
       case 135:

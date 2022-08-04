@@ -71,9 +71,9 @@ export function registerPIXIPolygonMethods() {
 
   Object.defineProperty(PIXI.Polygon.prototype, "area", {
     get: function() {
-        const path = this.toClipperPoints()
-        const area = ClipperLib.Clipper.Area(path);
-        return Math.abs(area);
+      const path = this.toClipperPoints();
+      const area = ClipperLib.Clipper.Area(path);
+      return Math.abs(area);
     },
     enumerable: false
   });

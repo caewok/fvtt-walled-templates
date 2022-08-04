@@ -20,7 +20,6 @@ import {
   boundsOverlap,
   autotargetToken } from "./targeting.js";
 import { getGridHighlightPositionsMeasuredTemplate } from "./highlighting/Foundry_highlighting.js";
-import { WeilerAthertonClipper } from "./WeilerAtherton.js";
 
 // Disable for now until PF2 and PF1 are updated for v10; may not need these
 // import { WalledTemplatesPF1eGetHighlightedSquares } from "./highlighting/PF1e_highlighting.js";
