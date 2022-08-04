@@ -83,8 +83,8 @@ export function boundsOverlap(bounds) {
   // bounds and the template shape.
   const poly = boundsShapeIntersection(tBounds, this.shape);
   if ( !poly || poly.points.length < 3 ) return false;
-  const b_area = bounds.area();
-  const p_area = poly.area();
+  const b_area = bounds.area;
+  const p_area = poly.area;
   const target_area = b_area * area_percentage;
 
   return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%

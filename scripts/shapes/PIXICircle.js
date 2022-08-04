@@ -154,7 +154,7 @@ function pointsForArc(fromAngle, toAngle, {density, includeEndpoints=true} = {})
   return points;
 }
 
-function intersectPolygonPIXICircle(wrapped, polygon, options) {
+function intersectPolygonPIXICircle(wrapped, polygon, options = {}) {
   if ( !this.radius ) return new PIXI.Polygon([]);
   options.clipType ??= ClipperLib.ClipType.ctIntersection;
 
