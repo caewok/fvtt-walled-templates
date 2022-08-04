@@ -78,6 +78,19 @@ export function registerPIXIPolygonMethods() {
     enumerable: false
   });
 
+  /**
+   * Close this polygon if needed.
+   */
+  Object.defineProperty(PIXI.Polygon.prototype, "close", {
+    value: function() {
+      if ( this.isClosed ) return;
+      const ln = this.points.length;
+      this.addPoint({x: this.points[ln -2], y: this.points[ln - 1]});
+    },
+    writable: true,
+    configurable: true
+  });
+
 }
 
 function isClockwise() {
