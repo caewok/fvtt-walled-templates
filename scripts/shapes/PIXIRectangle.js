@@ -308,17 +308,16 @@ function overlapsPolygon(poly) {
   if ( poly.contains(this.left, this.top)
     || poly.contains(this.right, this.top)
     || poly.contains(this.left, this.bottom)
-    || poly.contains(this.right, this.bottom)) { return true; }
+    || poly.contains(this.right, this.bottom)) return true;
 
   poly.close();
   const pts = poly.points;
   const ln = pts.length;
   let a = { x: pts[0], y: pts[1] }
+  if ( this.contains(a.x, a.y) ) return true;
   for ( let i = 2; i < ln; i += 2 ) {
     const b = { x: pts[i], y: pts[i+1] };
-    if ( this.lineSegmentIntersects(a, b)
-      || this.containsPoint(a)
-      || this.containsPoint(b)) { return true; }
+    if ( this.lineSegmentIntersects(a, b) || this.contains(b.x, b.y) ) return true;
     a = b;
   }
   return false;

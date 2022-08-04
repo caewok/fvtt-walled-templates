@@ -321,7 +321,7 @@ export class RegularPolygon extends PIXI.Polygon {
    * @param {number} [options.scalingFactor]  A scaling factor passed to Polygon#toClipperPoints to preserve precision
    * @returns {PIXI.Polygon|null}       The intersected polygon or null if no solution was present
    */
-  intersectPolygon(polygon, options = {}) {
+  _intersectPolygon(polygon, options = {}) {
     if ( !this.radius ) return new PIXI.Polygon([]);
     options.clipType ??= ClipperLib.ClipType.ctIntersection;
 

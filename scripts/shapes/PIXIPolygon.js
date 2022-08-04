@@ -152,20 +152,18 @@ function overlapsPolygon(other) {
   const ln1 = pts1.length;
   const ln2 = pts2.length;
   let a = { x: pts1[0], y: pts1[1] };
-  if ( other.contains(a) ) return true;
+  if ( other.contains(a.x, a.y) ) return true;
 
   for ( let i = 2; i < ln1; i += 2 ) {
     const b = { x: pts1[i], y: pts1[i+1] };
-    if ( other.contains(b) ) return true;
+    if ( other.contains(b.x, b.y) ) return true;
 
     let c = { x: pts2[0], y: pts2[1] };
-    if ( this.contains(c) ) return true;
+    if ( this.contains(c.x, c.y) ) return true;
 
     for ( let j = 2; j < ln2; j += 2 ) {
       const d = { x: pts2[j], y: pts2[j+1] };
-      if ( foundry.utils.lineSegmentIntersects(a, b, c, d)
-        || this.contains(d) ) return true;
-
+      if ( foundry.utils.lineSegmentIntersects(a, b, c, d) || this.contains(d.x, d.y) ) return true;
       c = d;
     }
 
@@ -189,13 +187,13 @@ function overlapsCircle(circle) {
   const pts = this.points;
   const ln = pts.length;
   let a = { x: pts[0], y: pts[1] };
-  if ( circle.contains(a) ) return true;
+  if ( circle.contains(a.x, a.y) ) return true;
   for ( let i = 2; i < ln; i += 2 ) {
     const b = { x: pts[i], y: pts[i+1] };
 
     // Get point on the line closest to a|b (might be a or b)
     const c = foundry.utils.closestPointToSegment(c, a, b);
-    if ( circle.contains(c) ) return true;
+    if ( circle.contains(c.x, c.y) ) return true;
   }
 
   return false;
