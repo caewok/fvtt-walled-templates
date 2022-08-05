@@ -48,10 +48,15 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 
 Hooks.once("init", async function() {
   log("Initializing...");
+
+  if ( !game.modules.get("lightmask")?.active ) {
+    // LightMask shares these methods
+    registerPIXIPolygonMethods();
+    registerPIXIRectangleMethods();
+    registerPIXICircleMethods();
+  }
+
   registerWalledTemplates();
-  registerPIXIPolygonMethods();
-  registerPIXIRectangleMethods();
-  registerPIXICircleMethods();
 
   game.modules.get(MODULE_ID).api = {
     getShape,
