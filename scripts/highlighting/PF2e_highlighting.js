@@ -7,9 +7,9 @@ MeasuredTemplate
 */
 "use strict";
 
-import { log } from "../module.js";
-import { gridShapeForTopLeft } from "../targeting.js";
-import { MODULE_ID, getSetting, SETTINGS } from "../settings.js";
+import { log, gridShapeForTopLeft } from "../util.js";
+import { getSetting, SETTINGS } from "../settings.js";
+import { MODULE_ID } from "../const.js";
 
 // Same as PF2e but for the contains test
 export function WalledTemplatesPF2eHighlightGrid(wrapped) {

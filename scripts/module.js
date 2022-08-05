@@ -6,42 +6,37 @@ canvas
 
 "use strict";
 
+/* Benchmark template construction
+fn = function(t) { return t.computeSweepPolygon(); }
+let [t] = canvas.templates.placeables;
+await foundry.utils.benchmark(fn, 1e04, t)
+
+*/
+
+
+// Basics
+import { log } from "./util.js";
+import { SETTINGS, registerSettings, getSetting, toggleSetting } from "./settings.js";
+import { MODULE_ID } from "./const.js";
+
+// Rendering and main methods
 import { registerWalledTemplates } from "./patching.js";
-import { MODULE_ID, SETTINGS, registerSettings, getSetting, toggleSetting } from "./settings.js";
-
-import { registerPIXIPolygonMethods } from "./ClockwiseSweep/PIXIPolygon.js";
-import { registerPIXIRectangleMethods } from "./ClockwiseSweep/PIXIRectangle.js";
-import { registerPIXICircleMethods } from "./ClockwiseSweep/PIXICircle.js";
-import { registerPolygonVertexMethods } from "./ClockwiseSweep/SimplePolygonEdge.js";
-
 import { walledTemplatesRenderMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
 import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
-import { LightMaskClockwisePolygonSweep as WalledTemplatesClockwiseSweepPolygon } from "./ClockwiseSweep/LightMaskClockwisePolygonSweep.js";
-import { LimitedAngleSweepPolygon } from "./ClockwiseSweep/LimitedAngle.js";
 
-import { ClipperLib } from "./ClockwiseSweep/clipper_unminified.js";
-import { Hexagon } from "./Hexagon.js";
+// Shapes and shape methods
+import { RegularPolygon } from "./shapes/RegularPolygon.js";
+import { Square } from "./shapes/Square.js";
+import { Hexagon } from "./shapes/Hexagon.js";
 
-import {
-  walledTemplateGetCircleShape,
-  walledTemplateGetConeShape,
-  walledTemplateGetRectShape,
-  walledTemplateGetRayShape } from "./getShape.js";
+import * as getShape from "./getShape.js";
 
-/**
- * Log message only when debug flag is enabled from DevMode module.
- * @param {Object[]} args  Arguments passed to console.log.
- */
-export function log(...args) {
-  try {
-    const isDebugging = game.modules.get("_dev-mode")?.api?.getPackageDebugValue(MODULE_ID);
-    if ( isDebugging ) {
-      console.log(MODULE_ID, "|", ...args);
-    }
-  } catch(e) {
-    // Empty
-  }
-}
+import { registerPIXICircleMethods } from "./shapes/PIXICircle.js";
+import { registerPIXIPolygonMethods } from "./shapes/PIXIPolygon.js";
+import { registerPIXIRectangleMethods } from "./shapes/PIXIRectangle.js";
+
+// Weiler Atherton clipping
+import { WeilerAthertonClipper } from "./WeilerAtherton.js";
 
 /**
  * Tell DevMode that we want a flag for debugging this module.
@@ -53,23 +48,25 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 
 Hooks.once("init", async function() {
   log("Initializing...");
+
+  if ( !game.modules.get("lightmask")?.active ) {
+    // LightMask shares these methods
+    registerPIXIPolygonMethods();
+    registerPIXIRectangleMethods();
+    registerPIXICircleMethods();
+  }
+
   registerWalledTemplates();
-  registerPIXIPolygonMethods();
-  registerPIXIRectangleMethods();
-  registerPIXICircleMethods();
-  registerPolygonVertexMethods();
 
   game.modules.get(MODULE_ID).api = {
-    WalledTemplatesClockwiseSweepPolygon,
-    walledTemplateGetCircleShape,
-    walledTemplateGetConeShape,
-    walledTemplateGetRectShape,
-    walledTemplateGetRayShape,
-    LimitedAngleSweepPolygon,
-    ClipperLib,
-    Hexagon
+    getShape,
+    shapes: {
+     RegularPolygon,
+     Square,
+     Hexagon
+    },
+    WeilerAthertonClipper
   };
-
 });
 
 Hooks.once("setup", async function() {
@@ -170,7 +167,7 @@ Hooks.on("createWall", async (document, options, userId) => { // eslint-disable-
   log(`Refreshing templates on createWall ${A.x},${A.y}|${B.x},${B.y}.`);
 
   canvas.templates.placeables.forEach(t => {
-    const bbox = t.shape.getBounds().translate(t.data.x, t.data.y);
+    const bbox = t.shape.getBounds().translate(t.x, t.y);
     if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
       log(`Wall ${document.id} intersects ${t.id}`);
       t.refresh({ redraw: true }); // Async but probably don't need to await
@@ -188,8 +185,8 @@ Hooks.on("createWall", async (document, options, userId) => { // eslint-disable-
  * @param {string} userId
  */
 Hooks.on("preUpdateWall", async (document, change, options, userId) => { // eslint-disable-line no-unused-vars
-  const A = { x: document.data.c[0], y: document.data.c[1] };
-  const B = { x: document.data.c[2], y: document.data.c[3] };
+  const A = { x: document.c[0], y: document.c[1] };
+  const B = { x: document.c[2], y: document.c[3] };
   const new_A = { x: change.c[0], y: change.c[1] };
   const new_B = { x: change.c[2], y: change.c[3] };
   log(`Refreshing templates on preUpdateWall ${A.x},${A.y}|${B.x},${B.y} --> ${new_A.x},${new_A.y}|${new_B.x},${new_B.y}`, document, change, options, userId);
@@ -198,10 +195,10 @@ Hooks.on("preUpdateWall", async (document, change, options, userId) => { // esli
   // hold until updateWall is called.
   const promises = [];
   canvas.templates.placeables.forEach(t => {
-    const bbox = t.shape.getBounds().translate(t.data.x, t.data.y);
+    const bbox = t.shape.getBounds().translate(t.x, t.y);
     if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
       log(`Wall ${document.id} intersects ${t.id}`);
-      promises.push(t.document.setFlag(MODULE_ID, "redraw", true)); // Async
+      promises.push(t.setFlag(MODULE_ID, "redraw", true)); // Async
     }
   });
   promises.length && ( await Promise.all(promises) ); // eslint-disable-line no-unused-expressions
@@ -220,17 +217,17 @@ Hooks.on("preUpdateWall", async (document, change, options, userId) => { // esli
 Hooks.on("updateWall", async (document, change, options, userId) => { // eslint-disable-line no-unused-vars
   if (!options.diff) return;
 
-  const A = { x: document.data.c[0], y: document.data.c[1] };
-  const B = { x: document.data.c[2], y: document.data.c[3] };
+  const A = { x: document.c[0], y: document.c[1] };
+  const B = { x: document.c[2], y: document.c[3] };
   log(`Refreshing templates on updateWall ${A.x},${A.y}|${B.x},${B.y}`, document, change, options, userId);
 
   canvas.templates.placeables.forEach(t => {
-    if ( t.document.getFlag(MODULE_ID, "redraw") ) {
-      t.document.setFlag(MODULE_ID, "redraw", false);
+    if ( t.getFlag(MODULE_ID, "redraw") ) {
+      t.setFlag(MODULE_ID, "redraw", false);
       t.refresh({ redraw: true }); // Async but probably don't need to await
       return;
     }
-    const bbox = t.shape.getBounds().translate(t.data.x, t.data.y);
+    const bbox = t.shape.getBounds().translate(t.x, t.y);
     if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
       log(`Wall ${document.id} intersects ${t.id}`);
       t.refresh({ redraw: true }); // Async but probably don't need to await
@@ -248,8 +245,8 @@ Hooks.on("updateWall", async (document, change, options, userId) => { // eslint-
 Hooks.on("updateWall", async (document, change, options, userId) => { // eslint-disable-line no-unused-vars
   if (!options.diff) return;
 
-  const A = { x: document.data.c[0], y: document.data.c[1] };
-  const B = { x: document.data.c[2], y: document.data.c[3] };
+  const A = { x: document.c[0], y: document.c[1] };
+  const B = { x: document.c[2], y: document.c[3] };
   const new_A = { x: change.c[0], y: change.c[1] };
   const new_B = { x: change.c[2], y: change.c[3] };
   log(`Refreshing templates on updateWall ${A.x},${A.y}|${B.x},${B.y} --> ${new_A.x},${new_A.y}|${new_B.x},${new_B.y}`, document, change, options, userId);
@@ -272,12 +269,12 @@ Hooks.on("updateWall", async (document, change, options, userId) => { // eslint-
  */
 Hooks.on("deleteWall", async (document, options, userId) => { // eslint-disable-line no-unused-vars
 
-  const A = { x: document.data.c[0], y: document.data.c[1] };
-  const B = { x: document.data.c[2], y: document.data.c[3] };
+  const A = { x: document.c[0], y: document.c[1] };
+  const B = { x: document.c[2], y: document.c[3] };
   log(`Refreshing templates on deleteWall ${A.x},${A.y}|${B.x},${B.y}.`);
 
   canvas.templates.placeables.forEach(t => {
-    const bbox = t.shape.getBounds().translate(t.data.x, t.data.y);
+    const bbox = t.shape.getBounds().translate(t.x, t.y);
     if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
       log(`Wall ${document.id} intersects ${t.id}`);
       t.refresh({ redraw: true }); // Async but probably don't need to await
@@ -295,15 +292,16 @@ Hooks.on("deleteWall", async (document, options, userId) => { // eslint-disable-
  */
 // https://foundryvtt.wiki/en/migrations/foundry-core-0_8_x#adding-items-to-an-actor-during-precreate
 Hooks.on("preCreateMeasuredTemplate", async (template, updateData, opts, id) => {
+  log("Hooking preCreateMeasuredTemplate", template, updateData);
+
   // Only create if the id does not already exist
-  if (typeof template.data.document.getFlag(MODULE_ID, "enabled") === "undefined") {
+  if (typeof template.getFlag(MODULE_ID, "enabled") === "undefined") {
     log(`Creating template ${id} with default setting ${getSetting(SETTINGS.DEFAULT_WALLED)}.`, template, updateData);
     // Cannot use setFlag here. E.g.,
-    // template.data.document.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
-    const flag = `flags.${MODULE_ID}.enabled`;
+    // template.document.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
+    updateData[`flags.${MODULE_ID}.enabled`] = getSetting(SETTINGS.DEFAULT_WALLED);
 
-    template.data.update({ [flag]: getSetting(SETTINGS.DEFAULT_WALLED) });
   } else {
-    log(`preCreateMeasuredTemplate: template enabled flag already set to ${template.data.document.getFlag(MODULE_ID, "enabled")}`);
+    log(`preCreateMeasuredTemplate: template enabled flag already set to ${template.getFlag(MODULE_ID, "enabled")}`);
   }
 });

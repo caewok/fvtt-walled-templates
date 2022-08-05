@@ -3,9 +3,9 @@
 */
 "use strict";
 
-import { gridShapeForTopLeft } from "../targeting.js";
-import { MODULE_ID, getSetting, SETTINGS } from "../settings.js";
-import { log } from "../module.js";
+import { getSetting, SETTINGS } from "../settings.js";
+import { log, gridShapeForTopLeft } from "../util.js";
+import { MODULE_ID } from "../const.js";
 
 // Same as PF1e but for the contains test
 // https://gitlab.com/foundryvtt_pathfinder1e/foundryvtt-pathfinder1/-/blob/master/module/measure.js
