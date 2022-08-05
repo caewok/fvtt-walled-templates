@@ -1,3 +1,9 @@
+## 0.4.0
+Foundry v10 version! Major rewrite to accommodate improvements to v10 ClockwiseSweep and data model. As a result, not compatible with v9.
+- No longer overrides the Foundry sweep methodology, which should improve compatibility and results in much less code to upkeep.
+- Improved Weiler-Atherton clipping methodology for faster intersects of a polygon with convex polygon shapes.
+- New classes to handle different types of regular polygons, including an improved Hexagon class.
+
 ## 0.3.4
 Use the original Foundry highlight grid method if no walls blocking and autotargeting is set to use the center point. Fixes to improve hex grid highlighting and targeting. Tweak settings descriptions.
 

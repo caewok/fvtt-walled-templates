@@ -10,6 +10,8 @@ This could be used in combination with other modules or macros that automaticall
 
 As of v0.3.0, you also have the option to enable autotargeting of tokens in templates.
 
+Version v0.4.0 requires v10, and drops v9 compatibility.
+
 # Installation
 
 Add this [Manifest URL](https://github.com/caewok/fvtt-walled-templates/releases/latest/download/module.json) in Foundry to install.
