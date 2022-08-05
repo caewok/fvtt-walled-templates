@@ -19,10 +19,14 @@ export function registerPIXIPolygonMethods() {
    * This will close the polygon.
    * @type {boolean}
    */
-  Object.defineProperty(PIXI.Polygon.prototype, "isClockwise", {
-    get: isClockwise,
-    enumerable: false
-  });
+  if ( !Object.hasOwn(PIXI.Polygon.prototype, "isClockwise") ) {
+
+    Object.defineProperty(PIXI.Polygon.prototype, "isClockwise", {
+      get: isClockwise,
+      enumerable: false
+    });
+
+  }
 
   /**
    * Reverse the order of the polygon points.
@@ -69,14 +73,19 @@ export function registerPIXIPolygonMethods() {
     configurable: true
   });
 
-  Object.defineProperty(PIXI.Polygon.prototype, "area", {
-    get: function() {
-      const path = this.toClipperPoints();
-      const area = ClipperLib.Clipper.Area(path);
-      return Math.abs(area);
-    },
-    enumerable: false
-  });
+
+  if ( !Object.hasOwn(PIXI.Polygon.prototype, "area") ) {
+
+    Object.defineProperty(PIXI.Polygon.prototype, "area", {
+      get: function() {
+        const path = this.toClipperPoints();
+        const area = ClipperLib.Clipper.Area(path);
+        return Math.abs(area);
+      },
+      enumerable: false
+    });
+
+  }
 
   /**
    * Close this polygon if needed.

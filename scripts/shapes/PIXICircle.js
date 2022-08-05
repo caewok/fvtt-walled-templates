@@ -16,12 +16,16 @@ export function registerPIXICircleMethods() {
    * Get the center point of the circle
    * @type {Point}
    */
-  Object.defineProperty(PIXI.Circle.prototype, "center", {
-    get: function() {
-      return { x: this.x, y: this.y };
-    },
-    enumerable: false
-  });
+  if ( !Object.hasOwn(PIXI.Circle.prototype, "center") ) {
+
+    Object.defineProperty(PIXI.Circle.prototype, "center", {
+      get: function() {
+        return { x: this.x, y: this.y };
+      },
+      enumerable: false
+    });
+
+  }
 
   /**
    * Get all intersection points for a segment A|B
@@ -131,6 +135,7 @@ export function registerPIXICircleMethods() {
    * @param {number} [options.density]  The number of points which defines the density of approximation
    * @returns {PIXI.Polygon}            The intersected polygon
    */
+
   libWrapper.register(MODULE_ID, "PIXI.Circle.prototype.intersectPolygon", intersectPolygonPIXICircle, libWrapper.MIXED, { perf_mode: libWrapper.PERF_FAST });
 }
 

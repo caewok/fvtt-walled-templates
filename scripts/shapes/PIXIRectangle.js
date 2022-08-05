@@ -18,12 +18,14 @@ export function registerPIXIRectangleMethods() {
    * Get the center point of the rectangle
    * @type {Point}
    */
-  Object.defineProperty(PIXI.Rectangle.prototype, "center", {
-    get: function() {
-      return { x: this.left + (this.width * 0.5), y: this.top + (this.height * 0.5) };
-    },
-    enumerable: false
-  });
+  if ( !Object.hasOwn(PIXI.Rectangle.prototype, "center") ) {
+    Object.defineProperty(PIXI.Rectangle.prototype, "center", {
+      get: function() {
+        return { x: this.left + (this.width * 0.5), y: this.top + (this.height * 0.5) };
+      },
+      enumerable: false
+    });
+  }
 
   /**
    * Get all intersection points for a segment A|B
@@ -72,12 +74,14 @@ export function registerPIXIRectangleMethods() {
    * Measure the area of this rectangle
    * @type {number}
    */
-  Object.defineProperty(PIXI.Rectangle.prototype, "area", {
-    get: function() {
-      return this.width * this.height;
-    },
-    enumerable: false
-  });
+  if ( !Object.hasOwn(PIXI.Rectangle.prototype, "area") ) {
+    Object.defineProperty(PIXI.Rectangle.prototype, "area", {
+      get: function() {
+        return this.width * this.height;
+      },
+      enumerable: false
+    });
+  }
 
   /**
    * Move the rectangle by given x,y delta. Return new rectangle.
