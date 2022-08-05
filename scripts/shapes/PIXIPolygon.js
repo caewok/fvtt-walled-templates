@@ -84,13 +84,13 @@ export function registerPIXIPolygonMethods() {
   Object.defineProperty(PIXI.Polygon.prototype, "close", {
     value: function() {
       if ( this.isClosed ) return;
-      const ln = this.points.length;
-      this.addPoint({x: this.points[ln -2], y: this.points[ln - 1]});
+      if ( this.points.length < 2 ) return;
+      this.addPoint({x: this.points[0], y: this.points[1]});
+      this.is
     },
     writable: true,
     configurable: true
   });
-
 }
 
 function isClockwise() {
@@ -122,7 +122,6 @@ function translate(dx, dy) {
   }
   const out = new this.constructor(pts);
   out._isClockwise = this._isClockwise;
-  out._isClosed = this._isClosed;
   if ( this.bounds ) out.bounds = out.getBounds(); // Bounds will have changed due to translate
 
   return out;

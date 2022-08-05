@@ -168,7 +168,7 @@ function intersectPolygonPIXICircle(wrapped, polygon, options = {}) {
   const res = wa.combine(this)[0];
 
   if ( !res ) {
-    console.warn("PIXI.Circle.prototype.intersectPolygon returned undefined.");
+//     console.warn("PIXI.Circle.prototype.intersectPolygon returned undefined.");
     return new PIXI.Polygon([]);
   }
 

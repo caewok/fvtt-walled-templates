@@ -254,6 +254,10 @@ function intersectPolygonPIXIRectangle(wrapped, polygon, options = {}) {
   const union = options.clipType === ClipperLib.ClipType.ctUnion;
   const wa = WeilerAthertonClipper.fromPolygon(polygon, { union });
   const res = wa.combine(this)[0];
+  if ( !res ) {
+//     log("PIXI.Circle.prototype.intersectPolygon returned undefined.");
+    return new PIXI.Polygon([]);
+  }
   return res instanceof PIXI.Polygon ? res : res.toPolygon();
 }
 

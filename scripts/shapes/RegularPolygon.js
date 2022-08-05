@@ -337,7 +337,7 @@ export class RegularPolygon extends PIXI.Polygon {
     const res = wa.combine(this)[0];
 
     if ( !res ) {
-      console.warn("RegularPolygon.prototype.intersectPolygon returned undefined.");
+//       console.warn("RegularPolygon.prototype.intersectPolygon returned undefined.");
       return new PIXI.Polygon([]);
     }
 
