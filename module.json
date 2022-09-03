@@ -1,4 +1,6 @@
 {
+  "name": "walledtemplates",
+  "minimumCoreVersion": "10",
   "id": "walledtemplates",
   "title": "Walled Templates",
   "version": "This is auto replaced",

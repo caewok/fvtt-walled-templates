@@ -19,7 +19,7 @@
     "walledtemplates.settings.autotarget-method.Method.Overlap": "Token area overlaps template",
 
     "walledtemplates.settings.autotarget-area.Name": "Autotargeting and highlighting area",
-    "walledtemplates.settings.autotarget-area.Hint": "For overlap method only. The percent of the token bounds or grid area that must overlap the template to count. 0 means any overlap counts.",
+    "walledtemplates.settings.autotarget-area.Hint": "For overlap method only. The percent of the token bounds or grid area that must overlap the template to count. 0 means any overlap counts. (Hint: use the arrow keys after clicking the square to increment by steps of 0.01.)",
 
     "walledtemplates.controls.autotarget.Title": "Autotarget tokens with template"
 }
