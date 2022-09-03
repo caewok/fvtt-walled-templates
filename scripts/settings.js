@@ -80,7 +80,7 @@ export function registerSettings() {
     range: {
       max: 1,
       min: 0,
-      step: 0.1
+      step: 0.01
     },
     type: Number,
     default: 0,
