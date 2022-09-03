@@ -1,6 +1,9 @@
 ## 0.4.1
 Allow steps of 0.01 increments when setting overlap area. Address issue #11.
 
+## 0.3.5 (v9)
+Allow steps of 0.01 increments when setting overlap area. Address issue #11 for v9.
+
 ## 0.4.0
 Foundry v10 version! Major rewrite to accommodate improvements to v10 ClockwiseSweep and data model. As a result, not compatible with v9.
 - No longer overrides the Foundry sweep methodology, which should improve compatibility and results in much less code to upkeep.
