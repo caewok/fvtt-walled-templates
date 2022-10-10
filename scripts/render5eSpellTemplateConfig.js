@@ -6,7 +6,7 @@ renderTemplate
 "use strict";
 
 import { log } from "./util.js";
-import { getSetting } from "./settings.js";
+import { getSetting, SETTINGS } from "./settings.js";
 import { MODULE_ID } from "./const.js";
 
 /**
@@ -20,8 +20,8 @@ export async function walledTemplatesRender5eSpellTemplateConfig(app, html, data
   log("walledTemplatesRender5eSpellTemplateConfig data", data);
   log(`enabled flag is ${data.document.getFlag(MODULE_ID, "enabled")}`);
   if (typeof data.document.getFlag(MODULE_ID, "enabled") === "undefined") {
-    log(`setting enabled flag to ${getSetting("default-to-walled")}`);
-    data.document.setFlag(MODULE_ID, "enabled", getSetting("default-to-walled"));
+    log(`setting enabled flag to ${getSetting(SETTINGS.DEFAULT_WALLED)}`);
+    data.document.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
   }
   log(`enabled flag is ${data.document.getFlag(MODULE_ID, "enabled")}`);
 
