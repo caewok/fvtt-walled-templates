@@ -297,9 +297,11 @@ Hooks.on("preCreateMeasuredTemplate", async (template, updateData, opts, id) => 
   // Only create if the id does not already exist
   if (typeof template.getFlag(MODULE_ID, "enabled") === "undefined") {
     log(`Creating template ${id} with default setting ${getSetting(SETTINGS.DEFAULT_WALLED)}.`, template, updateData);
-    // Cannot use setFlag here. E.g.,
-    // template.document.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
-    updateData[`flags.${MODULE_ID}.enabled`] = getSetting(SETTINGS.DEFAULT_WALLED);
+
+    // In v10, setting the flag throws an error about not having id
+//     template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
+
+    template.updateSource({[`flags.${MODULE_ID}.enabled`]: `${getSetting(SETTINGS.DEFAULT_WALLED)}`});
 
   } else {
     log(`preCreateMeasuredTemplate: template enabled flag already set to ${template.getFlag(MODULE_ID, "enabled")}`);

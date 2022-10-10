@@ -18,6 +18,8 @@ Version v0.4.0 requires v10, and drops v9 compatibility.
 
 Add this [Manifest URL](https://github.com/caewok/fvtt-walled-templates/releases/latest/download/module.json) in Foundry to install.
 
+If you are still in v9 and you have an older version of Walled Templates (e.g., v0.3.3), Foundry will not let you update to a newer v9 version of Walled Templates (e.g., v0.3.4). Uninstalling and reinstalling Walled Templates should, however, get you the latest update for Foundry v9. See [this Foundry issue](https://github.com/foundryvtt/foundryvtt/issues/8115).
+
 ## Dependencies
 - [libWrapper](https://github.com/ruipin/fvtt-lib-wrapper)
 
