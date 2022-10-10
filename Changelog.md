@@ -1,3 +1,6 @@
+## 0.4.2
+Fix issue #13 (default to walled).
+
 ## 0.4.1
 Allow steps of 0.01 increments when setting overlap area. Address issue #11.
 
