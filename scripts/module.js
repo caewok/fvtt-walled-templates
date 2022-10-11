@@ -291,19 +291,54 @@ Hooks.on("deleteWall", async (document, options, userId) => { // eslint-disable-
  * @param {string} id
  */
 // https://foundryvtt.wiki/en/migrations/foundry-core-0_8_x#adding-items-to-an-actor-during-precreate
-Hooks.on("preCreateMeasuredTemplate", async (template, updateData, opts, id) => {
-  log("Hooking preCreateMeasuredTemplate", template, updateData);
+Hooks.on("preCreateMeasuredTemplate", async (templateD, updateData, opts, id) => {
+  log("Hooking preCreateMeasuredTemplate", templateD, updateData);
+
+  const updates = {};
 
   // Only create if the id does not already exist
-  if (typeof template.getFlag(MODULE_ID, "enabled") === "undefined") {
-    log(`Creating template ${id} with default setting ${getSetting(SETTINGS.DEFAULT_WALLED)}.`, template, updateData);
+  if (typeof templateD.getFlag(MODULE_ID, "enabled") === "undefined") {
+    log(`Creating template ${id} with default setting ${getSetting(SETTINGS.DEFAULT_WALLED)}.`, templateD, updateData);
 
     // In v10, setting the flag throws an error about not having id
 //     template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
 
-    template.updateSource({[`flags.${MODULE_ID}.enabled`]: `${getSetting(SETTINGS.DEFAULT_WALLED)}`});
+    updates[`flags.${MODULE_ID}.enabled`] = `${getSetting(SETTINGS.DEFAULT_WALLED)}`
+
+//     templateD.updateSource({[`flags.${MODULE_ID}.enabled`]: `${getSetting(SETTINGS.DEFAULT_WALLED)}`});
 
   } else {
-    log(`preCreateMeasuredTemplate: template enabled flag already set to ${template.getFlag(MODULE_ID, "enabled")}`);
+    log(`preCreateMeasuredTemplate: template enabled flag already set to ${templateD.getFlag(MODULE_ID, "enabled")}`);
   }
+
+  // Switch circles to squares if applicable
+  // Conforms with 5-5-5 diagonal rule.
+  // Only if the template is 1 grid unit or larger.
+  // See dndHelpers for original:
+  // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L91
+  if ( getSetting(SETTINGS.DIAGONAL_SCALING.CIRCLE) ) {
+    const { distance: gridDist, size: gridSize } = canvas.scene.grid;
+    const t = updateData.t ?? templateD.t;
+    const templateDist = updateData.distance ?? templateD.distance;
+
+    if ( t === "circle" && ((templateDist / gridDist) >= 1) ) {
+      const x = updateData.x ?? templateD.x;
+      const y = updateData.y ?? templateD.y;
+      const radiusPx = ( templateDist / gridDist ) * gridSize;
+
+      // Calculate the square's hypotenuse based on the 5-5-5 diagonal distance
+      const length = templateDist * 2;
+      const squareDist = Math.hypot(length, length);
+
+      log(`preCreateMeasuredTemplate: switching circle ${x},${y} distance ${templateDist} to rectangle ${x - radiusPx},${y - radiusPx} distance ${squareDist}`);
+
+      updates.x = x - radiusPx;
+      updates.y = y - radiusPx;
+      updates.direction = 45;
+      updates.distance = squareDist;
+      updates.t = "rect";
+    }
+  }
+
+  if ( !isEmpty(updates) ) templateD.updateSource(updates);
 });
