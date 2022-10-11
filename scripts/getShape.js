@@ -9,7 +9,7 @@ LimitedAnglePolygon
 "use strict";
 
 import { log } from "./util.js";
-import { debugPolygons } from "./settings.js";
+import { debugPolygons, getSetting, SETTINGS } from "./settings.js";
 import { MODULE_ID } from "./const.js";
 
 /**

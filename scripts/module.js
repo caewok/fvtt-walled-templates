@@ -1,7 +1,8 @@
 /* globals
 Hooks,
 game,
-canvas
+canvas,
+isEmpty
 */
 
 "use strict";
@@ -61,9 +62,9 @@ Hooks.once("init", async function() {
   game.modules.get(MODULE_ID).api = {
     getShape,
     shapes: {
-     RegularPolygon,
-     Square,
-     Hexagon
+      RegularPolygon,
+      Square,
+      Hexagon
     },
     WeilerAthertonClipper
   };
@@ -291,19 +292,61 @@ Hooks.on("deleteWall", async (document, options, userId) => { // eslint-disable-
  * @param {string} id
  */
 // https://foundryvtt.wiki/en/migrations/foundry-core-0_8_x#adding-items-to-an-actor-during-precreate
-Hooks.on("preCreateMeasuredTemplate", async (template, updateData, opts, id) => {
-  log("Hooking preCreateMeasuredTemplate", template, updateData);
+Hooks.on("preCreateMeasuredTemplate", async (templateD, updateData, opts, id) => {
+  log("Hooking preCreateMeasuredTemplate", templateD, updateData);
+
+  const updates = {};
 
   // Only create if the id does not already exist
-  if (typeof template.getFlag(MODULE_ID, "enabled") === "undefined") {
-    log(`Creating template ${id} with default setting ${getSetting(SETTINGS.DEFAULT_WALLED)}.`, template, updateData);
+  if (typeof templateD.getFlag(MODULE_ID, "enabled") === "undefined") {
+    log(`Creating template ${id} with default setting ${getSetting(SETTINGS.DEFAULT_WALLED)}.`, templateD, updateData);
 
     // In v10, setting the flag throws an error about not having id
-//     template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
-
-    template.updateSource({[`flags.${MODULE_ID}.enabled`]: `${getSetting(SETTINGS.DEFAULT_WALLED)}`});
+    // template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
+    updates[`flags.${MODULE_ID}.enabled`] = `${getSetting(SETTINGS.DEFAULT_WALLED)}`;
 
   } else {
-    log(`preCreateMeasuredTemplate: template enabled flag already set to ${template.getFlag(MODULE_ID, "enabled")}`);
+    log(`preCreateMeasuredTemplate: template enabled flag already set to ${templateD.getFlag(MODULE_ID, "enabled")}`);
   }
+
+  const { distance: gridDist, size: gridSize } = canvas.scene.grid;
+  const { t, distance, direction, x, y } = templateD;
+
+  if ( t === "circle"
+    && getSetting(SETTINGS.DIAGONAL_SCALING.CIRCLE)
+    && ((distance / gridDist) >= 1) ) {
+    // Switch circles to squares if applicable
+    // Conforms with 5-5-5 diagonal rule.
+    // Only if the template is 1 grid unit or larger.
+    // See dndHelpers for original:
+    // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L91
+    const radiusPx = ( distance / gridDist ) * gridSize;
+
+    // Calculate the square's hypotenuse based on the 5-5-5 diagonal distance
+    const length = distance * 2;
+    const squareDist = Math.hypot(length, length);
+
+    log(`preCreateMeasuredTemplate: switching circle ${x},${y} distance ${distance} to rectangle ${x - radiusPx},${y - radiusPx} distance ${squareDist}`);
+
+    updates.x = templateD.x - radiusPx;
+    updates.y = templateD.y - radiusPx;
+    updates.direction = 45;
+    updates.distance = squareDist;
+    updates.t = "rect";
+
+  } else if ( (t === "ray" && getSetting(SETTINGS.DIAGONAL_SCALING.RAY))
+    || (t === "cone" && getSetting(SETTINGS.DIAGONAL_SCALING.CONE)) ) {
+    // Extend rays or cones to conform to 5-5-5 diagonal, if applicable.
+    // See dndHelpers for original:
+    // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L78
+    updates.distance = scaleDiagonalDistance(direction, distance);
+  }
+
+  if ( !isEmpty(updates) ) templateD.updateSource(updates);
 });
+
+function scaleDiagonalDistance(direction, distance) {
+  const dirRadians = Math.toRadians(direction);
+  const diagonalScale = Math.abs(Math.sin(dirRadians)) + Math.abs(Math.cos(dirRadians));
+  return diagonalScale * distance;
+}

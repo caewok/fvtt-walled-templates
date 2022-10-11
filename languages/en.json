@@ -8,18 +8,27 @@
 
     "walledtemplates.settings.autotarget-menu.Name": "Enable autotargeting",
     "walledtemplates.settings.autotarget-menu.Hint": "When toggle option is selected, a bullseye control button in the template control bar will allow you to switch between targeting or not targeting.",
-    "walledtemplates.settings.autotarget-menu.Choice.No": "Do not autotarget",
-    "walledtemplates.settings.autotarget-menu.Choice.Toggle_Off": "Display toggle button; default off",
-    "walledtemplates.settings.autotarget-menu.Choice.Toggle_On": "Display toggle button; default on",
-    "walledtemplates.settings.autotarget-menu.Choice.Yes": "Always autotarget",
+    "walledtemplates.settings.autotarget-menu.Choice.no": "Do not autotarget",
+    "walledtemplates.settings.autotarget-menu.Choice.toggle-off": "Display toggle button; default off",
+    "walledtemplates.settings.autotarget-menu.Choice.toggle-on": "Display toggle button; default on",
+    "walledtemplates.settings.autotarget-menu.Choice.yes": "Always autotarget",
 
     "walledtemplates.settings.autotarget-method.Name": "Autotargeting and highlighting",
     "walledtemplates.settings.autotarget-method.Hint": "Method to auto-target tokens with templates. Also controls how grid highlighting works for templates.",
-    "walledtemplates.settings.autotarget-method.Method.Center": "Token center inside template",
-    "walledtemplates.settings.autotarget-method.Method.Overlap": "Token area overlaps template",
+    "walledtemplates.settings.autotarget-method.Method.center": "Token center inside template",
+    "walledtemplates.settings.autotarget-method.Method.overlap": "Token area overlaps template",
 
     "walledtemplates.settings.autotarget-area.Name": "Autotargeting and highlighting area",
     "walledtemplates.settings.autotarget-area.Hint": "For overlap method only. The percent of the token bounds or grid area that must overlap the template to count. 0 means any overlap counts. (Hint: use the arrow keys after clicking the square to increment by steps of 0.01.)",
+
+    "walledtemplates.settings.diagonal-scaling-ray.Name": "Scale diagonal rays",
+    "walledtemplates.settings.diagonal-scaling-ray.Hint": "Scale ray templates to conform with the 5-5-5 diagonal rule.",
+
+    "walledtemplates.settings.diagonal-scaling-cone.Name": "Scale diagonal cones",
+    "walledtemplates.settings.diagonal-scaling-cone.Hint": "Scale cone templates to conform with the 5-5-5 diagonal rule.",
+
+    "walledtemplates.settings.diagonal-scaling-circle.Name": "Convert circles to squares",
+    "walledtemplates.settings.diagonal-scaling-circle.Hint": "Convert circle templates to squares to better conform with the 5-5-5 diagonal rule.",
 
     "walledtemplates.controls.autotarget.Title": "Autotarget tokens with template"
 }
