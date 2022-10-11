@@ -23,8 +23,8 @@ export const SETTINGS = {
     AREA: "autotarget-area",
     CHOICES: {
       NO: "no",
-      TOGGLE_OFF: "toggle_off",
-      TOGGLE_ON: "toggle_on",
+      TOGGLE_OFF: "toggle-off",
+      TOGGLE_ON: "toggle-on",
       YES: "yes"
     },
 
@@ -52,8 +52,8 @@ export function registerSettings() {
   log("Registering walled template switch");
 
   game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALLED, {
-    name: game.i18n.localize("walledtemplates.settings.default-to-walled.Name"),
-    hint: game.i18n.localize("walledtemplates.settings.default-to-walled.Hint"),
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLED}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLED}.Hint`),
     scope: "world",
     config: true,
     default: true,
@@ -68,22 +68,23 @@ export function registerSettings() {
     default: false
   });
 
+  const METHODS = SETTINGS.AUTOTARGET.METHODS;
   game.settings.register(MODULE_ID, SETTINGS.AUTOTARGET.METHOD, {
-    name: game.i18n.localize("walledtemplates.settings.autotarget-method.Name"),
-    hint: game.i18n.localize("walledtemplates.settings.autotarget-method.Hint"),
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.METHOD}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.METHOD}.Hint`),
     scope: "world",
     config: true,
     default: "center",
     type: String,
     choices: {
-      [SETTINGS.AUTOTARGET.METHODS.CENTER]: game.i18n.localize("walledtemplates.settings.autotarget-method.Method.Center"),
-      [SETTINGS.AUTOTARGET.METHODS.OVERLAP]: game.i18n.localize("walledtemplates.settings.autotarget-method.Method.Overlap")
+      [SETTINGS.AUTOTARGET.METHODS.CENTER]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.METHOD}.Method.${METHODS.CENTER}`),
+      [SETTINGS.AUTOTARGET.METHODS.OVERLAP]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.METHOD}.Method.${METHODS.OVERLAP}`)
     }
   }); // See class TokenLayer.targetObjects
 
   game.settings.register(MODULE_ID, SETTINGS.AUTOTARGET.AREA, {
-    name: game.i18n.localize("walledtemplates.settings.autotarget-area.Name"),
-    hint: game.i18n.localize("walledtemplates.settings.autotarget-area.Hint"),
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.AREA}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.AREA}.Hint`),
     range: {
       max: 1,
       min: 0,
@@ -95,17 +96,18 @@ export function registerSettings() {
     config: true
   });
 
+  const CHOICES = SETTINGS.AUTOTARGET.CHOICES;
   game.settings.register(MODULE_ID, SETTINGS.AUTOTARGET.MENU, {
-    name: game.i18n.localize("walledtemplates.settings.autotarget-menu.Name"),
-    hint: game.i18n.localize("walledtemplates.settings.autotarget-menu.Hint"),
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.MENU}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.MENU}.Hint`),
     scope: "client",
     config: true,
     type: String,
     choices: {
-      [SETTINGS.AUTOTARGET.CHOICES.NO]: game.i18n.localize("walledtemplates.settings.autotarget-menu.Choice.No"),
-      [SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF]: game.i18n.localize("walledtemplates.settings.autotarget-menu.Choice.Toggle_Off"),
-      [SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON]: game.i18n.localize("walledtemplates.settings.autotarget-menu.Choice.Toggle_On"),
-      [SETTINGS.AUTOTARGET.CHOICES.YES]: game.i18n.localize("walledtemplates.settings.autotarget-menu.Choice.Yes")
+      [SETTINGS.AUTOTARGET.CHOICES.NO]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.MENU}.Choice.${CHOICES.NO}`),
+      [SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.MENU}.Choice.${CHOICES.TOGGLE_OFF}`),
+      [SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.MENU}.Choice.${CHOICES.TOGGLE_ON}`),
+      [SETTINGS.AUTOTARGET.CHOICES.YES]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.MENU}.Choice.${CHOICES.YES}`)
     },
     default: SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF,
     onChange: value => setSetting(SETTINGS.AUTOTARGET.ENABLED,
@@ -114,8 +116,8 @@ export function registerSettings() {
   });
 
   game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.RAY, {
-    name: game.i18n.localize("walledtemplates.settings.diagonal-scaling-ray.Name"),
-    hint: game.i18n.localize("walledtemplates.settings.diagonal-scaling-ray.Hint"),
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.RAY}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.RAY}.Hint`),
     type: Boolean,
     default: false,
     scope: "world",
@@ -123,8 +125,8 @@ export function registerSettings() {
   });
 
   game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.CONE, {
-    name: game.i18n.localize("walledtemplates.settings.diagonal-scaling-cone.Name"),
-    hint: game.i18n.localize("walledtemplates.settings.diagonal-scaling-cone.Hint"),
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.CONE}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.CONE}.Hint`),
     type: Boolean,
     default: false,
     scope: "world",
@@ -132,8 +134,8 @@ export function registerSettings() {
   });
 
   game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.CIRCLE, {
-    name: game.i18n.localize("walledtemplates.settings.diagonal-scaling-circle.Name"),
-    hint: game.i18n.localize("walledtemplates.settings.diagonal-scaling-circle.Hint"),
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.CIRCLE}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.CIRCLE}.Hint`),
     type: Boolean,
     default: false,
     scope: "world",
