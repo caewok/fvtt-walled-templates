@@ -1,7 +1,8 @@
 /* globals
 Hooks,
 game,
-canvas
+canvas,
+isEmpty
 */
 
 "use strict";
@@ -61,9 +62,9 @@ Hooks.once("init", async function() {
   game.modules.get(MODULE_ID).api = {
     getShape,
     shapes: {
-     RegularPolygon,
-     Square,
-     Hexagon
+      RegularPolygon,
+      Square,
+      Hexagon
     },
     WeilerAthertonClipper
   };
@@ -301,42 +302,34 @@ Hooks.on("preCreateMeasuredTemplate", async (templateD, updateData, opts, id) =>
     log(`Creating template ${id} with default setting ${getSetting(SETTINGS.DEFAULT_WALLED)}.`, templateD, updateData);
 
     // In v10, setting the flag throws an error about not having id
-//     template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
-
-    updates[`flags.${MODULE_ID}.enabled`] = `${getSetting(SETTINGS.DEFAULT_WALLED)}`
-
-//     templateD.updateSource({[`flags.${MODULE_ID}.enabled`]: `${getSetting(SETTINGS.DEFAULT_WALLED)}`});
+    // template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
+    updates[`flags.${MODULE_ID}.enabled`] = `${getSetting(SETTINGS.DEFAULT_WALLED)}`;
 
   } else {
     log(`preCreateMeasuredTemplate: template enabled flag already set to ${templateD.getFlag(MODULE_ID, "enabled")}`);
   }
 
-
   const { distance: gridDist, size: gridSize } = canvas.scene.grid;
-  const t = updateData.t ?? templateD.t;
-  const templateDist = updateData.distance ?? templateD.distance;
+  const { t, distance, direction, x, y } = templateD;
 
   if ( t === "circle"
     && getSetting(SETTINGS.DIAGONAL_SCALING.CIRCLE)
-    && ((templateDist / gridDist) >= 1) ) {
+    && ((distance / gridDist) >= 1) ) {
     // Switch circles to squares if applicable
     // Conforms with 5-5-5 diagonal rule.
     // Only if the template is 1 grid unit or larger.
     // See dndHelpers for original:
     // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L91
-
-    const x = updateData.x ?? templateD.x;
-    const y = updateData.y ?? templateD.y;
-    const radiusPx = ( templateDist / gridDist ) * gridSize;
+    const radiusPx = ( distance / gridDist ) * gridSize;
 
     // Calculate the square's hypotenuse based on the 5-5-5 diagonal distance
-    const length = templateDist * 2;
+    const length = distance * 2;
     const squareDist = Math.hypot(length, length);
 
-    log(`preCreateMeasuredTemplate: switching circle ${x},${y} distance ${templateDist} to rectangle ${x - radiusPx},${y - radiusPx} distance ${squareDist}`);
+    log(`preCreateMeasuredTemplate: switching circle ${x},${y} distance ${distance} to rectangle ${x - radiusPx},${y - radiusPx} distance ${squareDist}`);
 
-    updates.x = x - radiusPx;
-    updates.y = y - radiusPx;
+    updates.x = templateD.x - radiusPx;
+    updates.y = templateD.y - radiusPx;
     updates.direction = 45;
     updates.distance = squareDist;
     updates.t = "rect";
@@ -346,15 +339,14 @@ Hooks.on("preCreateMeasuredTemplate", async (templateD, updateData, opts, id) =>
     // Extend rays or cones to conform to 5-5-5 diagonal, if applicable.
     // See dndHelpers for original:
     // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L78
-    const templateDir = updateData.direction ?? templateD.direction;
-    updates.distance = scaleDiagonalDistance(templateDir, templateDist);
+    updates.distance = scaleDiagonalDistance(direction, distance);
   }
 
   if ( !isEmpty(updates) ) templateD.updateSource(updates);
 });
 
 function scaleDiagonalDistance(direction, distance) {
-  const dirRadians = Math.toRadians(direction)
+  const dirRadians = Math.toRadians(direction);
   const diagonalScale = Math.abs(Math.sin(dirRadians)) + Math.abs(Math.cos(dirRadians));
   return diagonalScale * distance;
 }
