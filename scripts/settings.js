@@ -10,6 +10,12 @@ import { MODULE_ID } from "./const.js";
 export const SETTINGS = {
   DEFAULT_WALLED: "default-to-walled",
 
+  DIAGONAL_SCALING: {
+    RAY: "diagonal-scaling-ray",
+    CONE: "diagonal-scaling-cone",
+    CIRCLE: "diagonal-scaling-circle"
+  },
+
   AUTOTARGET: {
     ENABLED: "autotarget-enabled",
     MENU: "autotarget-menu",
@@ -21,6 +27,7 @@ export const SETTINGS = {
       TOGGLE_ON: "toggle_on",
       YES: "yes"
     },
+
     METHODS: {
       CENTER: "center",
       OVERLAP: "overlap"
@@ -106,9 +113,33 @@ export function registerSettings() {
       || value === SETTINGS.AUTOTARGET.CHOICES.YES)
   });
 
-  // Setting to use percentage of token area on template edges
-  // Setting to force token autotarget on/off?
-  // Add control button to toggle autotarget on/off?
+  game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.RAY, {
+    name: game.i18n.localize("walledtemplates.settings.diagonal-scaling-ray.Name"),
+    hint: game.i18n.localize("walledtemplates.settings.diagonal-scaling-ray.Hint"),
+    type: Boolean,
+    default: false,
+    scope: "world",
+    config: true
+  });
+
+  game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.CONE, {
+    name: game.i18n.localize("walledtemplates.settings.diagonal-scaling-cone.Name"),
+    hint: game.i18n.localize("walledtemplates.settings.diagonal-scaling-cone.Hint"),
+    type: Boolean,
+    default: false,
+    scope: "world",
+    config: true
+  });
+
+  game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.CIRCLE, {
+    name: game.i18n.localize("walledtemplates.settings.diagonal-scaling-circle.Name"),
+    hint: game.i18n.localize("walledtemplates.settings.diagonal-scaling-circle.Hint"),
+    type: Boolean,
+    default: false,
+    scope: "world",
+    config: true
+  });
+
 
   log("Done registering settings.");
 }
