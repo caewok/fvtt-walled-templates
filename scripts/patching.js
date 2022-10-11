@@ -13,8 +13,7 @@ import {
   walledTemplateGetRectShape,
   walledTemplateGetRayShape,
   getBoundaryShapes,
-  computeSweepPolygon,
-  diagonallyScaleCircle } from "./getShape.js";
+  computeSweepPolygon } from "./getShape.js";
 import { walledTemplate5eFromItem } from "./render5eSpellTemplateConfig.js";
 import {
   walledTemplatesMeasuredTemplateRefresh,
@@ -79,12 +78,6 @@ export function registerWalledTemplates() {
 
   Object.defineProperty(MeasuredTemplate.prototype, "boundsOverlap", {
     value: boundsOverlap,
-    writable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(MeasuredTemplate.prototype, "diagonallyScaleCircle", {
-    value: diagonallyScaleCircle,
     writable: true,
     configurable: true
   });
