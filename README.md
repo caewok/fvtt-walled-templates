@@ -39,6 +39,11 @@ To make "Blocked by Walls" the default for all templates, select "Default to Wal
 
 For the dnd5e system, this module adds a checkbox to spell detail templates that overrides the world default, so you can indicate on a per-spell basis whether walls should block.
 
+As of v0.4.3, this module has settings to use the diagonal scaling originally found in [dnd5e helpers module](https://github.com/trioderegion/dnd5e-helpers#diagonal-template-scaling).
+- Convert circles to squares to conform to the 5-5-5 diagonal.
+- Extend rays based on 5-5-5 diagonal distance.
+- Extend cones based on 5-5-5 diagonal distance.
+
 ## Autotargeting
 
 Walled Templates v0.3.0 adds settings to autotarget tokens touched by the template. These settings work with or without enabling "Blocked by Walls". Options include:

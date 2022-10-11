@@ -1,3 +1,9 @@
+## 0.4.3
+Added settings to enable template scaling for a 5-5-5 diagonal rule. This replicates functionality originally in [dnd5e helpers](https://github.com/trioderegion/dnd5e-helpers#diagonal-template-scaling).
+- Convert circles to squares
+- Extend rays based on 5-5-5 diagonal distance.
+- Extend cones based on 5-5-5 diagonal distance.
+
 ## 0.4.2
 Fix issue #13 (default to walled). This apparently also fixed issue #12 (PF2e template creation)!
 
