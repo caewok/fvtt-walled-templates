@@ -58,7 +58,7 @@ export function autotargetToken({ only_visible = false } = {}) {
   });
 
   log(`autotargetToken|${targets.length} targets.`);
-  releaseAndAcquireTargets(targets);
+  releaseAndAcquireTargets(targets, this.document.user);
 }
 
 /**
@@ -116,9 +116,8 @@ function boundsShapeIntersection(tBounds, shape) {
  * these.
  * @param {Token[]} targets
  */
-function releaseAndAcquireTargets(targets) {
+function releaseAndAcquireTargets(targets, user = game.user) {
   // Closely follows TokenLayer.prototype.targetObjects
-  const user = game.user;
 
   // Release other targets
   for ( let t of user.targets ) {
@@ -141,7 +140,7 @@ function releaseAndAcquireTargets(targets) {
       // When switching to a new scene, Foundry will sometimes try to setTarget using
       // token.position, but token.position throws an error. Maybe canvas not loaded?
       try {
-        t.setTarget(true, { releaseOthers: false, groupSelection: true });
+        t.setTarget(true, { user, releaseOthers: false, groupSelection: true });
       } catch(error) {
         log(error); // Just log it b/c probably not (easily) fixable
       }
