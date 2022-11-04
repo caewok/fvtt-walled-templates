@@ -31,12 +31,19 @@ export function computeSweepPolygon() {
 
   const origin = { x: this.x, y: this.y };
 
+  // Trick Wall Height into keeping walls based on elevation of the token that created the template
+
   const cfg = {
     debug: debugPolygons(),
     type: "light",
     source: this,
     boundaryShapes: this.getBoundaryShapes()
   };
+
+  // Add in elevation for Wall Height to use
+  origin.b = this.document?.elevation ?? 0;
+  origin.t = this.document?.elevation ?? 0;
+  origin.object = {};
 
   const sweep = new ClockwiseSweepPolygon();
   sweep.initialize(origin, cfg);
