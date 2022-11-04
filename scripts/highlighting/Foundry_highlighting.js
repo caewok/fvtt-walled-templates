@@ -5,7 +5,7 @@
 
 import { log, gridShapeForTopLeft } from "../util.js";
 import { getSetting, SETTINGS } from "../settings.js";
-import { MODULE_ID } from "../const.js";
+import { MODULE_ID, FLAGS } from "../const.js";
 
 /**
  * Wrap MeasuredTemplate.prototype._getGridHighlightPositions
@@ -16,7 +16,7 @@ export function getGridHighlightPositionsMeasuredTemplate(wrapper) {
 
   const positions = wrapper();
 
-  const enabled = this.document.getFlag(MODULE_ID, "enabled");
+  const enabled = this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK);
   const need_targeting = !getSetting(SETTINGS.AUTOTARGET.METHOD) === SETTINGS.AUTOTARGET.METHODS.CENTER;
   if ( !(enabled || need_targeting) ) {
     log("walledTemplatesHighlightGrid|Using Foundry default");

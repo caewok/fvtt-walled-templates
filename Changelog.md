@@ -1,3 +1,8 @@
+## 0.4.4
+
+Fix issue #14 (Player template changes GM targeting)
+Fix issue #15 (Wall Height compatibility). Add an elevation property to wall template and infer template elevation from combatant or last selected token for user.
+
 ## 0.4.3
 Added settings to enable template scaling for a 5-5-5 diagonal rule. This replicates functionality originally in [dnd5e helpers](https://github.com/trioderegion/dnd5e-helpers#diagonal-template-scaling).
 - Convert circles to squares
