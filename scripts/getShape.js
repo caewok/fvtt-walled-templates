@@ -9,8 +9,8 @@ LimitedAnglePolygon
 "use strict";
 
 import { log } from "./util.js";
-import { debugPolygons, getSetting, SETTINGS } from "./settings.js";
-import { MODULE_ID } from "./const.js";
+import { debugPolygons } from "./settings.js";
+import { MODULE_ID, FLAGS } from "./const.js";
 
 /**
  * Use ClockwiseSweep to construct the polygon shape, passing it this template object.
@@ -61,7 +61,7 @@ function useSweep(template) {
   //     && canvas.walls.quadtree
   //     && canvas.walls.innerBounds.length;
 
-  if ( !template.document.getFlag(MODULE_ID, "enabled") ) {
+  if ( !template.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) ) {
     log("useBoundaryPolygon|not enabled. Skipping sweep.");
     return false;
   }
@@ -244,7 +244,7 @@ function getRectBoundaryShapes(shape, origin) {
  * @param {number} distance     From the template document, before adjusting for canvas dimensions
  * @returns {[PIXI.Circle, LimitedAnglePolygon]}
  */
-function getRoundedConeBoundaryShapes(shape, origin, direction, angle, distance) {
+function getRoundedConeBoundaryShapes(shape, origin, direction, angle, distance) { // eslint-disable-line no-unused-vars
   // Use a circle + limited radius for the bounding shapes
   const pts = shape.points;
   const radius = Math.hypot(pts[2] - pts[0], pts[3] - pts[1]);

@@ -5,7 +5,7 @@ renderTemplate
 "use strict";
 
 import { log } from "./util.js";
-import { MODULE_ID } from "./const.js";
+import { MODULE_ID, FLAGS } from "./const.js";
 
 /**
  * Inject html to add controls to the measured template configuration:
@@ -15,7 +15,7 @@ import { MODULE_ID } from "./const.js";
  */
 export async function walledTemplatesRenderMeasuredTemplateConfig(app, html, data) {
   log("walledTemplatesRenderMeasuredTemplateConfig data", data);
-  log(`enabled flag is ${data.document.getFlag(MODULE_ID, "enabled")}`);
+  log(`enabled flag is ${data.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)}`);
   log("walledTemplatesRenderMeasuredTemplateConfig data after", data);
 
   const template = `modules/${MODULE_ID}/templates/walled-templates-measured-template-config.html`;

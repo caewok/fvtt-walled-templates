@@ -5,14 +5,14 @@
 
 import { getSetting, SETTINGS } from "../settings.js";
 import { log, gridShapeForTopLeft } from "../util.js";
-import { MODULE_ID } from "../const.js";
+import { MODULE_ID, FLAGS } from "../const.js";
 
 // Same as PF1e but for the contains test
 // https://gitlab.com/foundryvtt_pathfinder1e/foundryvtt-pathfinder1/-/blob/master/module/measure.js
 export function WalledTemplatesPF1eGetHighlightedSquares(wrapped) {
   const highlightSquares = wrapped();
 
-  if ( !this.document.getFlag(MODULE_ID, "enabled")
+  if ( !this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
     && getSetting(SETTINGS.AUTOTARGET.METHOD) === SETTINGS.AUTOTARGET.METHODS.CENTER ) {
     log("WalledTemplatesPF1eGetHighlightedSquares|Using Foundry default");
     return highlightSquares;

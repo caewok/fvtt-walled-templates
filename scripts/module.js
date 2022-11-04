@@ -18,7 +18,7 @@ await foundry.utils.benchmark(fn, 1e04, t)
 // Basics
 import { log } from "./util.js";
 import { SETTINGS, registerSettings, getSetting, toggleSetting } from "./settings.js";
-import { MODULE_ID } from "./const.js";
+import { MODULE_ID, FLAGS } from "./const.js";
 
 // Rendering and main methods
 import { registerWalledTemplates } from "./patching.js";
@@ -99,8 +99,8 @@ Hooks.once("ready", async function() {
   // Ensure every template has an enabled flag; set to world setting if missing.
   // Happens if templates were created without Walled Templates module enabled
   canvas.templates.objects.children.forEach(t => {
-    if ( typeof t.document.getFlag(MODULE_ID, "enabled") === "undefined" ) {
-      t.document.setFlag(MODULE_ID, "enabled", getSetting("default-to-walled"));
+    if ( typeof t.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined" ) {
+      t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULT_WALLED));
     }
   });
 });
@@ -347,15 +347,15 @@ function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
   }
 
   // Only create if the id does not already exist
-  if (typeof templateD.getFlag(MODULE_ID, "enabled") === "undefined") {
+  if (typeof templateD.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
     log(`Creating template ${id} with default setting ${getSetting(SETTINGS.DEFAULT_WALLED)}.`, templateD, updateData);
 
     // In v10, setting the flag throws an error about not having id
     // template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
-    updates[`flags.${MODULE_ID}.enabled`] = `${getSetting(SETTINGS.DEFAULT_WALLED)}`;
+    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = getSetting(SETTINGS.DEFAULT_WALLED);
 
   } else {
-    log(`preCreateMeasuredTemplate: template enabled flag already set to ${templateD.getFlag(MODULE_ID, "enabled")}`);
+    log(`preCreateMeasuredTemplate: template enabled flag already set to ${templateD.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)}`);
   }
 
   const { distance: gridDist, size: gridSize } = canvas.scene.grid;
