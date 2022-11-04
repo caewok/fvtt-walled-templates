@@ -3,14 +3,15 @@ canvas,
 game,
 ClockwiseSweepPolygon,
 PIXI,
-LimitedAnglePolygon
+LimitedAnglePolygon,
+Ray
 */
 
 "use strict";
 
 import { log } from "./util.js";
-import { debugPolygons, getSetting, SETTINGS } from "./settings.js";
-import { MODULE_ID } from "./const.js";
+import { debugPolygons } from "./settings.js";
+import { MODULE_ID, FLAGS } from "./const.js";
 
 /**
  * Use ClockwiseSweep to construct the polygon shape, passing it this template object.
@@ -31,12 +32,19 @@ export function computeSweepPolygon() {
 
   const origin = { x: this.x, y: this.y };
 
+  // Trick Wall Height into keeping walls based on elevation of the token that created the template
+
   const cfg = {
     debug: debugPolygons(),
     type: "light",
     source: this,
     boundaryShapes: this.getBoundaryShapes()
   };
+
+  // Add in elevation for Wall Height to use
+  origin.b = this.document?.elevation ?? 0;
+  origin.t = this.document?.elevation ?? 0;
+  origin.object = {};
 
   const sweep = new ClockwiseSweepPolygon();
   sweep.initialize(origin, cfg);
@@ -54,7 +62,7 @@ function useSweep(template) {
   //     && canvas.walls.quadtree
   //     && canvas.walls.innerBounds.length;
 
-  if ( !template.document.getFlag(MODULE_ID, "enabled") ) {
+  if ( !template.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) ) {
     log("useBoundaryPolygon|not enabled. Skipping sweep.");
     return false;
   }
@@ -117,6 +125,28 @@ export function walledTemplateGetCircleShape(wrapped, distance) {
  */
 export function walledTemplateGetConeShape(wrapped, direction, angle, distance) {
   log(`walledTemplateGetConeShape with direction ${direction}, angle ${angle}, distance ${distance}, origin ${this.x},${this.y}`, this);
+
+  // Make sure the default shape is constructed.
+  this.originalShape = wrapped(direction, angle, distance);
+  if ( !useSweep(this) ) return this.originalShape;
+
+  // Use sweep to construct the shape
+  const poly = computeSweepPolygon.bind(this)();
+
+  // Cone was already a polygon in original so no need to add parameters back
+  return poly;
+}
+
+/**
+ * Replace for SWADE system's SwadeMeasuredTemplate.prototype._getConeShape
+ * @param {Function}  wrapped
+ * @param {Number}    direction
+ * @param {Number}    angle
+ * @param {Number}    distance
+ * @return {PIXI.Polygon}
+ */
+export function _getConeShapeSwadeMeasuredTemplate(wrapped, direction, angle, distance) {
+  log(`_getConeShapeSwadeMeasuredTemplate with direction ${direction}, angle ${angle}, distance ${distance}, origin ${this.x},${this.y}`, this);
 
   // Make sure the default shape is constructed.
   this.originalShape = wrapped(direction, angle, distance);
@@ -237,7 +267,10 @@ function getRectBoundaryShapes(shape, origin) {
  * @param {number} distance     From the template document, before adjusting for canvas dimensions
  * @returns {[PIXI.Circle, LimitedAnglePolygon]}
  */
-function getRoundedConeBoundaryShapes(shape, origin, direction, angle, distance) {
+function getRoundedConeBoundaryShapes(shape, origin, direction, angle, distance) { // eslint-disable-line no-unused-vars
+  // Fix for SWADE cones
+  if ( game.system.id === "swade" ) return getSwadeRoundedConeBoundaryShapes(shape, origin, direction, angle, distance);
+
   // Use a circle + limited radius for the bounding shapes
   const pts = shape.points;
   const radius = Math.hypot(pts[2] - pts[0], pts[3] - pts[1]);
@@ -246,6 +279,26 @@ function getRoundedConeBoundaryShapes(shape, origin, direction, angle, distance)
   const circle = new PIXI.Circle(origin.x, origin.y, radius);
   const la = new LimitedAnglePolygon(origin, {radius, angle, rotation});
   return [circle, la];
+}
+
+/**
+ * Rounded cone shape for SWADE.
+ * Use a circle + limited radius for the bounding shapes.
+ * Cone is narrower than default Foundry, and (crucially) the circle is like an ice-cream cone:
+ *   It is a half-circle at the end of the triangle.
+ * @param {PIXI.Polygon} shape
+ * @param {Point} origin
+ * @param {number} direction    In degrees
+ * @param {number} angle        In degrees
+ * @param {number} distance     From the template document, before adjusting for canvas dimensions
+ * @returns {[PIXI.Circle, LimitedAnglePolygon]}
+ */
+function getSwadeRoundedConeBoundaryShapes(shape, origin, direction, angle, distance) { // eslint-disable-line no-unused-vars
+  const pts = shape.points;
+
+  // Use existing shape b/c the rounded cone is too difficult to build from simple shapes.
+  // (Would need a half-circle and even then it would be difficult b/c the shapes should overlap.)
+  return [shape.translate(origin.x, origin.y)];
 }
 
 /**

@@ -12,6 +12,7 @@ import {
   walledTemplateGetConeShape,
   walledTemplateGetRectShape,
   walledTemplateGetRayShape,
+  _getConeShapeSwadeMeasuredTemplate,
   getBoundaryShapes,
   computeSweepPolygon } from "./getShape.js";
 import { walledTemplate5eFromItem } from "./render5eSpellTemplateConfig.js";
@@ -35,6 +36,10 @@ export function registerWalledTemplates() {
   if ( game.system.id === "dnd5e" ) {
     // Catch when template is created from item; set walled template enabled based on item
     libWrapper.register(MODULE_ID, "game.dnd5e.canvas.AbilityTemplate.fromItem", walledTemplate5eFromItem, libWrapper.WRAPPER);
+  }
+
+  if ( game.system.id === "swade" ) {
+    libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype._getConeShape", _getConeShapeSwadeMeasuredTemplate, libWrapper.WRAPPER);
   }
 
   // Disable for now until PF2 and PF1 are updated for v10; may not need these
@@ -81,6 +86,14 @@ export function registerWalledTemplates() {
     writable: true,
     configurable: true
   });
+
+  if ( !Object.hasOwn(MeasuredTemplateDocument.prototype, "elevation") ) {
+    Object.defineProperty(MeasuredTemplateDocument.prototype, "elevation", {
+      get: function () {
+        return this.flags?.levels?.elevation ?? canvas.primary.background.elevation;
+      }
+    });
+  }
 }
 
 // For debugging
