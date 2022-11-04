@@ -22,7 +22,7 @@ import { MODULE_ID } from "./const.js";
 
 // Rendering and main methods
 import { registerWalledTemplates } from "./patching.js";
-import { walledTemplatesRenderMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
+import { walledTemplatesRenderMeasuredTemplateConfig, walledTemplatesRenderMeasuredTemplateElevationConfig } from "./renderMeasuredTemplateConfig.js";
 import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
 
 // Shapes and shape methods
@@ -130,6 +130,7 @@ Hooks.on("getSceneControlButtons", controls => {
  */
 Hooks.on("renderMeasuredTemplateConfig", async (app, html, data) => {
   walledTemplatesRenderMeasuredTemplateConfig(app, html, data);
+  if ( !game.modules.get("levels")?.active ) walledTemplatesRenderMeasuredTemplateElevationConfig(app, html, data);
 });
 
 
@@ -243,24 +244,24 @@ Hooks.on("updateWall", async (document, change, options, userId) => { // eslint-
  * @param {Object} options { diff: Boolean, render: Boolean }
  * @param {string} userId
  */
-Hooks.on("updateWall", async (document, change, options, userId) => { // eslint-disable-line no-unused-vars
-  if (!options.diff) return;
-
-  const A = { x: document.c[0], y: document.c[1] };
-  const B = { x: document.c[2], y: document.c[3] };
-  const new_A = { x: change.c[0], y: change.c[1] };
-  const new_B = { x: change.c[2], y: change.c[3] };
-  log(`Refreshing templates on updateWall ${A.x},${A.y}|${B.x},${B.y} --> ${new_A.x},${new_A.y}|${new_B.x},${new_B.y}`, document, change, options, userId);
-
-  canvas.templates.placeables.forEach(t => {
-    const bbox = t.shape.getBounds().translate(t.data.x, t.data.y);
-    if ( bbox.lineSegmentIntersects(A, B, { inside: true })
-      || bbox.lineSegmentIntersects(new_A, new_B, { inside: true })) {
-      log(`Wall ${document.id} intersects ${t.id}`);
-      t.refresh({ redraw: true }); // Async but probably don't need to await
-    }
-  });
-});
+// Hooks.on("updateWall", async (document, change, options, userId) => { // eslint-disable-line no-unused-vars
+//   if (!options.diff) return;
+//
+//   const A = { x: document.c[0], y: document.c[1] };
+//   const B = { x: document.c[2], y: document.c[3] };
+//   const new_A = { x: change.c[0], y: change.c[1] };
+//   const new_B = { x: change.c[2], y: change.c[3] };
+//   log(`Refreshing templates on updateWall ${A.x},${A.y}|${B.x},${B.y} --> ${new_A.x},${new_A.y}|${new_B.x},${new_B.y}`, document, change, options, userId);
+//
+//   canvas.templates.placeables.forEach(t => {
+//     const bbox = t.shape.getBounds().translate(t.data.x, t.data.y);
+//     if ( bbox.lineSegmentIntersects(A, B, { inside: true })
+//       || bbox.lineSegmentIntersects(new_A, new_B, { inside: true })) {
+//       log(`Wall ${document.id} intersects ${t.id}`);
+//       t.refresh({ redraw: true }); // Async but probably don't need to await
+//     }
+//   });
+// });
 
 /**
  * Hook for deleteWall.
@@ -285,6 +286,44 @@ Hooks.on("deleteWall", async (document, options, userId) => { // eslint-disable-
 
 
 /**
+ * At preCreateMeasuredTemplate, attempt to get a token associated with the template.
+ * Use that token's elevation.
+ * If no tokens can be associated with the user, default to 0.
+ * @param {string} id   User id who constructed the template
+ * @returns {number}  Elevation value, in grid units.
+ */
+function estimateTemplateElevation(id) {
+  // Try to find a token for the user
+  const user = game.users.get(id);
+  let token;
+
+  // If in combat, assume it is the combatant if the user owns the combatant
+  if ( !token && game.combat?.started ) {
+    const c = game.combat.combatant;
+    if ( (!c.players.length && user.isGM)
+      || c.players.some(p => p.id === id) ) token = c.token.object;
+  }
+
+  if ( !token && canvas.tokens.active ) {
+    const cToken = canvas.tokens.controlled;
+    console.log(`${cToken.map(t => t.name)} controlled by ${id} or ${game.user.id}`);
+
+    // If a single token is selected, use that.
+    // If multiple tokens, use the last selected
+    if ( cToken.length === 1 ) token = cToken[0];
+    else token = user._lastSelected;
+  } else if ( !token ) {
+    // Get the last token selected by the user before the layer change
+    token = user._lastDeselected
+  }
+
+  const out = token?.document?.elevation ?? 0;
+  log(`estimateTemplateElevation is ${out} for ${token?.name}`);
+
+  return out;
+}
+
+/**
  * Hook preCreateMeasuredTemplate to
  * @param {MeasuredTemplateDocument} template
  * @param {Object} data
@@ -292,10 +331,20 @@ Hooks.on("deleteWall", async (document, options, userId) => { // eslint-disable-
  * @param {string} id
  */
 // https://foundryvtt.wiki/en/migrations/foundry-core-0_8_x#adding-items-to-an-actor-during-precreate
-Hooks.on("preCreateMeasuredTemplate", async (templateD, updateData, opts, id) => {
+Hooks.on("preCreateMeasuredTemplate", preCreateMeasuredTemplateHook);
+
+function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
   log("Hooking preCreateMeasuredTemplate", templateD, updateData);
 
   const updates = {};
+
+  // If Levels is active, defer to Levels for template elevation. Otherwise, estimate from token.
+  if ( !game.modules.get("levels")?.active ) {
+    const elevation = estimateTemplateElevation(id);
+
+    // Add elevation flag. Sneakily, use the levels flag.
+    updates[`flags.levels.elevation`] = elevation;
+  }
 
   // Only create if the id does not already exist
   if (typeof templateD.getFlag(MODULE_ID, "enabled") === "undefined") {
@@ -343,10 +392,32 @@ Hooks.on("preCreateMeasuredTemplate", async (templateD, updateData, opts, id) =>
   }
 
   if ( !isEmpty(updates) ) templateD.updateSource(updates);
-});
+}
 
 function scaleDiagonalDistance(direction, distance) {
   const dirRadians = Math.toRadians(direction);
   const diagonalScale = Math.abs(Math.sin(dirRadians)) + Math.abs(Math.cos(dirRadians));
   return diagonalScale * distance;
+}
+
+/**
+ * Hook controlToken to track per-user control.
+ * Each token is deselected prior to the layer deactivating.
+ *
+ * A hook event that fires when any PlaceableObject is selected or
+ * deselected. Substitute the PlaceableObject name in the hook event to
+ * target a specific PlaceableObject type, for example "controlToken".
+ * @function controlPlaceableObject
+ * @memberof hookEvents
+ * @param {PlaceableObject} object The PlaceableObject
+ * @param {boolean} controlled     Whether the PlaceableObject is selected or not
+ */
+Hooks.on("controlToken", controlTokenHook);
+
+function controlTokenHook(object, controlled) {
+  console.log(`controlTokenHook for user ${game.userId} with ${object.name} controlled: ${controlled}`)
+  const user = game.user;
+
+  if ( controlled ) user._lastSelected = object;
+  else if ( user.lastSelected = object ) user._lastDeselected = object;
 }

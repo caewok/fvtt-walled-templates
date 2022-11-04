@@ -24,3 +24,16 @@ export async function walledTemplatesRenderMeasuredTemplateConfig(app, html, dat
   log("config rendered HTML", myHTML);
   html.find(".form-group").last().after(myHTML);
 }
+
+
+/**
+ * Inject a setting for elevation
+ */
+export async function walledTemplatesRenderMeasuredTemplateElevationConfig(app, html, data) {
+  const template = `modules/${MODULE_ID}/templates/walled-templates-measured-template-elevation-config.html`;
+
+  const myHTML = await renderTemplate(template, data);
+  log("elevation config rendered HTML", myHTML);
+  const dataInject = 'input[name="width"]';
+  html.find(dataInject).first().closest(".form-group").after(myHTML);
+}

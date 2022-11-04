@@ -81,6 +81,14 @@ export function registerWalledTemplates() {
     writable: true,
     configurable: true
   });
+
+  if ( !Object.hasOwn(MeasuredTemplateDocument.prototype, "elevation") ) {
+    Object.defineProperty(MeasuredTemplateDocument.prototype, "elevation", {
+      get: function () {
+        return this.flags?.levels?.elevation ?? canvas.primary.background.elevation;
+      }
+    });
+  }
 }
 
 // For debugging
