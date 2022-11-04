@@ -3,7 +3,8 @@ canvas,
 game,
 ClockwiseSweepPolygon,
 PIXI,
-LimitedAnglePolygon
+LimitedAnglePolygon,
+Ray
 */
 
 "use strict";
@@ -137,6 +138,28 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
 }
 
 /**
+ * Replace for SWADE system's SwadeMeasuredTemplate.prototype._getConeShape
+ * @param {Function}  wrapped
+ * @param {Number}    direction
+ * @param {Number}    angle
+ * @param {Number}    distance
+ * @return {PIXI.Polygon}
+ */
+export function _getConeShapeSwadeMeasuredTemplate(wrapped, direction, angle, distance) {
+  log(`_getConeShapeSwadeMeasuredTemplate with direction ${direction}, angle ${angle}, distance ${distance}, origin ${this.x},${this.y}`, this);
+
+  // Make sure the default shape is constructed.
+  this.originalShape = wrapped(direction, angle, distance);
+  if ( !useSweep(this) ) return this.originalShape;
+
+  // Use sweep to construct the shape
+  const poly = computeSweepPolygon.bind(this)();
+
+  // Cone was already a polygon in original so no need to add parameters back
+  return poly;
+}
+
+/**
  * Replacement for MeasuredTemplate.prototype._getRectShape.
  * Get a rectangular area of effect given a radius of effect.
  * Use ClockwiseSweep to create the area with walls blocking moving from the origin.
@@ -245,6 +268,9 @@ function getRectBoundaryShapes(shape, origin) {
  * @returns {[PIXI.Circle, LimitedAnglePolygon]}
  */
 function getRoundedConeBoundaryShapes(shape, origin, direction, angle, distance) { // eslint-disable-line no-unused-vars
+  // Fix for SWADE cones
+  if ( game.system.id === "swade" ) return getSwadeRoundedConeBoundaryShapes(shape, origin, direction, angle, distance);
+
   // Use a circle + limited radius for the bounding shapes
   const pts = shape.points;
   const radius = Math.hypot(pts[2] - pts[0], pts[3] - pts[1]);
@@ -253,6 +279,26 @@ function getRoundedConeBoundaryShapes(shape, origin, direction, angle, distance)
   const circle = new PIXI.Circle(origin.x, origin.y, radius);
   const la = new LimitedAnglePolygon(origin, {radius, angle, rotation});
   return [circle, la];
+}
+
+/**
+ * Rounded cone shape for SWADE.
+ * Use a circle + limited radius for the bounding shapes.
+ * Cone is narrower than default Foundry, and (crucially) the circle is like an ice-cream cone:
+ *   It is a half-circle at the end of the triangle.
+ * @param {PIXI.Polygon} shape
+ * @param {Point} origin
+ * @param {number} direction    In degrees
+ * @param {number} angle        In degrees
+ * @param {number} distance     From the template document, before adjusting for canvas dimensions
+ * @returns {[PIXI.Circle, LimitedAnglePolygon]}
+ */
+function getSwadeRoundedConeBoundaryShapes(shape, origin, direction, angle, distance) { // eslint-disable-line no-unused-vars
+  const pts = shape.points;
+
+  // Use existing shape b/c the rounded cone is too difficult to build from simple shapes.
+  // (Would need a half-circle and even then it would be difficult b/c the shapes should overlap.)
+  return [shape.translate(origin.x, origin.y)];
 }
 
 /**
