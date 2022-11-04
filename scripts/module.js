@@ -96,6 +96,9 @@ Hooks.once("setup", async function() {
 Hooks.once("ready", async function() {
   log("Ready...");
 
+  // Check for whether children exist. See issue #18.
+  if ( !canvas.templates?.objects?.children ) return;
+
   // Ensure every template has an enabled flag; set to world setting if missing.
   // Happens if templates were created without Walled Templates module enabled
   canvas.templates.objects.children.forEach(t => {
