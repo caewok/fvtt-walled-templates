@@ -310,11 +310,6 @@ function getSwadeRoundedConeBoundaryShapes(shape, origin, direction, angle, dist
  */
 function getFlatConeBoundaryShapes(shape, origin) {
   // Use the existing triangle polygon for the bounding shape
-//
-//   const shifted_origin = pointFromAngle(origin, Math.toRadians(this.direction), -1);
-//     log(`boundaryPolygon|Polygon shifted origin to ${shifted_origin.x},${shifted_origin.y}
-//    for direction ${this.direction}`);
-//     shape = shape.translate(shifted_origin.x, shifted_origin.y);
   return [shape.translate(origin.x, origin.y)];
 }
 
@@ -326,11 +321,6 @@ function getFlatConeBoundaryShapes(shape, origin) {
  * @param {[PIXI.Polygon]}
  */
 function getRayBoundaryShapes(shape, origin) {
-  // Dow we need to shift the origin for polygons?
-  //   const shifted_origin = pointFromAngle(origin, Math.toRadians(this.direction), -1);
-  //     log(`boundaryPolygon|Polygon shifted origin to ${shifted_origin.x},${shifted_origin.y}
-  // for direction ${this.direction}`);
-  //     shape = shape.translate(shifted_origin.x, shifted_origin.y);
   const ray = shape.translate(origin.x, origin.y);
   return [ray];
 }

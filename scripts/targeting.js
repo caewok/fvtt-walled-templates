@@ -8,8 +8,8 @@ CONST
 
 import { getSetting, SETTINGS } from "./settings.js";
 import { log } from "./util.js";
-import { Hexagon } from "./shapes/Hexagon.js";
-import { Square } from "./shapes/Square.js";
+import { Hexagon } from "./geometry/RegularPolygon/Hexagon.js";
+import { Square } from "./geometry/RegularPolygon/Square.js";
 
 /**
  * Wrap MeasuredTemplate.prototype.draw to target tokens after drawing.
