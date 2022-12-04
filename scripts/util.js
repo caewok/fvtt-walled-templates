@@ -4,8 +4,8 @@
 "use strict";
 
 import { MODULE_ID } from "./const.js";
-import { Hexagon } from "./shapes/Hexagon.js";
-import { Square } from "./shapes/Square.js";
+import { Hexagon } from "./geometry/RegularPolygon/Hexagon.js";
+import { Square } from "./geometry/RegularPolygon/Square.js";
 
 /**
  * Log message only when debug flag is enabled from DevMode module.
