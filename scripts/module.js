@@ -20,24 +20,15 @@ import { log } from "./util.js";
 import { SETTINGS, registerSettings, getSetting, toggleSetting } from "./settings.js";
 import { MODULE_ID, FLAGS } from "./const.js";
 
-// Rendering and main methods
+// Patches
 import { registerWalledTemplates } from "./patching.js";
+import { registerGeometry } from "./geometry/registration.js";
+
+// Rendering
 import { walledTemplatesRenderMeasuredTemplateConfig, walledTemplatesRenderMeasuredTemplateElevationConfig } from "./renderMeasuredTemplateConfig.js";
 import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
 
-// Shapes and shape methods
-import { RegularPolygon } from "./shapes/RegularPolygon.js";
-import { Square } from "./shapes/Square.js";
-import { Hexagon } from "./shapes/Hexagon.js";
-
 import * as getShape from "./getShape.js";
-
-import { registerPIXICircleMethods } from "./shapes/PIXICircle.js";
-import { registerPIXIPolygonMethods } from "./shapes/PIXIPolygon.js";
-import { registerPIXIRectangleMethods } from "./shapes/PIXIRectangle.js";
-
-// Weiler Atherton clipping
-import { WeilerAthertonClipper } from "./WeilerAtherton.js";
 
 /**
  * Tell DevMode that we want a flag for debugging this module.
@@ -50,23 +41,11 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 Hooks.once("init", async function() {
   log("Initializing...");
 
-  if ( !game.modules.get("lightmask")?.active ) {
-    // LightMask shares these methods
-    registerPIXIPolygonMethods();
-    registerPIXIRectangleMethods();
-    registerPIXICircleMethods();
-  }
-
   registerWalledTemplates();
+  registerGeometry();
 
   game.modules.get(MODULE_ID).api = {
-    getShape,
-    shapes: {
-      RegularPolygon,
-      Square,
-      Hexagon
-    },
-    WeilerAthertonClipper
+    getShape
   };
 });
 
@@ -317,7 +296,7 @@ function estimateTemplateElevation(id) {
     else token = user._lastSelected;
   } else if ( !token ) {
     // Get the last token selected by the user before the layer change
-    token = user._lastDeselected
+    token = user._lastDeselected;
   }
 
   const out = token?.document?.elevation ?? 0;
