@@ -23,50 +23,6 @@ export function log(...args) {
 }
 
 /**
- * Test if two points are almost equal, within some small epsilon.
- * @param {Point} a
- * @param {Point} b
- * @param {number} epsilon    Optional. If coordinates within this amount, will be considered equal.
- * @returns {booleam}
- */
-export function pointsAlmostEqual(a, b, epsilon = 1e-8) {
-  return a.x.almostEqual(b.x, epsilon) && a.y.almostEqual(b.y, epsilon);
-}
-/**
- * Determine if at least one segment from black intersects one segment from red.
- * @param {Segments[]} red      Array of objects that contain points A.x, A.y, B.x, B.y.
- * @param {Segments[]} black    Array of objects that contain points A.x, A.y, B.x, B.y.
- * @return {Boolean}
- */
-export function hasIntersectionBruteRedBlack(red, black) {
-  const ln1 = red.length;
-  const ln2 = black.length;
-  if (!ln1 || !ln2) { return; }
-
-  for (let i = 0; i < ln1; i += 1) {
-    const si = red[i];
-    for (let j = 0; j < ln2; j += 1) {
-      const sj = black[j];
-      if ( foundry.utils.lineSegmentIntersects(si.A, si.B, sj.A, sj.B) ) return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Same as Ray.fromAngle but returns a point instead of constructing the full Ray.
- * @param {Point}   origin    Starting point.
- * @param {Number}  radians   Angle to move from the starting point.
- * @param {Number}  distance  Distance to travel from the starting point.
- * @return {Point}  Coordinates of point that lies distance away from origin along angle.
- */
-export function pointFromAngle(origin, radians, distance) {
-  const dx = Math.cos(radians);
-  const dy = Math.sin(radians);
-  return { x: origin.x + (dx * distance), y: origin.y + (dy * distance) };
-}
-
-/**
  * Return either a square or a hexagon shape based on grid type for the current scene.
  * If the point is on a corner, it will draw the bottom right grid location.
  * @param {Point} p   Any point within the grid shape
