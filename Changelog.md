@@ -1,3 +1,8 @@
+## 0.4.5
+Use shared geometry lib git submodule.
+Fix issue #19 (error during door open/close).
+
+
 ## 0.4.4
 Fix issue #14 (Player template changes GM targeting)
 Fix issue #15 (Wall Height compatibility). Add an elevation property to wall template and infer template elevation from combatant or last selected token for user.
