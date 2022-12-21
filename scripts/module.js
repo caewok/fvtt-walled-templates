@@ -20,24 +20,15 @@ import { log } from "./util.js";
 import { SETTINGS, registerSettings, getSetting, toggleSetting } from "./settings.js";
 import { MODULE_ID, FLAGS } from "./const.js";
 
-// Rendering and main methods
+// Patches
 import { registerWalledTemplates } from "./patching.js";
+import { registerGeometry } from "./geometry/registration.js";
+
+// Rendering
 import { walledTemplatesRenderMeasuredTemplateConfig, walledTemplatesRenderMeasuredTemplateElevationConfig } from "./renderMeasuredTemplateConfig.js";
 import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
 
-// Shapes and shape methods
-import { RegularPolygon } from "./shapes/RegularPolygon.js";
-import { Square } from "./shapes/Square.js";
-import { Hexagon } from "./shapes/Hexagon.js";
-
 import * as getShape from "./getShape.js";
-
-import { registerPIXICircleMethods } from "./shapes/PIXICircle.js";
-import { registerPIXIPolygonMethods } from "./shapes/PIXIPolygon.js";
-import { registerPIXIRectangleMethods } from "./shapes/PIXIRectangle.js";
-
-// Weiler Atherton clipping
-import { WeilerAthertonClipper } from "./WeilerAtherton.js";
 
 /**
  * Tell DevMode that we want a flag for debugging this module.
@@ -50,23 +41,11 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 Hooks.once("init", async function() {
   log("Initializing...");
 
-  if ( !game.modules.get("lightmask")?.active ) {
-    // LightMask shares these methods
-    registerPIXIPolygonMethods();
-    registerPIXIRectangleMethods();
-    registerPIXICircleMethods();
-  }
-
   registerWalledTemplates();
+  registerGeometry();
 
   game.modules.get(MODULE_ID).api = {
-    getShape,
-    shapes: {
-      RegularPolygon,
-      Square,
-      Hexagon
-    },
-    WeilerAthertonClipper
+    getShape
   };
 });
 
@@ -192,8 +171,10 @@ Hooks.on("createWall", async (document, options, userId) => { // eslint-disable-
 Hooks.on("preUpdateWall", async (document, change, options, userId) => { // eslint-disable-line no-unused-vars
   const A = { x: document.c[0], y: document.c[1] };
   const B = { x: document.c[2], y: document.c[3] };
-  const new_A = { x: change.c[0], y: change.c[1] };
-  const new_B = { x: change.c[2], y: change.c[3] };
+
+  // Issue #19: Door open/close passes a change.ds but not a change.c
+  const new_A = change.c ? { x: change.c[0], y: change.c[1] } : A;
+  const new_B = change.c ? { x: change.c[2], y: change.c[3] } : B;
   log(`Refreshing templates on preUpdateWall ${A.x},${A.y}|${B.x},${B.y} --> ${new_A.x},${new_A.y}|${new_B.x},${new_B.y}`, document, change, options, userId);
 
   // We want to update the template if this wall is within the template, but
@@ -203,7 +184,7 @@ Hooks.on("preUpdateWall", async (document, change, options, userId) => { // esli
     const bbox = t.shape.getBounds().translate(t.x, t.y);
     if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
       log(`Wall ${document.id} intersects ${t.id}`);
-      promises.push(t.setFlag(MODULE_ID, "redraw", true)); // Async
+      promises.push(t.document.setFlag(MODULE_ID, "redraw", true)); // Async
     }
   });
   promises.length && ( await Promise.all(promises) ); // eslint-disable-line no-unused-expressions
@@ -227,8 +208,8 @@ Hooks.on("updateWall", async (document, change, options, userId) => { // eslint-
   log(`Refreshing templates on updateWall ${A.x},${A.y}|${B.x},${B.y}`, document, change, options, userId);
 
   canvas.templates.placeables.forEach(t => {
-    if ( t.getFlag(MODULE_ID, "redraw") ) {
-      t.setFlag(MODULE_ID, "redraw", false);
+    if ( t.document.getFlag(MODULE_ID, "redraw") ) {
+      t.document.setFlag(MODULE_ID, "redraw", false);
       t.refresh({ redraw: true }); // Async but probably don't need to await
       return;
     }
@@ -317,7 +298,7 @@ function estimateTemplateElevation(id) {
     else token = user._lastSelected;
   } else if ( !token ) {
     // Get the last token selected by the user before the layer change
-    token = user._lastDeselected
+    token = user._lastDeselected;
   }
 
   const out = token?.document?.elevation ?? 0;
