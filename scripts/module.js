@@ -171,8 +171,10 @@ Hooks.on("createWall", async (document, options, userId) => { // eslint-disable-
 Hooks.on("preUpdateWall", async (document, change, options, userId) => { // eslint-disable-line no-unused-vars
   const A = { x: document.c[0], y: document.c[1] };
   const B = { x: document.c[2], y: document.c[3] };
-  const new_A = { x: change.c[0], y: change.c[1] };
-  const new_B = { x: change.c[2], y: change.c[3] };
+
+  // Issue #19: Door open/close passes a change.ds but not a change.c
+  const new_A = change.c ? { x: change.c[0], y: change.c[1] } : A;
+  const new_B = change.c ? { x: change.c[2], y: change.c[3] } : B;
   log(`Refreshing templates on preUpdateWall ${A.x},${A.y}|${B.x},${B.y} --> ${new_A.x},${new_A.y}|${new_B.x},${new_B.y}`, document, change, options, userId);
 
   // We want to update the template if this wall is within the template, but
@@ -182,7 +184,7 @@ Hooks.on("preUpdateWall", async (document, change, options, userId) => { // esli
     const bbox = t.shape.getBounds().translate(t.x, t.y);
     if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
       log(`Wall ${document.id} intersects ${t.id}`);
-      promises.push(t.setFlag(MODULE_ID, "redraw", true)); // Async
+      promises.push(t.document.setFlag(MODULE_ID, "redraw", true)); // Async
     }
   });
   promises.length && ( await Promise.all(promises) ); // eslint-disable-line no-unused-expressions
@@ -206,8 +208,8 @@ Hooks.on("updateWall", async (document, change, options, userId) => { // eslint-
   log(`Refreshing templates on updateWall ${A.x},${A.y}|${B.x},${B.y}`, document, change, options, userId);
 
   canvas.templates.placeables.forEach(t => {
-    if ( t.getFlag(MODULE_ID, "redraw") ) {
-      t.setFlag(MODULE_ID, "redraw", false);
+    if ( t.document.getFlag(MODULE_ID, "redraw") ) {
+      t.document.setFlag(MODULE_ID, "redraw", false);
       t.refresh({ redraw: true }); // Async but probably don't need to await
       return;
     }
