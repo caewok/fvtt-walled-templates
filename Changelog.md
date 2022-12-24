@@ -1,3 +1,6 @@
+## 0.4.6
+Possible fix for issue #20 (poly.close method does not exist).
+
 ## 0.4.5
 Use shared geometry lib git submodule.
 Fix issue #19 (error during door open/close).
