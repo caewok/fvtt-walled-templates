@@ -1,3 +1,6 @@
+## 0.4.7
+Update geometry lib to v0.1.1.
+
 ## 0.4.6
 Possible fix for issue #20 (poly.close method does not exist).
 
