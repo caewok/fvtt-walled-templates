@@ -1,10 +1,18 @@
 {
     "walledtemplates.MeasuredTemplateConfiguration.LegendTitle": "Walled Templates",
     "walledtemplates.MeasuredTemplateConfiguration.enabled.Name": "Blocked by Walls",
+    "walledtemplates.MeasuredTemplateConfiguration.spread.Name": "Spread",
+    "walledtemplates.MeasuredTemplateConfiguration.bounce.Name": "Bounce",
     "walledtemplates.dnd5eSpellTemplateConfiguration.enabled.Name": "Blocked by Walls",
 
     "walledtemplates.settings.default-to-walled.Name": "Default to walls block",
-    "walledtemplates.settings.default-to-walled.Hint": "Default newly-created templates to be blocked by walls. You can toggle whether walls block in each template's configuration.",
+    "walledtemplates.settings.default-to-walled.Hint": "Default newly-created templates to be blocked by walls. You can toggle in each template's configuration.",
+
+    "walledtemplates.settings.default-to-spread.Name": "Default to templates spread",
+    "walledtemplates.settings.default-to-spread.Hint": "Default newly-created templates to spread. You can toggle in each template's configuration.",
+
+    "walledtemplates.settings.default-to-bounce.Name": "Default to templates bounce",
+    "walledtemplates.settings.default-to-bounce.Hint": "Default newly-created templates to bounce against walls. You can toggle in each template's configuration.",
 
     "walledtemplates.settings.autotarget-menu.Name": "Enable autotargeting",
     "walledtemplates.settings.autotarget-menu.Hint": "When toggle option is selected, a bullseye control button in the template control bar will allow you to switch between targeting or not targeting.",

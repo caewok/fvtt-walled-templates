@@ -1,12 +1,26 @@
 <fieldset>
   <legend>{{ localize "walledtemplates.MeasuredTemplateConfiguration.LegendTitle" }}</legend>
-  
+
     <div class="form-group">
       <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.enabled.Name"}}</label>
       <div class="form-fields">
         <input type="checkbox" name="flags.walledtemplates.enabled" {{ checked data.flags.walledtemplates.enabled }}/>
       </div>
     </div>
-   
+
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.spread.Name"}}</label>
+      <div class="form-fields">
+        <input type="checkbox" name="flags.walledtemplates.spread" {{ checked data.flags.walledtemplates.spread }}/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.bounce.Name"}}</label>
+      <div class="form-fields">
+        <input type="checkbox" name="flags.walledtemplates.bounce" {{ checked data.flags.walledtemplates.bounce }}/>
+      </div>
+    </div>
+
   </legend>
 </fieldset>

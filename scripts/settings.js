@@ -9,6 +9,8 @@ import { MODULE_ID } from "./const.js";
 
 export const SETTINGS = {
   DEFAULT_WALLED: "default-to-walled",
+  DEFAULT_SPREAD: "default-to-spread",
+  DEFAULT_BOUNCE: "default-to-bounce",
 
   DIAGONAL_SCALING: {
     RAY: "diagonal-scaling-ray",
@@ -57,6 +59,24 @@ export function registerSettings() {
     scope: "world",
     config: true,
     default: true,
+    type: Boolean
+  });
+
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULT_SPREAD, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_SPREAD}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_SPREAD}.Hint`),
+    scope: "world",
+    config: true,
+    default: false,
+    type: Boolean
+  });
+
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULT_BOUNCE, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_BOUNCE}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_BOUNCE}.Hint`),
+    scope: "world",
+    config: true,
+    default: false,
     type: Boolean
   });
 
