@@ -51,9 +51,19 @@ export function computeSweepPolygon() {
   sweep.initialize(origin, cfg);
   sweep.compute();
 
+  // TODO: Bounce and spread probably need to be combined as one.
   let shape = sweep;
   if ( this.document.getFlag(MODULE_ID, FLAGS.SPREAD) ) {
     const polys = spread(this, sweep);
+    polys.push(sweep);
+    const paths = ClipperPaths.fromPolygons(polys);
+    const combined = paths.combine();
+    combined.clean();
+    shape = combined.toPolygons()[0]; // TODO: Can there ever be more than 1?
+  }
+
+  if ( this.document.getFlag(MODULE_ID, FLAGS.BOUNCE) ) {
+    const polys = bounce(this, sweep);
     polys.push(sweep);
     const paths = ClipperPaths.fromPolygons(polys);
     const combined = paths.combine();
@@ -67,7 +77,98 @@ export function computeSweepPolygon() {
   return poly;
 }
 
+// TODO: Combine bounce and spread into single function with helpers to calc newTemplate for each.
+// When spread + bounce, calculate at each corner and each wall!
+
+// TODO: For cones, the bounce should be from the edges of the cone.
+// One approach: Shoot the reflected middle line straight through the wall.
+//   At the distance between template origin and wall intersection, that is the new origin.
+//   Cone sides go from there through the wall. In other words, the entire cone is reflected.
+
 /**
+ * For each wall within distance of the template origin,
+ * re-run sweep, changing the direction based on bouncing it off the wall.
+ * Use remaining distance.
+ */
+function bounce(template, sweep, fakeTemplate = template, level = -1) {
+  level += 1;
+  const polys = [];
+  const useRecursion = level < CONFIG[MODULE_ID].bounceRecursions;
+
+  const d = canvas.dimensions;
+  const dMult = (d.size / d.distance);
+  const dInv = 1 / dMult;
+  const doc = fakeTemplate.document;
+  for ( const wall of sweep.edgesEncountered ) {
+    const dirRay = Ray.fromAngle(sweep.origin.x, sweep.origin.y, Math.toRadians(doc.direction), doc.distance * dMult);
+    let origin = foundry.utils.lineLineIntersection(dirRay.A, dirRay.B, wall.A, wall.B);
+    if ( !origin ) continue;
+
+    origin = new PIXI.Point(origin.x, origin.y);
+
+    // If the wall intersection is beyond the template, ignore.
+    const dist = PIXI.Point.distanceBetween(sweep.origin, origin);
+    const distGrid = dist * dInv;
+    if (  doc.distance < distGrid ) continue;
+
+    // https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
+    const wallRay = new Ray(wall.A, wall.B);
+    const normals = [
+      new PIXI.Point(-wallRay.dy, wallRay.dx),
+      new PIXI.Point(wallRay.dy, -wallRay.dx)].map(n => n.normalize());
+
+    const templateOrigin = new PIXI.Point(sweep.origin.x, sweep.origin.y);
+    const dVec = templateOrigin.towardsPoint(origin, 1);
+
+    // TODO: Is this the best approach to selecting the normal?
+    // Why does using both normals work? Seems wrong.
+    // const n = PIXI.Point.distanceSquaredBetween(templateOrigin, origin.add(normals[0]))
+//       < PIXI.Point.distanceSquaredBetween(templateOrigin, origin.add(normals[1])) ? normals[1] : normals[0]
+
+    const dot = 2 * dVec.dot(normals[0]);
+    const rVec = dVec.subtract(normals[1].multiplyScalar(dot));
+    const reflectionRay = new Ray(origin, origin.add(rVec));
+
+    // Construct a fake template to use for the sweep.
+    const newTemplate = {
+      document: {
+        x: origin.x,
+        y: origin.y,
+        direction: Math.toDegrees(reflectionRay.angle),
+        distance: doc.distance - distGrid,
+        angle: doc.angle,
+        width: doc.width,
+        t: doc.t,
+        elevation: doc.elevation ?? 0
+      }
+    };
+    newTemplate.originalShape = originalShape(template, newTemplate.document)
+
+    const cfg = {
+      debug: debugPolygons(),
+      type: "light",
+      source: newTemplate,
+      boundaryShapes: getBoundaryShapes.bind(newTemplate)()
+    };
+
+    // Add in elevation for Wall Height to use
+    origin.b = newTemplate.document.elevation;
+    origin.t = newTemplate.document.elevation;
+    origin.object = {};
+
+    const newSweep = new ClockwiseSweepShape();
+    newSweep.initialize(origin, cfg);
+    newSweep.compute();
+    polys.push(newSweep);
+
+    if ( useRecursion ) {
+      const res = bounce(template, newSweep, newTemplate, level);
+      polys.push(...res);
+    }
+  }
+  return polys;
+}
+
 
 
 /**
@@ -141,9 +242,9 @@ function originalShape(template, doc) {
 
   switch ( doc.t ) {
     case "circle": return template._getCircleShape(doc.distance * dMult, true);
-    case "cone": return template._getConeShape(doc.direction, doc.angle, doc.distance * dMult, true);
-    case "rect": return template._getRectShape(doc.direction, doc.distance * dMult, true);
-    case "ray": return template._getRayShape(doc.direction, doc.distance * dMult, doc.width, true);
+    case "cone": return template._getConeShape(Math.toRadians(doc.direction), doc.angle, doc.distance * dMult, true);
+    case "rect": return template._getRectShape(Math.toRadians(doc.direction), doc.distance * dMult, true);
+    case "ray": return template._getRayShape(Math.toRadians(doc.direction), doc.distance * dMult, doc.width * dMult, true);
   }
 }
 

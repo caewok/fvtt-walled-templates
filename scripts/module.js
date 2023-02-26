@@ -53,7 +53,7 @@ Hooks.once("init", async function() {
      * Number of recursions when calculating bounce.
      * @type {number}
      */
-    bounceRecursions: 2
+    bounceRecursions: 0
   };
 
   registerWalledTemplates();
