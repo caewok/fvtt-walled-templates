@@ -1,10 +1,9 @@
 /* globals
 canvas,
 game,
-ClockwiseSweepPolygon,
 PIXI,
 LimitedAnglePolygon,
-Ray
+CONFIG
 */
 
 "use strict";
@@ -12,6 +11,8 @@ Ray
 import { log } from "./util.js";
 import { debugPolygons } from "./settings.js";
 import { MODULE_ID, FLAGS } from "./const.js";
+import { ClockwiseSweepShape, pointFromKey } from "./ClockwiseSweepShape.js";
+import { ClipperPaths } from "./geometry/ClipperPaths.js";
 
 /**
  * Use ClockwiseSweep to construct the polygon shape, passing it this template object.
@@ -46,14 +47,104 @@ export function computeSweepPolygon() {
   origin.t = this.document?.elevation ?? 0;
   origin.object = {};
 
-  const sweep = new ClockwiseSweepPolygon();
+  const sweep = new ClockwiseSweepShape();
   sweep.initialize(origin, cfg);
   sweep.compute();
 
+  let shape = sweep;
+  if ( this.document.getFlag(MODULE_ID, FLAGS.SPREAD) ) {
+    const polys = spread(this, sweep);
+    polys.push(sweep);
+    const paths = ClipperPaths.fromPolygons(polys);
+    const combined = paths.combine();
+    combined.clean();
+    shape = combined.toPolygons()[0]; // TODO: Can there ever be more than 1?
+  }
+
   // Shift to origin 0,0 as expected for Template shape.
-  const poly = sweep.translate(-origin.x, -origin.y);
+  const poly = shape.translate(-origin.x, -origin.y);
   poly._sweep = sweep; // For debugging
   return poly;
+}
+
+/**
+
+
+/**
+ * For each corner within distance of the template origin,
+ * re-run sweep using the corner as the origin and the remaining distance as the radius.
+ */
+function spread(template, sweep, fakeTemplate = template, level = -1) {
+  level += 1;
+  const polys = [];
+  const useRecursion = level < CONFIG[MODULE_ID].spreadRecursions;
+
+  const d = canvas.dimensions;
+  const dMult = (d.size / d.distance);
+  const dInv = 1 / dMult;
+  const doc = fakeTemplate.document;
+  for ( const cornerKey of sweep.cornersEncountered ) {
+    const origin = pointFromKey(cornerKey);
+
+    // If the corner is beyond the template, ignore.
+    const dist = PIXI.Point.distanceBetween(sweep.origin, origin);
+    const distGrid = dist * dInv;
+    if (  doc.distance < distGrid ) continue;
+
+    // Construct a fake template to use for the sweep.
+    const newTemplate = {
+      document: {
+        x: origin.x,
+        y: origin.y,
+        direction: doc.direction,
+        distance: doc.distance - distGrid,
+        angle: doc.angle,
+        width: doc.width,
+        t: doc.t,
+        elevation: doc.elevation ?? 0
+      }
+    };
+    newTemplate.originalShape = originalShape(template, newTemplate.document)
+
+    const cfg = {
+      debug: debugPolygons(),
+      type: "light",
+      source: newTemplate,
+      boundaryShapes: getBoundaryShapes.bind(newTemplate)()
+    };
+
+    // Add in elevation for Wall Height to use
+    origin.b = newTemplate.document.elevation;
+    origin.t = newTemplate.document.elevation;
+    origin.object = {};
+
+    const newSweep = new ClockwiseSweepShape();
+    newSweep.initialize(origin, cfg);
+    newSweep.compute();
+    polys.push(newSweep);
+
+    if ( useRecursion ) {
+      const res = spread(template, newSweep, newTemplate, level);
+      polys.push(...res);
+    }
+  }
+  return polys;
+}
+
+
+/**
+ * Build the original shape given coordinates and a shape type.
+ */
+function originalShape(template, doc) {
+  const d = canvas.dimensions;
+  const dMult = (d.size / d.distance);
+
+  switch ( doc.t ) {
+    case "circle": return template._getCircleShape(doc.distance * dMult, true);
+    case "cone": return template._getConeShape(doc.direction, doc.angle, doc.distance * dMult, true);
+    case "rect": return template._getRectShape(doc.direction, doc.distance * dMult, true);
+    case "ray": return template._getRayShape(doc.direction, doc.distance * dMult, doc.width, true);
+  }
 }
 
 function useSweep(template) {
@@ -95,12 +186,12 @@ function useSweep(template) {
  * @param {Number}   distance   Radius of the circle.
  * @return {PIXI.Polygon}
  */
-export function walledTemplateGetCircleShape(wrapped, distance) {
+export function walledTemplateGetCircleShape(wrapped, distance, returnOriginal = !useSweep(this)) {
   log(`walledTemplateGetCircleShape with distance ${distance}, origin ${this.x},${this.y}`, this);
 
   // Make sure the default shape is constructed.
   this.originalShape = wrapped(distance);
-  if ( !useSweep(this) ) return this.originalShape;
+  if ( returnOriginal ) return this.originalShape;
 
   // Use sweep to construct the shape
   const poly = computeSweepPolygon.bind(this)();
@@ -123,12 +214,12 @@ export function walledTemplateGetCircleShape(wrapped, distance) {
  * @param {Number}    distance
  * @return {PIXI.Polygon}
  */
-export function walledTemplateGetConeShape(wrapped, direction, angle, distance) {
+export function walledTemplateGetConeShape(wrapped, direction, angle, distance, returnOriginal = !useSweep(this)) {
   log(`walledTemplateGetConeShape with direction ${direction}, angle ${angle}, distance ${distance}, origin ${this.x},${this.y}`, this);
 
   // Make sure the default shape is constructed.
   this.originalShape = wrapped(direction, angle, distance);
-  if ( !useSweep(this) ) return this.originalShape;
+  if ( returnOriginal ) return this.originalShape;
 
   // Use sweep to construct the shape
   const poly = computeSweepPolygon.bind(this)();
@@ -145,12 +236,12 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance) 
  * @param {Number}    distance
  * @return {PIXI.Polygon}
  */
-export function _getConeShapeSwadeMeasuredTemplate(wrapped, direction, angle, distance) {
+export function _getConeShapeSwadeMeasuredTemplate(wrapped, direction, angle, distance, returnOriginal = !useSweep(this)) {
   log(`_getConeShapeSwadeMeasuredTemplate with direction ${direction}, angle ${angle}, distance ${distance}, origin ${this.x},${this.y}`, this);
 
   // Make sure the default shape is constructed.
   this.originalShape = wrapped(direction, angle, distance);
-  if ( !useSweep(this) ) return this.originalShape;
+  if ( returnOriginal ) return this.originalShape;
 
   // Use sweep to construct the shape
   const poly = computeSweepPolygon.bind(this)();
@@ -168,12 +259,12 @@ export function _getConeShapeSwadeMeasuredTemplate(wrapped, direction, angle, di
  * @param {Number}    distance
  * @return {PIXI.Polygon}
  */
-export function walledTemplateGetRectShape(wrapped, direction, distance) {
+export function walledTemplateGetRectShape(wrapped, direction, distance, returnOriginal = !useSweep(this)) {
   log(`walledTemplateGetRectShape with direction ${direction}, distance ${distance}, origin ${this.x},${this.y}`, this);
 
   // Make sure the default shape is constructed.
   this.originalShape = wrapped(direction, distance);
-  if ( !useSweep(this) ) return this.originalShape;
+  if ( returnOriginal ) return this.originalShape;
 
   // Use sweep to construct the shape
   const poly = computeSweepPolygon.bind(this)();
@@ -198,12 +289,12 @@ export function walledTemplateGetRectShape(wrapped, direction, distance) {
  * @param {Number}    width
  * @return {PIXI.Polygon}
  */
-export function walledTemplateGetRayShape(wrapped, direction, distance, width) {
+export function walledTemplateGetRayShape(wrapped, direction, distance, width, returnOriginal = !useSweep(this)) {
   log(`walledTemplateGetRayShape with direction ${direction}, distance ${distance}, width ${width}, origin ${this.x},${this.y}`, this);
 
   // Make sure the default shape is constructed.
   this.originalShape = wrapped(direction, distance, width);
-  if ( !useSweep(this) ) return this.originalShape;
+  if ( returnOriginal ) return this.originalShape;
 
   // Use sweep to construct the shape (when needed)
   const poly = computeSweepPolygon.bind(this)();
@@ -294,7 +385,7 @@ function getRoundedConeBoundaryShapes(shape, origin, direction, angle, distance)
  * @returns {[PIXI.Circle, LimitedAnglePolygon]}
  */
 function getSwadeRoundedConeBoundaryShapes(shape, origin, direction, angle, distance) { // eslint-disable-line no-unused-vars
-  const pts = shape.points;
+  //const pts = shape.points;
 
   // Use existing shape b/c the rounded cone is too difficult to build from simple shapes.
   // (Would need a half-circle and even then it would be difficult b/c the shapes should overlap.)

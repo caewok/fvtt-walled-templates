@@ -41,6 +41,21 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 Hooks.once("init", async function() {
   log("Initializing...");
 
+  // Set CONFIGS used by this module.
+  CONFIG[MODULE_ID] = {
+    /**
+     * Number of recursions when calculating spread.
+     * @type {number}
+     */
+    spreadRecursions: 2,
+
+    /**
+     * Number of recursions when calculating bounce.
+     * @type {number}
+     */
+    bounceRecursions: 2
+  };
+
   registerWalledTemplates();
   registerGeometry();
 
@@ -83,6 +98,14 @@ Hooks.once("ready", async function() {
   canvas.templates.objects.children.forEach(t => {
     if ( typeof t.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined" ) {
       t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULT_WALLED));
+    }
+
+    if ( typeof t.document.getFlag(MODULE_ID, FLAGS.SPREAD) === "undefined" ) {
+      t.document.setFlag(MODULE_ID, FLAGS.SPREAD, getSetting(SETTINGS.DEFAULT_SPREAD));
+    }
+
+    if ( typeof t.document.getFlag(MODULE_ID, FLAGS.BOUNCE) === "undefined" ) {
+      t.document.setFlag(MODULE_ID, FLAGS.BOUNCE, getSetting(SETTINGS.DEFAULT_BOUNCE));
     }
   });
 });
@@ -332,15 +355,23 @@ function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
 
   // Only create if the id does not already exist
   if (typeof templateD.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
-    log(`Creating template ${id} with default setting ${getSetting(SETTINGS.DEFAULT_WALLED)}.`, templateD, updateData);
-
     // In v10, setting the flag throws an error about not having id
     // template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
     updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = getSetting(SETTINGS.DEFAULT_WALLED);
-
-  } else {
-    log(`preCreateMeasuredTemplate: template enabled flag already set to ${templateD.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)}`);
   }
+
+  if (typeof templateD.getFlag(MODULE_ID, FLAGS.SPREAD) === "undefined") {
+    // In v10, setting the flag throws an error about not having id
+    // template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
+    updates[`flags.${MODULE_ID}.${FLAGS.SPREAD}`] = getSetting(SETTINGS.DEFAULT_SPREAD);
+  }
+
+  if (typeof templateD.getFlag(MODULE_ID, FLAGS.BOUNCE) === "undefined") {
+    // In v10, setting the flag throws an error about not having id
+    // template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
+    updates[`flags.${MODULE_ID}.${FLAGS.BOUNCE}`] = getSetting(SETTINGS.DEFAULT_BOUNCE);
+  }
+
 
   const { distance: gridDist, size: gridSize } = canvas.scene.grid;
   const { t, distance, direction, x, y } = templateD;
