@@ -12,6 +12,7 @@ Ray
 import { log } from "./util.js";
 import { debugPolygons } from "./settings.js";
 import { MODULE_ID, FLAGS } from "./const.js";
+import { ClockwiseSweepShape } from "./ClockwiseSweepShape.js";
 
 /**
  * Use ClockwiseSweep to construct the polygon shape, passing it this template object.
@@ -46,7 +47,7 @@ export function computeSweepPolygon() {
   origin.t = this.document?.elevation ?? 0;
   origin.object = {};
 
-  const sweep = new ClockwiseSweepPolygon();
+  const sweep = new ClockwiseSweepShape();
   sweep.initialize(origin, cfg);
   sweep.compute();
 
