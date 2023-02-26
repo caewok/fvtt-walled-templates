@@ -47,13 +47,13 @@ Hooks.once("init", async function() {
      * Number of recursions when calculating spread.
      * @type {number}
      */
-    spreadRecursions: 4,
+    spreadRecursions: 2,
 
     /**
      * Number of recursions when calculating bounce.
      * @type {number}
      */
-    bounceRecursions: 8
+    bounceRecursions: 2
   };
 
   registerWalledTemplates();
