@@ -121,32 +121,22 @@ function bounce(template, sweep, fakeTemplate = template, level = -1) {
     const dVec = templateOrigin.towardsPoint(origin, 1);
 
     // TODO: Is this the best approach to selecting the normal?
-    //       Why does it seem reversed?
-    const n = PIXI.Point.distanceSquaredBetween(templateOrigin, origin.add(normals[0]))
-      < PIXI.Point.distanceSquaredBetween(templateOrigin, origin.add(normals[1])) ? normals[1] : normals[0]
+    // Why does using both normals work? Seems wrong.
+    // const n = PIXI.Point.distanceSquaredBetween(templateOrigin, origin.add(normals[0]))
+//       < PIXI.Point.distanceSquaredBetween(templateOrigin, origin.add(normals[1])) ? normals[1] : normals[0]
 
-    const dot = 2 * dVec.dot(n);
-    const rVec = dVec.subtract(n.multiplyScalar(dot));
+    const dot = 2 * dVec.dot(normals[0]);
+    const rVec = dVec.subtract(normals[1].multiplyScalar(dot));
     const reflectionRay = new Ray(origin, origin.add(rVec));
-
-    // const dot0 = 2 * dVec.dot(normals[0]);
-//     const rVec0 = dVec.subtract(normals[0].multiplyScalar(dot0));
-//
-//     const dot1 = 2 * dVec.dot(normals[1]);
-//     const rVec1 = dVec.subtract(normals[1].multiplyScalar(dot0));  // dot0 or dot 1?
-//
-//     // TODO: How do we know which to choose?
-//     const reflectionRay0 = new Ray(origin, origin.add(rVec0));
-//     const reflectionRay1 = new Ray(origin, origin.add(rVec1));
 
     // Construct a fake template to use for the sweep.
     const newTemplate = {
       document: {
         x: origin.x,
         y: origin.y,
-        direction: doc.direction,
+        direction: Math.toDegrees(reflectionRay.angle),
         distance: doc.distance - distGrid,
-        angle: Math.toDegrees(reflectionRay.angle),
+        angle: doc.angle,
         width: doc.width,
         t: doc.t,
         elevation: doc.elevation ?? 0
@@ -254,7 +244,7 @@ function originalShape(template, doc) {
     case "circle": return template._getCircleShape(doc.distance * dMult, true);
     case "cone": return template._getConeShape(Math.toRadians(doc.direction), doc.angle, doc.distance * dMult, true);
     case "rect": return template._getRectShape(Math.toRadians(doc.direction), doc.distance * dMult, true);
-    case "ray": return template._getRayShape(Math.toRadians(doc.direction), doc.distance * dMult, doc.width, true);
+    case "ray": return template._getRayShape(Math.toRadians(doc.direction), doc.distance * dMult, doc.width * dMult, true);
   }
 }
 
