@@ -41,6 +41,21 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 Hooks.once("init", async function() {
   log("Initializing...");
 
+  // Set CONFIGS used by this module.
+  CONFIG[MODULE_ID] = {
+    /**
+     * Number of recursions when calculating spread.
+     * @type {number}
+     */
+    spreadRecursions: 4,
+
+    /**
+     * Number of recursions when calculating bounce.
+     * @type {number}
+     */
+    bounceRecursions: 8
+  };
+
   registerWalledTemplates();
   registerGeometry();
 
