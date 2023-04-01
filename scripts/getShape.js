@@ -16,6 +16,7 @@ import { MODULE_ID, FLAGS } from "./const.js";
 import { ClockwiseSweepShape, pointFromKey } from "./ClockwiseSweepShape.js";
 import { ClipperPaths } from "./geometry/ClipperPaths.js";
 import { Draw } from "./geometry/Draw.js";
+import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
 
 /**
  * Use ClockwiseSweep to construct the polygon shape, passing it this template object.
@@ -67,7 +68,8 @@ export function computeSweepPolygon() {
   }
 
   if ( this.document.getFlag(MODULE_ID, FLAGS.BOUNCE) && CONFIG[MODULE_ID].bounceRecursions ) {
-    const polys = bounce(this, sweep);
+    const bounceFn = this.document.t === "cone" ? bounceCone : bounce;
+    const polys = bounceFn(this, sweep);
     polys.push(sweep);
     const paths = ClipperPaths.fromPolygons(polys);
     const combined = paths.combine();
@@ -90,6 +92,155 @@ export function computeSweepPolygon() {
 // One approach: Shoot the reflected middle line straight through the wall.
 //   At the distance between template origin and wall intersection, that is the new origin.
 //   Cone sides go from there through the wall. In other words, the entire cone is reflected.
+
+
+  const COLLINEAR_MIN_NEG = -10;
+  const COLLINEAR_MIN_POS = 10;
+
+/**
+ * For each wall within the distance of the template origin,
+ * re-run sweep for the reflection of the cone (shadow cone). Invert the reflection against the
+ * reflected cone shape to get the reflected portion.
+ * Recurse by using the reflected cone origin.
+ * The shadow cone is the cone shape that could be used to describe the reflection,
+ * where the origin is the reflection of the original origin, through the wall.
+ */
+function bounceCone(template, sweep, fakeTemplate = template, level = 0, lastReflectedWall) {
+  level += 1;
+  const polys = [];
+  const useRecursion = level < CONFIG[MODULE_ID].bounceRecursions;
+
+  const d = canvas.dimensions;
+  const dMult = (d.size / d.distance);
+  const dInv = 1 / dMult;
+  const doc = fakeTemplate.document;
+  const templateOrigin = new PIXI.Point(sweep.origin.x, sweep.origin.y);
+  const angle = Math.toRadians(doc.direction);
+  const dirRay = Ray.fromAngle(templateOrigin.x, templateOrigin.y, angle, doc.distance * dMult);
+  const maxDist = doc.distance * dMult;
+  const maxDist2 = Math.pow(maxDist, 2);
+
+  // Locate wall segments that the cone hits.
+  // For each segment, calculate the reflection ray based on normal of that edge.
+  // Conduct a sweep using the reflected cone shape as a boundary (shadow cone)
+  // and set origin to the point centered on the edge, slightly to the template origin side of the edge.
+  const reflectingEdges = [];
+  const sweepEdges = [...sweep.iterateEdges()];
+  const oLastReflected = lastReflectedWall ? Math.sign(foundry.utils.orient2dFast(lastReflectedWall.A, lastReflectedWall.B, templateOrigin)) : undefined;
+
+  for ( const edge of sweep.edgesEncountered ) {
+    if ( lastReflectedWall ) {
+      // For recursion:
+      // Any reflecting edge must be on the side of the reflecting wall opposite the origin.
+      // Omit the last reflected wall.
+      if ( edge.id === lastReflectedWall.id ) continue;
+      const oEdge = foundry.utils.orient2dFast(edge.A, edge.B, templateOrigin);
+      if ( Math.sign(oEdge) === oLastReflected ) continue;
+    }
+
+    // Edge must be within distance of the template to use.
+    const closestEdgePoint = foundry.utils.closestPointToSegment(templateOrigin, edge.A, edge.B);
+    const minDist2 = PIXI.Point.distanceSquaredBetween(templateOrigin, closestEdgePoint);
+    if ( minDist2 > maxDist2 ) continue;
+
+    // Edge will be nearly collinear with sweep edge, but probably not exactly b/c sweep rounds endpoints.
+    for ( const sweepEdge of sweepEdges ) {
+      if ( Number.between(foundry.utils.orient2dFast(edge.A, edge.B, sweepEdge.A), COLLINEAR_MIN_NEG, COLLINEAR_MIN_POS)
+        && Number.between(foundry.utils.orient2dFast(edge.A, edge.B, sweepEdge.B), COLLINEAR_MIN_NEG, COLLINEAR_MIN_POS) ) {
+
+        sweepEdge.wall = edge;
+        reflectingEdges.push(sweepEdge);
+        break;
+      }
+    }
+  }
+  if ( !reflectingEdges.length ) return polys;
+
+  // For each reflecting edge, create a cone template using a shadow cone based on reflected distance.
+  // Set origin of the sweep to just inside the edge, in the middle.
+  for ( const reflectingEdge of reflectingEdges ) {
+    const dx = reflectingEdge.B.x - reflectingEdge.A.x;
+    const dy = reflectingEdge.B.y - reflectingEdge.A.y;
+    const ix = foundry.utils.lineLineIntersection(dirRay.A, dirRay.B, reflectingEdge.A, reflectingEdge.B);
+    const reflectionPoint = new PIXI.Point(ix.x, ix.y);
+
+    // https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
+    // http://paulbourke.net/geometry/reflected/
+    const normals = [
+      new PIXI.Point(-dy, dx),
+      new PIXI.Point(dy, -dx)].map(n => n.normalize());
+
+    const N = PIXI.Point.distanceSquaredBetween(templateOrigin, reflectionPoint.add(normals[0]))
+      < PIXI.Point.distanceSquaredBetween(templateOrigin, reflectionPoint.add(normals[0]))
+      ? normals[0] : normals[1];
+
+    const Ri = reflectionPoint.subtract(templateOrigin);
+
+    // Rr = Ri - 2 * N * (Ri dot N)
+    const dot = Ri.dot(N);
+    const Rr = Ri.subtract(N.multiplyScalar(2 * dot));
+    const reflectionRay = new Ray(reflectionPoint, reflectionPoint.add(Rr));
+
+    //   Draw.segment(reflectionRay);
+    //   Draw.point(reflectionPoint);
+
+    // Calculate where to originate the shadow cone for the reflection.
+    const reflectionDist = PIXI.Point.distanceBetween(templateOrigin, reflectionPoint);
+    const shadowConeV = Rr.normalize().multiplyScalar(reflectionDist);
+    const shadowConeOrigin = reflectionPoint.subtract(shadowConeV);
+    // Draw.point(shadowConeOrigin)
+
+    //
+
+    // Set the new sweep origin to be just inside the reflecting wall, to avoid using sweep
+    // on the wrong side of the wall.
+
+    const newTemplate = {
+      document: {
+        x: shadowConeOrigin.x,
+        y: shadowConeOrigin.y,
+        direction: Math.toDegrees(reflectionRay.angle),
+        distance: doc.distance,
+        angle: doc.angle,
+        width: doc.width,
+        t: doc.t,
+        elevation: doc.elevation ?? 0
+      }
+    };
+
+    newTemplate.originalShape = originalShape(template, newTemplate.document);
+
+    const cfg = {
+      debug: debugPolygons(),
+      type: "light",
+      source: newTemplate,
+      boundaryShapes: getBoundaryShapes.bind(newTemplate)(),
+      lightWall: reflectingEdge.wall
+    };
+
+    // Add in elevation for Wall Height to use
+    shadowConeOrigin.b = newTemplate.document.elevation;
+    shadowConeOrigin.t = newTemplate.document.elevation;
+    shadowConeOrigin.object = {};
+
+    const reflectionSweep = new LightWallSweep();
+    reflectionSweep.initialize(shadowConeOrigin, cfg)
+    reflectionSweep.compute();
+
+    polys.push(reflectionSweep);
+
+    //   Draw.shape(reflectionSweep);
+
+    if ( useRecursion ) {
+      const res = bounceCone(template, reflectionSweep, newTemplate, level, reflectingEdge.wall);
+      polys.push(...res);
+    }
+
+    return polys;
+  }
+}
+
+
 
 /**
  * For each wall within distance of the template origin,
@@ -129,7 +280,6 @@ function bounce(template, sweep, fakeTemplate = template, level = 0) {
   walls.sort((a, b) => a._reflectionDistance - b.reflectionDistance);
   const reflectedWall = walls[0];
   const reflectionPoint = new PIXI.Point(reflectedWall._reflectionPoint.x, reflectedWall._reflectionPoint.y);
-  const reflectionDist = reflectedWall._reflectionDistance;
 
   // https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
   // http://paulbourke.net/geometry/reflected/
@@ -158,6 +308,7 @@ function bounce(template, sweep, fakeTemplate = template, level = 0) {
 
   // Change to the distance remaining
   // Construct a fake template to use for the sweep.
+  const reflectionDist = reflectedWall._reflectionDistance;
   const newTemplate = {
     document: {
       x: reflectedOrigin.x,
@@ -170,6 +321,7 @@ function bounce(template, sweep, fakeTemplate = template, level = 0) {
       elevation: doc.elevation ?? 0
     }
   };
+
   newTemplate.originalShape = originalShape(template, newTemplate.document);
 
   const cfg = {
