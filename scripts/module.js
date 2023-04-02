@@ -104,12 +104,20 @@ Hooks.once("ready", async function() {
   // Happens if templates were created without Walled Templates module enabled
   canvas.templates.objects.children.forEach(t => {
     const shape = t.document.t;
+
     if ( typeof t.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined" ) {
-      t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULTS[shape]));
+      // Conversion from v0.4 properties to v0.5.
+      const enabled = t.document.getFlag(MODULE_ID, "enabled");
+      if ( typeof enabled !== "undefined" ) {
+        t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, enabled
+          ? SETTINGS.DEFAULTS.CHOICES.WALLED : SETTINGS.DEFAULTS.CHOICES.UNWALLED);
+      } else {
+        t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULTS[shape]));
+      }
     }
 
-    if ( typeof t.document.getFlag(MODULE_ID, FLAGS.WALLS_RESTRICTION) === "undefined" ) {
-      t.document.setFlag(MODULE_ID, FLAGS.WALLS_RESTRICTION, CONFIG[MODULE_ID].defaultWallRestrictions[shape]);
+    if ( typeof t.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
+      t.document.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, CONFIG[MODULE_ID].defaultWallRestrictions[shape]);
     }
 
   });
@@ -376,8 +384,8 @@ function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
     updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = getSetting(SETTINGS.DEFAULTS[t]);
   }
 
-  if ( typeof templateD.getFlag(MODULE_ID, FLAGS.WALLS_RESTRICTION) === "undefined" ) {
-    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_RESTRICTION}`] = CONFIG[MODULE_ID].defaultWallRestrictions[t];
+  if ( typeof templateD.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
+    updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = CONFIG[MODULE_ID].defaultWallRestrictions[t];
   }
 
   if ( getSetting(SETTINGS.DIAGONAL_SCALING[t]) ) {
