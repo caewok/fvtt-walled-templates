@@ -6,7 +6,8 @@
 export const MODULE_ID = "walledtemplates";
 
 export const FLAGS = {
-  WALLS_BLOCK: "walls-block"
+  WALLS_BLOCK: "wallsBlock",
+  WALL_RESTRICTION: "wallRestriction"
 };
 
 export const LABELS = {
@@ -15,4 +16,4 @@ export const LABELS = {
     walled: "walledtemplates.MeasuredTemplateConfiguration.walled",
     recurse: "walledtemplates.MeasuredTemplateConfiguration.recurse"
   }
-}
+};

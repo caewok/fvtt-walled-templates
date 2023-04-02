@@ -53,6 +53,13 @@ Hooks.once("init", async function() {
       rect: 4,
       ray: 8,
       cone: 4
+    },
+
+    defaultWallRestrictions: {
+      circle: "move",
+      rect: "move",
+      ray: "move",
+      cone: "move"
     }
   };
 
@@ -96,10 +103,15 @@ Hooks.once("ready", async function() {
   // Ensure every template has an enabled flag; set to world setting if missing.
   // Happens if templates were created without Walled Templates module enabled
   canvas.templates.objects.children.forEach(t => {
-    const shape = t.document.t.toUpperCase();
+    const shape = t.document.t;
     if ( typeof t.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined" ) {
       t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULTS[shape]));
     }
+
+    if ( typeof t.document.getFlag(MODULE_ID, FLAGS.WALLS_RESTRICTION) === "undefined" ) {
+      t.document.setFlag(MODULE_ID, FLAGS.WALLS_RESTRICTION, CONFIG[MODULE_ID].defaultWallRestrictions[shape]);
+    }
+
   });
 });
 
@@ -131,7 +143,11 @@ Hooks.on("renderMeasuredTemplateConfig", async (app, html, data) => {
   if ( !game.modules.get("levels")?.active ) walledTemplatesRenderMeasuredTemplateElevationConfig(app, html, data);
 
   const renderData = {};
-  renderData.walledtemplates = { blockoptions: LABELS.WALLS_BLOCK };
+  renderData.walledtemplates = {
+    blockoptions: LABELS.WALLS_BLOCK,
+    walloptions: Object.fromEntries(CONST.WALL_RESTRICTION_TYPES.map(key => [key, key]))
+   };
+
   foundry.utils.mergeObject(data, renderData, { inplace: true });
 });
 
@@ -340,6 +356,8 @@ Hooks.on("preCreateMeasuredTemplate", preCreateMeasuredTemplateHook);
 function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
   log("Hooking preCreateMeasuredTemplate", templateD, updateData);
 
+  const { distance: gridDist, size: gridSize } = canvas.scene.grid;
+  const { t, distance, direction, x, y } = templateD;
   const updates = {};
 
   // If Levels is active, defer to Levels for template elevation. Otherwise, estimate from token.
@@ -350,57 +368,45 @@ function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
     updates[`flags.levels.elevation`] = elevation;
   }
 
+
   // Only create if the id does not already exist
   if (typeof templateD.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
     // In v10, setting the flag throws an error about not having id
     // template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
-    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = getSetting(SETTINGS.DEFAULT_WALLED);
+    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = getSetting(SETTINGS.DEFAULTS[t]);
   }
 
-  if (typeof templateD.getFlag(MODULE_ID, FLAGS.SPREAD) === "undefined") {
-    // In v10, setting the flag throws an error about not having id
-    // template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
-    updates[`flags.${MODULE_ID}.${FLAGS.SPREAD}`] = getSetting(SETTINGS.DEFAULT_SPREAD);
+  if ( typeof templateD.getFlag(MODULE_ID, FLAGS.WALLS_RESTRICTION) === "undefined" ) {
+    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_RESTRICTION}`] = CONFIG[MODULE_ID].defaultWallRestrictions[t];
   }
 
-  if (typeof templateD.getFlag(MODULE_ID, FLAGS.BOUNCE) === "undefined") {
-    // In v10, setting the flag throws an error about not having id
-    // template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
-    updates[`flags.${MODULE_ID}.${FLAGS.BOUNCE}`] = getSetting(SETTINGS.DEFAULT_BOUNCE);
-  }
+  if ( getSetting(SETTINGS.DIAGONAL_SCALING[t]) ) {
+    if ( t === "circle" && ((distance / gridDist) >= 1) ) {
+      // Switch circles to squares if applicable
+      // Conforms with 5-5-5 diagonal rule.
+      // Only if the template is 1 grid unit or larger.
+      // See dndHelpers for original:
+      // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L91
+      const radiusPx = ( distance / gridDist ) * gridSize;
 
+      // Calculate the square's hypotenuse based on the 5-5-5 diagonal distance
+      const length = distance * 2;
+      const squareDist = Math.hypot(length, length);
 
-  const { distance: gridDist, size: gridSize } = canvas.scene.grid;
-  const { t, distance, direction, x, y } = templateD;
+      log(`preCreateMeasuredTemplate: switching circle ${x},${y} distance ${distance} to rectangle ${x - radiusPx},${y - radiusPx} distance ${squareDist}`);
 
-  if ( t === "circle"
-    && getSetting(SETTINGS.DIAGONAL_SCALING.CIRCLE)
-    && ((distance / gridDist) >= 1) ) {
-    // Switch circles to squares if applicable
-    // Conforms with 5-5-5 diagonal rule.
-    // Only if the template is 1 grid unit or larger.
-    // See dndHelpers for original:
-    // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L91
-    const radiusPx = ( distance / gridDist ) * gridSize;
+      updates.x = templateD.x - radiusPx;
+      updates.y = templateD.y - radiusPx;
+      updates.direction = 45;
+      updates.distance = squareDist;
+      updates.t = "rect";
 
-    // Calculate the square's hypotenuse based on the 5-5-5 diagonal distance
-    const length = distance * 2;
-    const squareDist = Math.hypot(length, length);
-
-    log(`preCreateMeasuredTemplate: switching circle ${x},${y} distance ${distance} to rectangle ${x - radiusPx},${y - radiusPx} distance ${squareDist}`);
-
-    updates.x = templateD.x - radiusPx;
-    updates.y = templateD.y - radiusPx;
-    updates.direction = 45;
-    updates.distance = squareDist;
-    updates.t = "rect";
-
-  } else if ( (t === "ray" && getSetting(SETTINGS.DIAGONAL_SCALING.RAY))
-    || (t === "cone" && getSetting(SETTINGS.DIAGONAL_SCALING.CONE)) ) {
-    // Extend rays or cones to conform to 5-5-5 diagonal, if applicable.
-    // See dndHelpers for original:
-    // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L78
-    updates.distance = scaleDiagonalDistance(direction, distance);
+    } else if ( t === "ray" || t === "cone" ) {
+      // Extend rays or cones to conform to 5-5-5 diagonal, if applicable.
+      // See dndHelpers for original:
+      // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L78
+      updates.distance = scaleDiagonalDistance(direction, distance);
+    }
   }
 
   if ( !isEmpty(updates) ) templateD.updateSource(updates);

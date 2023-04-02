@@ -40,7 +40,7 @@ export function computeSweepPolygon() {
 
   const cfg = {
     debug: debugPolygons(),
-    type: "light",
+    type: this.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) ?? "move",
     source: this,
     boundaryShapes: this.getBoundaryShapes()
   };
@@ -185,8 +185,8 @@ function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastRe
     newTemplate.originalShape = originalShape(template, newTemplate.document);
 
     const cfg = {
-      debug: debugPolygons(),
-      type: "light",
+      debug: sweep.config.debug,
+      type: sweep.config.type,
       source: newTemplate,
       boundaryShapes: getBoundaryShapes.bind(newTemplate)(),
       lightWall: reflectingEdge.wall
@@ -282,8 +282,8 @@ function reflect(template, sweep, fakeTemplate = template, level = 0) {
   newTemplate.originalShape = originalShape(template, newTemplate.document);
 
   const cfg = {
-    debug: debugPolygons(),
-    type: "light",
+    debug: sweep.config.debug,
+    type: sweep.config.type,
     source: newTemplate,
     boundaryShapes: getBoundaryShapes.bind(newTemplate)()
   };
@@ -381,8 +381,8 @@ function spread(template, sweep, fakeTemplate = template, level = 0) {
     newTemplate.originalShape = originalShape(template, newTemplate.document);
 
     const cfg = {
-      debug: debugPolygons(),
-      type: "light",
+      debug: sweep.config.debug,
+      type: sweep.config.type,
       source: newTemplate,
       boundaryShapes: getBoundaryShapes.bind(newTemplate)()
     };
