@@ -9,10 +9,10 @@ import { MODULE_ID } from "./const.js";
 
 export const SETTINGS = {
   DEFAULTS: {
-    CIRCLE: "default_circle",
-    CONE: "default_cone",
-    RAY: "default_ray",
-    RECT: "default_rect",
+    circle: "default_circle",
+    cone: "default_cone",
+    ray: "default_ray",
+    rect: "default_rect",
     CHOICES: {
       UNWALLED: "unwalled",
       WALLED: "walled",
@@ -21,9 +21,9 @@ export const SETTINGS = {
   },
 
   DIAGONAL_SCALING: {
-    RAY: "diagonal-scaling-ray",
-    CONE: "diagonal-scaling-cone",
-    CIRCLE: "diagonal-scaling-circle"
+    ray: "diagonal-scaling-ray",
+    cone: "diagonal-scaling-cone",
+    circle: "diagonal-scaling-circle"
   },
 
   AUTOTARGET: {
@@ -42,7 +42,9 @@ export const SETTINGS = {
       CENTER: "center",
       OVERLAP: "overlap"
     }
-  }
+  },
+
+  CHANGELOG: "changelog"
 };
 
 export function getSetting(settingName) {
@@ -61,9 +63,9 @@ export async function setSetting(settingName, value) {
 export function registerSettings() {
   log("Registering walled template switch");
 
-  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.CIRCLE, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CIRCLE}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CIRCLE}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.circle, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.circle}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.circle}.Hint`),
     scope: "world",
     config: true,
     default: "unwalled",
@@ -75,9 +77,9 @@ export function registerSettings() {
     }
   });
 
-  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.CONE, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CONE}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CONE}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.cone, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.cone}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.cone}.Hint`),
     scope: "world",
     config: true,
     default: "unwalled",
@@ -89,9 +91,9 @@ export function registerSettings() {
     }
   });
 
-  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.RECT, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.RECT}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.RECT}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.rect, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.rect}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.rect}.Hint`),
     scope: "world",
     config: true,
     default: "unwalled",
@@ -104,9 +106,9 @@ export function registerSettings() {
   });
 
 
-  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.RAY, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.RAY}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.RAY}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.ray, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.ray}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.ray}.Hint`),
     scope: "world",
     config: true,
     default: "unwalled",
@@ -173,27 +175,27 @@ export function registerSettings() {
       || value === SETTINGS.AUTOTARGET.CHOICES.YES)
   });
 
-  game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.RAY, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.RAY}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.RAY}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.ray, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.ray}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.ray}.Hint`),
     type: Boolean,
     default: false,
     scope: "world",
     config: true
   });
 
-  game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.CONE, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.CONE}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.CONE}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.cone, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.cone}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.cone}.Hint`),
     type: Boolean,
     default: false,
     scope: "world",
     config: true
   });
 
-  game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.CIRCLE, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.CIRCLE}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.CIRCLE}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.circle, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.circle}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.circle}.Hint`),
     type: Boolean,
     default: false,
     scope: "world",

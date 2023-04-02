@@ -1,7 +1,10 @@
 {
     "walledtemplates.MeasuredTemplateConfiguration.LegendTitle": "Walled Templates",
     "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name": "Walls",
-    "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint": "Select whether walls do or do not block this template. Alternatively, select spread/reflect to have circles/rectangles spread around corners and rays/cones reflect off walls.",
+    "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint": "Circles/Rectangles: Spread; Rays/Cones: Reflect.",
+
+    "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name": "Wall Restriction Type",
+    "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint": "Walls that do not block this restriction type will be ignored by the template",
 
     "walledtemplates.MeasuredTemplateConfiguration.unwalled": "Do not block template",
     "walledtemplates.MeasuredTemplateConfiguration.walled": "Block template",

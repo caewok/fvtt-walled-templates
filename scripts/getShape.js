@@ -11,7 +11,7 @@ foundry
 "use strict";
 
 import { log } from "./util.js";
-import { debugPolygons } from "./settings.js";
+import { debugPolygons, SETTINGS } from "./settings.js";
 import { MODULE_ID, FLAGS } from "./const.js";
 import { ClockwiseSweepShape, pointFromKey } from "./ClockwiseSweepShape.js";
 import { ClipperPaths } from "./geometry/ClipperPaths.js";
@@ -40,7 +40,7 @@ export function computeSweepPolygon() {
 
   const cfg = {
     debug: debugPolygons(),
-    type: "light",
+    type: this.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) ?? "move",
     source: this,
     boundaryShapes: this.getBoundaryShapes()
   };
@@ -58,7 +58,8 @@ export function computeSweepPolygon() {
   const templateShape = this.document.t;
   let shape = sweep;
 
-  if ( this.document.getFlag(MODULE_ID, FLAGS.RECURSE) && CONFIG[MODULE_ID].recursions[templateShape] ) {
+  if ( this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === SETTINGS.DEFAULTS.CHOICES.RECURSE
+    && CONFIG[MODULE_ID].recursions[templateShape] ) {
     let recurseFn;
     switch ( templateShape ) {
       case "circle":
@@ -185,8 +186,8 @@ function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastRe
     newTemplate.originalShape = originalShape(template, newTemplate.document);
 
     const cfg = {
-      debug: debugPolygons(),
-      type: "light",
+      debug: sweep.config.debug,
+      type: sweep.config.type,
       source: newTemplate,
       boundaryShapes: getBoundaryShapes.bind(newTemplate)(),
       lightWall: reflectingEdge.wall
@@ -282,8 +283,8 @@ function reflect(template, sweep, fakeTemplate = template, level = 0) {
   newTemplate.originalShape = originalShape(template, newTemplate.document);
 
   const cfg = {
-    debug: debugPolygons(),
-    type: "light",
+    debug: sweep.config.debug,
+    type: sweep.config.type,
     source: newTemplate,
     boundaryShapes: getBoundaryShapes.bind(newTemplate)()
   };
@@ -381,8 +382,8 @@ function spread(template, sweep, fakeTemplate = template, level = 0) {
     newTemplate.originalShape = originalShape(template, newTemplate.document);
 
     const cfg = {
-      debug: debugPolygons(),
-      type: "light",
+      debug: sweep.config.debug,
+      type: sweep.config.type,
       source: newTemplate,
       boundaryShapes: getBoundaryShapes.bind(newTemplate)()
     };
@@ -427,7 +428,7 @@ function useSweep(template) {
   //     && canvas.walls.quadtree
   //     && canvas.walls.innerBounds.length;
 
-  if ( !template.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) ) {
+  if ( template.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === SETTINGS.DEFAULTS.CHOICES.UNWALLED ) {
     log("useBoundaryPolygon|not enabled. Skipping sweep.");
     return false;
   }
