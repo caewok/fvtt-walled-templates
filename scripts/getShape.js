@@ -54,21 +54,19 @@ export function computeSweepPolygon() {
   sweep.initialize(origin, cfg);
   sweep.compute();
 
-  // TODO: Bounce and spread probably need to be combined as one.
+  // Spread or reflect, based on settings and template shape.
+  const templateShape = this.document.t;
   let shape = sweep;
-  if ( this.document.getFlag(MODULE_ID, FLAGS.SPREAD) && CONFIG[MODULE_ID].spreadRecursions ) {
-    const polys = spread(this, sweep);
-    polys.push(sweep);
-    const paths = ClipperPaths.fromPolygons(polys);
-    const combined = paths.combine();
-    combined.clean();
-    shape = combined.toPolygons()[0]; // TODO: Can there ever be more than 1?
-    shape.polys = polys;
-  }
 
-  if ( this.document.getFlag(MODULE_ID, FLAGS.BOUNCE) && CONFIG[MODULE_ID].bounceRecursions ) {
-    const bounceFn = this.document.t === "cone" ? bounceCone : bounce;
-    const polys = bounceFn(this, sweep);
+  if ( this.document.getFlag(MODULE_ID, FLAGS.RECURSE) && CONFIG[MODULE_ID].recursions[templateShape] ) {
+    let recurseFn;
+    switch ( templateShape ) {
+      case "circle":
+      case "rect": recurseFn = spread; break;
+      case "cone": recurseFn = reflectCone; break;
+      case "ray": recurseFn = reflect; break;
+    }
+    const polys = recurseFn(this, sweep);
     polys.push(sweep);
     const paths = ClipperPaths.fromPolygons(polys);
     const combined = paths.combine();
@@ -84,10 +82,10 @@ export function computeSweepPolygon() {
   return poly;
 }
 
-// TODO: Combine bounce and spread into single function with helpers to calc newTemplate for each.
-// When spread + bounce, calculate at each corner and each wall!
+// TODO: Combine reflect and spread into single function with helpers to calc newTemplate for each.
+// When spread + reflect, calculate at each corner and each wall!
 
-// TODO: For cones, the bounce should be from the edges of the cone.
+// TODO: For cones, the reflect should be from the edges of the cone.
 // One approach: Shoot the reflected middle line straight through the wall.
 //   At the distance between template origin and wall intersection, that is the new origin.
 //   Cone sides go from there through the wall. In other words, the entire cone is reflected.
@@ -103,10 +101,9 @@ const COLLINEAR_MIN_POS = 10;
  * The shadow cone is the cone shape that could be used to describe the reflection,
  * where the origin is the reflection of the original origin, through the wall.
  */
-function bounceCone(template, sweep, fakeTemplate = template, level = 0, lastReflectedWall = undefined) {
+function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastReflectedWall = undefined) {
   level += 1;
   const polys = [];
-  const useRecursion = level < CONFIG[MODULE_ID].bounceRecursions;
 
   const d = canvas.dimensions;
   const dMult = (d.size / d.distance);
@@ -116,6 +113,7 @@ function bounceCone(template, sweep, fakeTemplate = template, level = 0, lastRef
   const dirRay = Ray.fromAngle(templateOrigin.x, templateOrigin.y, angle, doc.distance * dMult);
   const maxDist = doc.distance * dMult;
   const maxDist2 = Math.pow(maxDist, 2);
+  const useRecursion = level < CONFIG[MODULE_ID].recursions[doc.t];
 
   // Locate wall segments that the cone hits.
   // For each segment, calculate the reflection ray based on normal of that edge.
@@ -208,7 +206,7 @@ function bounceCone(template, sweep, fakeTemplate = template, level = 0, lastRef
     //   Draw.shape(reflectionSweep);
 
     if ( useRecursion ) {
-      const res = bounceCone(template, reflectionSweep, newTemplate, level, reflectingEdge.wall);
+      const res = reflectCone(template, reflectionSweep, newTemplate, level, reflectingEdge.wall);
       polys.push(...res);
     }
   }
@@ -222,11 +220,9 @@ function bounceCone(template, sweep, fakeTemplate = template, level = 0, lastRef
  * re-run sweep, changing the direction based on bouncing it off the wall.
  * Use remaining distance.
  */
-function bounce(template, sweep, fakeTemplate = template, level = 0) {
+function reflect(template, sweep, fakeTemplate = template, level = 0) {
   level += 1;
   const polys = [];
-  const useRecursion = level < CONFIG[MODULE_ID].bounceRecursions;
-
   const d = canvas.dimensions;
   const dMult = (d.size / d.distance);
   const dInv = 1 / dMult;
@@ -234,6 +230,7 @@ function bounce(template, sweep, fakeTemplate = template, level = 0) {
   const templateOrigin = new PIXI.Point(sweep.origin.x, sweep.origin.y);
   const angle = Math.toRadians(doc.direction);
   const dirRay = Ray.fromAngle(templateOrigin.x, templateOrigin.y, angle, doc.distance * dMult);
+  const useRecursion = level < CONFIG[MODULE_ID].recursions[doc.t];
 
   // Sort walls by closest collision to the template origin, skipping those that do not intersect.
   const walls = [];
@@ -304,7 +301,7 @@ function bounce(template, sweep, fakeTemplate = template, level = 0) {
   //   Draw.shape(newSweep);
 
   if ( useRecursion ) {
-    const res = bounce(template, newSweep, newTemplate, level);
+    const res = reflect(template, newSweep, newTemplate, level);
     polys.push(...res);
   }
 
@@ -316,7 +313,7 @@ function bounce(template, sweep, fakeTemplate = template, level = 0) {
  * See:
  * https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
  * http://paulbourke.net/geometry/reflected/
- * @param {Ray|Segment} ray     Ray to bounce off the edge
+ * @param {Ray|Segment} ray     Ray to reflect off the edge
  * @param {Ray|Segment} edge    Segment with A and B endpoints
  * @returns {null|{ reflectionPoint: {PIXI.Point}, reflectionRay: {Ray}, Rr: {PIXI.Point} }}
  */
@@ -355,12 +352,11 @@ function reflectRayOffEdge(ray, edge, reflectionPoint) {
 function spread(template, sweep, fakeTemplate = template, level = 0) {
   level += 1;
   const polys = [];
-  const useRecursion = level < CONFIG[MODULE_ID].spreadRecursions;
-
   const d = canvas.dimensions;
   const dMult = (d.size / d.distance);
   const dInv = 1 / dMult;
   const doc = fakeTemplate.document;
+  const useRecursion = level < CONFIG[MODULE_ID].recursions[doc.t];
   for ( const cornerKey of sweep.cornersEncountered ) {
     const origin = pointFromKey(cornerKey);
 

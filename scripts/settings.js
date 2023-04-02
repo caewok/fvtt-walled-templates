@@ -8,9 +8,17 @@ import { log } from "./util.js";
 import { MODULE_ID } from "./const.js";
 
 export const SETTINGS = {
-  DEFAULT_WALLED: "default-to-walled",
-  DEFAULT_SPREAD: "default-to-spread",
-  DEFAULT_BOUNCE: "default-to-bounce",
+  DEFAULTS: {
+    CIRCLE: "default_circle",
+    CONE: "default_cone",
+    RAY: "default_ray",
+    RECT: "default_rect",
+    CHOICES: {
+      UNWALLED: "unwalled",
+      WALLED: "walled",
+      RECURSE: "recurse"
+    }
+  },
 
   DIAGONAL_SCALING: {
     RAY: "diagonal-scaling-ray",
@@ -53,31 +61,61 @@ export async function setSetting(settingName, value) {
 export function registerSettings() {
   log("Registering walled template switch");
 
-  game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALLED, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLED}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLED}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.CIRCLE, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CIRCLE}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CIRCLE}.Hint`),
     scope: "world",
     config: true,
-    default: true,
-    type: Boolean
+    default: "unwalled",
+    type: String,
+    choices: {
+      [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
+      [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
+      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`),
+    }
   });
 
-  game.settings.register(MODULE_ID, SETTINGS.DEFAULT_SPREAD, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_SPREAD}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_SPREAD}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.CONE, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CONE}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CONE}.Hint`),
     scope: "world",
     config: true,
-    default: false,
-    type: Boolean
+    default: "unwalled",
+    type: String,
+    choices: {
+      [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
+      [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
+      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`),
+    }
   });
 
-  game.settings.register(MODULE_ID, SETTINGS.DEFAULT_BOUNCE, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_BOUNCE}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_BOUNCE}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.RECT, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.RECT}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.RECT}.Hint`),
     scope: "world",
     config: true,
-    default: false,
-    type: Boolean
+    default: "unwalled",
+    type: String,
+    choices: {
+      [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
+      [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
+      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`),
+    }
+  });
+
+
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.RAY, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.RAY}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.RAY}.Hint`),
+    scope: "world",
+    config: true,
+    default: "unwalled",
+    type: String,
+    choices: {
+      [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
+      [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
+      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`),
+    }
   });
 
   game.settings.register(MODULE_ID, SETTINGS.AUTOTARGET.ENABLED, {

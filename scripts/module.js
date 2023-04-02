@@ -18,7 +18,7 @@ await foundry.utils.benchmark(fn, 1e04, t)
 // Basics
 import { log } from "./util.js";
 import { SETTINGS, registerSettings, getSetting, toggleSetting } from "./settings.js";
-import { MODULE_ID, FLAGS } from "./const.js";
+import { MODULE_ID, FLAGS, LABELS } from "./const.js";
 
 // Patches
 import { registerWalledTemplates } from "./patching.js";
@@ -44,16 +44,16 @@ Hooks.once("init", async function() {
   // Set CONFIGS used by this module.
   CONFIG[MODULE_ID] = {
     /**
-     * Number of recursions when calculating spread.
-     * @type {number}
+     * Number of recursions for each template type when using spread or reflect.
+     * (circle|rect: spread; ray|cone: reflect)
+     * @type { object: number }
      */
-    spreadRecursions: 2,
-
-    /**
-     * Number of recursions when calculating bounce.
-     * @type {number}
-     */
-    bounceRecursions: 0
+    recursions: {
+      circle: 4,
+      rect: 4,
+      ray: 8,
+      cone: 4
+    }
   };
 
   registerWalledTemplates();
@@ -96,16 +96,9 @@ Hooks.once("ready", async function() {
   // Ensure every template has an enabled flag; set to world setting if missing.
   // Happens if templates were created without Walled Templates module enabled
   canvas.templates.objects.children.forEach(t => {
+    const shape = t.document.t.toUpperCase();
     if ( typeof t.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined" ) {
-      t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULT_WALLED));
-    }
-
-    if ( typeof t.document.getFlag(MODULE_ID, FLAGS.SPREAD) === "undefined" ) {
-      t.document.setFlag(MODULE_ID, FLAGS.SPREAD, getSetting(SETTINGS.DEFAULT_SPREAD));
-    }
-
-    if ( typeof t.document.getFlag(MODULE_ID, FLAGS.BOUNCE) === "undefined" ) {
-      t.document.setFlag(MODULE_ID, FLAGS.BOUNCE, getSetting(SETTINGS.DEFAULT_BOUNCE));
+      t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULTS[shape]));
     }
   });
 });
@@ -136,6 +129,10 @@ Hooks.on("getSceneControlButtons", controls => {
 Hooks.on("renderMeasuredTemplateConfig", async (app, html, data) => {
   walledTemplatesRenderMeasuredTemplateConfig(app, html, data);
   if ( !game.modules.get("levels")?.active ) walledTemplatesRenderMeasuredTemplateElevationConfig(app, html, data);
+
+  const renderData = {};
+  renderData.walledtemplates = { blockoptions: LABELS.WALLS_BLOCK };
+  foundry.utils.mergeObject(data, renderData, { inplace: true });
 });
 
 
