@@ -115,6 +115,7 @@ function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastRe
   const maxDist = doc.distance * dMult;
   const maxDist2 = Math.pow(maxDist, 2);
   const useRecursion = level < CONFIG[MODULE_ID].recursions[doc.t];
+  const orient = foundry.utils.orient2dFast;
 
   // Locate wall segments that the cone hits.
   // For each segment, calculate the reflection ray based on normal of that edge.
@@ -132,7 +133,7 @@ function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastRe
       // Any reflecting edge must be on the side of the reflecting wall opposite the origin.
       // Omit the last reflected wall.
       if ( edge.id === lastReflectedWall.id ) continue;
-      const oEdge = foundry.utils.orient2dFast(edge.A, edge.B, templateOrigin);
+      const oEdge = orient(edge.A, edge.B, templateOrigin);
       if ( Math.sign(oEdge) === oLastReflected ) continue;
     }
 
@@ -143,8 +144,8 @@ function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastRe
 
     // Edge will be nearly collinear with sweep edge, but probably not exactly b/c sweep rounds endpoints.
     for ( const sweepEdge of sweepEdges ) {
-      if ( Number.between(foundry.utils.orient2dFast(edge.A, edge.B, sweepEdge.A), COLLINEAR_MIN_NEG, COLLINEAR_MIN_POS)
-        && Number.between(foundry.utils.orient2dFast(edge.A, edge.B, sweepEdge.B), COLLINEAR_MIN_NEG, COLLINEAR_MIN_POS) ) {
+      if ( Number.between(orient(edge.A, edge.B, sweepEdge.A), COLLINEAR_MIN_NEG, COLLINEAR_MIN_POS)
+        && Number.between(orient(edge.A, edge.B, sweepEdge.B), COLLINEAR_MIN_NEG, COLLINEAR_MIN_POS) ) {
 
         sweepEdge.wall = edge;
         reflectingEdges.push(sweepEdge);
@@ -511,9 +512,8 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance, 
  * @param {Number}    distance
  * @return {PIXI.Polygon}
  */
-export function _getConeShapeSwadeMeasuredTemplate(wrapped, direction, angle, distance, returnOriginal = !useSweep(this)) {
-  log(`_getConeShapeSwadeMeasuredTemplate with direction ${direction}, angle ${angle}, distance ${distance}, origin ${this.x},${this.y}`, this);
-
+export function _getConeShapeSwadeMeasuredTemplate(wrapped, direction, angle, distance,
+  returnOriginal = !useSweep(this)) {
   // Make sure the default shape is constructed.
   this.originalShape = wrapped(direction, angle, distance);
   if ( returnOriginal ) return this.originalShape;

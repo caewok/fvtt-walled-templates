@@ -1,7 +1,9 @@
 /* globals
 libWrapper,
 game,
-MeasuredTemplate
+MeasuredTemplate,
+MeasuredTemplateDocument,
+canvas
 */
 
 "use strict";
@@ -89,7 +91,7 @@ export function registerWalledTemplates() {
 
   if ( !Object.hasOwn(MeasuredTemplateDocument.prototype, "elevation") ) {
     Object.defineProperty(MeasuredTemplateDocument.prototype, "elevation", {
-      get: function () {
+      get: function() {
         return this.flags?.levels?.elevation ?? canvas.primary.background.elevation;
       }
     });

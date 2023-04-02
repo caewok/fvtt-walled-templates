@@ -21,8 +21,6 @@ function pointFromKey(key) {
 t.shape._sweep.edgesEncountered.forEach(edge => draw.segment(edge))
 t.shape._sweep.cornersEncountered.forEach(corner => draw.point(pointFromKey(corner), { radius: 2 }))
 
-
-
 */
 
 /**
@@ -134,5 +132,5 @@ export function keyFromPoint(x, y) {
 export function pointFromKey(key) {
   const x = ~~(key * INV_MAX_TEXTURE_SIZE);
   const y = key % MAX_TEXTURE_SIZE;
-  return {x, y}
+  return {x, y};
 }

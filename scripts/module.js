@@ -2,7 +2,10 @@
 Hooks,
 game,
 canvas,
-isEmpty
+isEmpty,
+CONFIG,
+CONST,
+foundry
 */
 
 "use strict";
@@ -157,7 +160,7 @@ Hooks.on("renderMeasuredTemplateConfig", async (app, html, data) => {
   renderData.walledtemplates = {
     blockoptions: LABELS.WALLS_BLOCK,
     walloptions: Object.fromEntries(CONST.WALL_RESTRICTION_TYPES.map(key => [key, key]))
-   };
+  };
 
   foundry.utils.mergeObject(data, renderData, { inplace: true });
 });
@@ -376,7 +379,7 @@ function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
     const elevation = estimateTemplateElevation(id);
 
     // Add elevation flag. Sneakily, use the levels flag.
-    updates[`flags.levels.elevation`] = elevation;
+    updates["flags.levels.elevation"] = elevation;
   }
 
 
@@ -444,9 +447,9 @@ function scaleDiagonalDistance(direction, distance) {
 Hooks.on("controlToken", controlTokenHook);
 
 function controlTokenHook(object, controlled) {
-  console.log(`controlTokenHook for user ${game.userId} with ${object.name} controlled: ${controlled}`)
+  console.log(`controlTokenHook for user ${game.userId} with ${object.name} controlled: ${controlled}`);
   const user = game.user;
 
   if ( controlled ) user._lastSelected = object;
-  else if ( user.lastSelected = object ) user._lastDeselected = object;
+  else if ( user.lastSelected === object ) user._lastDeselected = object;
 }

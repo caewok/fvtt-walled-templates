@@ -1,11 +1,11 @@
 /* globals
 CONFIG,
-renderTemplate
+renderTemplate,
+CONST
 */
 
 "use strict";
 
-import { log } from "./util.js";
 import { getSetting, SETTINGS } from "./settings.js";
 import { MODULE_ID, FLAGS, LABELS } from "./const.js";
 
@@ -48,7 +48,7 @@ export function walledTemplate5eFromItem(wrapped, item) {
 
   if (template) {
     const wallsblock = item.data.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK);
-    const wallrestriction = item.data.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
+    const wallrestriction = item.data.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION);
 
     // Cannot use setFlag b/c template.data has no id
 

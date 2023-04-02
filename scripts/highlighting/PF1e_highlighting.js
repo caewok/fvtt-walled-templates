@@ -24,5 +24,3 @@ export function WalledTemplatesPF1eGetHighlightedSquares(wrapped) {
     return this.boundsOverlap(shape);
   });
 }
-
-

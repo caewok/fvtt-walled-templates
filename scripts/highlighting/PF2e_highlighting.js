@@ -66,12 +66,12 @@ export function WalledTemplatesPF2eHighlightGrid(wrapped) {
     // in the direction we're looking on X axis
     const xOffset =
       this.data.x % dimensions.size !== 0
-        ? Math.sign((1 * Math.round(Math.cos(Math.toRadians(dir)) * 100)) / 100) / 2
+        ? Math.sign((Number(Math.round(Math.cos(Math.toRadians(dir)) * 100))) / 100) / 2
         : 0;
     // Same for Y, but cos Y goes down on screens, we invert
     const yOffset =
       this.data.y % dimensions.size !== 0
-        ? -Math.sign((1 * Math.round(Math.sin(Math.toRadians(dir)) * 100)) / 100) / 2
+        ? -Math.sign((Number(1 * Math.round(Math.sin(Math.toRadians(dir)) * 100))) / 100) / 2
         : 0;
     originOffset.x = xOffset;
     originOffset.y = yOffset;
