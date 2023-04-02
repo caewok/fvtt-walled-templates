@@ -15,7 +15,6 @@ import { debugPolygons } from "./settings.js";
 import { MODULE_ID, FLAGS } from "./const.js";
 import { ClockwiseSweepShape, pointFromKey } from "./ClockwiseSweepShape.js";
 import { ClipperPaths } from "./geometry/ClipperPaths.js";
-import { Draw } from "./geometry/Draw.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
 
 /**
@@ -93,9 +92,8 @@ export function computeSweepPolygon() {
 //   At the distance between template origin and wall intersection, that is the new origin.
 //   Cone sides go from there through the wall. In other words, the entire cone is reflected.
 
-
-  const COLLINEAR_MIN_NEG = -10;
-  const COLLINEAR_MIN_POS = 10;
+const COLLINEAR_MIN_NEG = -10;
+const COLLINEAR_MIN_POS = 10;
 
 /**
  * For each wall within the distance of the template origin,
@@ -105,14 +103,13 @@ export function computeSweepPolygon() {
  * The shadow cone is the cone shape that could be used to describe the reflection,
  * where the origin is the reflection of the original origin, through the wall.
  */
-function bounceCone(template, sweep, fakeTemplate = template, level = 0, lastReflectedWall) {
+function bounceCone(template, sweep, fakeTemplate = template, level = 0, lastReflectedWall = undefined) {
   level += 1;
   const polys = [];
   const useRecursion = level < CONFIG[MODULE_ID].bounceRecursions;
 
   const d = canvas.dimensions;
   const dMult = (d.size / d.distance);
-  const dInv = 1 / dMult;
   const doc = fakeTemplate.document;
   const templateOrigin = new PIXI.Point(sweep.origin.x, sweep.origin.y);
   const angle = Math.toRadians(doc.direction);
@@ -126,7 +123,9 @@ function bounceCone(template, sweep, fakeTemplate = template, level = 0, lastRef
   // and set origin to the point centered on the edge, slightly to the template origin side of the edge.
   const reflectingEdges = [];
   const sweepEdges = [...sweep.iterateEdges()];
-  const oLastReflected = lastReflectedWall ? Math.sign(foundry.utils.orient2dFast(lastReflectedWall.A, lastReflectedWall.B, templateOrigin)) : undefined;
+  const oLastReflected = lastReflectedWall
+    ? Math.sign(foundry.utils.orient2dFast(lastReflectedWall.A, lastReflectedWall.B, templateOrigin))
+    : undefined;
 
   for ( const edge of sweep.edgesEncountered ) {
     if ( lastReflectedWall ) {
@@ -159,27 +158,7 @@ function bounceCone(template, sweep, fakeTemplate = template, level = 0, lastRef
   // For each reflecting edge, create a cone template using a shadow cone based on reflected distance.
   // Set origin of the sweep to just inside the edge, in the middle.
   for ( const reflectingEdge of reflectingEdges ) {
-    const dx = reflectingEdge.B.x - reflectingEdge.A.x;
-    const dy = reflectingEdge.B.y - reflectingEdge.A.y;
-    const ix = foundry.utils.lineLineIntersection(dirRay.A, dirRay.B, reflectingEdge.A, reflectingEdge.B);
-    const reflectionPoint = new PIXI.Point(ix.x, ix.y);
-
-    // https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
-    // http://paulbourke.net/geometry/reflected/
-    const normals = [
-      new PIXI.Point(-dy, dx),
-      new PIXI.Point(dy, -dx)].map(n => n.normalize());
-
-    const N = PIXI.Point.distanceSquaredBetween(templateOrigin, reflectionPoint.add(normals[0]))
-      < PIXI.Point.distanceSquaredBetween(templateOrigin, reflectionPoint.add(normals[0]))
-      ? normals[0] : normals[1];
-
-    const Ri = reflectionPoint.subtract(templateOrigin);
-
-    // Rr = Ri - 2 * N * (Ri dot N)
-    const dot = Ri.dot(N);
-    const Rr = Ri.subtract(N.multiplyScalar(2 * dot));
-    const reflectionRay = new Ray(reflectionPoint, reflectionPoint.add(Rr));
+    const { reflectionPoint, reflectionRay, Rr } = reflectRayOffEdge(dirRay, reflectingEdge);
 
     //   Draw.segment(reflectionRay);
     //   Draw.point(reflectionPoint);
@@ -190,11 +169,8 @@ function bounceCone(template, sweep, fakeTemplate = template, level = 0, lastRef
     const shadowConeOrigin = reflectionPoint.subtract(shadowConeV);
     // Draw.point(shadowConeOrigin)
 
-    //
-
     // Set the new sweep origin to be just inside the reflecting wall, to avoid using sweep
     // on the wrong side of the wall.
-
     const newTemplate = {
       document: {
         x: shadowConeOrigin.x,
@@ -224,7 +200,7 @@ function bounceCone(template, sweep, fakeTemplate = template, level = 0, lastRef
     shadowConeOrigin.object = {};
 
     const reflectionSweep = new LightWallSweep();
-    reflectionSweep.initialize(shadowConeOrigin, cfg)
+    reflectionSweep.initialize(shadowConeOrigin, cfg);
     reflectionSweep.compute();
 
     polys.push(reflectionSweep);
@@ -235,11 +211,10 @@ function bounceCone(template, sweep, fakeTemplate = template, level = 0, lastRef
       const res = bounceCone(template, reflectionSweep, newTemplate, level, reflectingEdge.wall);
       polys.push(...res);
     }
-
-    return polys;
   }
-}
 
+  return polys;
+}
 
 
 /**
@@ -280,28 +255,13 @@ function bounce(template, sweep, fakeTemplate = template, level = 0) {
   walls.sort((a, b) => a._reflectionDistance - b.reflectionDistance);
   const reflectedWall = walls[0];
   const reflectionPoint = new PIXI.Point(reflectedWall._reflectionPoint.x, reflectedWall._reflectionPoint.y);
+  const { reflectionRay, Rr } = reflectRayOffEdge(dirRay, reflectedWall, reflectionPoint);
 
-  // https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
-  // http://paulbourke.net/geometry/reflected/
-  const normals = [
-    new PIXI.Point(-reflectedWall.dy, reflectedWall.dx),
-    new PIXI.Point(reflectedWall.dy, -reflectedWall.dx)].map(n => n.normalize());
-
-  const N = PIXI.Point.distanceSquaredBetween(templateOrigin, reflectionPoint.add(normals[0]))
-    < PIXI.Point.distanceSquaredBetween(templateOrigin, reflectionPoint.add(normals[0]))
-    ? normals[0] : normals[1];
-
-  const Ri = reflectionPoint.subtract(templateOrigin);
-
-  // Rr = Ri - 2 * N * (Ri dot N)
-  const dot = Ri.dot(N);
-  const Rr = Ri.subtract(N.multiplyScalar(2 * dot));
-  const reflectionRay = new Ray(reflectionPoint, reflectionPoint.add(Rr));
 
   // Set the new origin to be just inside the reflecting wall, to avoid using sweep
   // on the wrong side of the wall.
   const reflectedOrigin = reflectionPoint.add(Rr.normalize());
-  //const reflectedOrigin = reflectionPoint;
+  // This version would be on the wall: const reflectedOrigin = reflectionPoint;
 
   //   Draw.segment(reflectionRay);
   //   Draw.point(reflectionPoint);
@@ -349,6 +309,43 @@ function bounce(template, sweep, fakeTemplate = template, level = 0) {
   }
 
   return polys;
+}
+
+/**
+ * Given a ray and an edge, calculate the reflection off the edge.
+ * See:
+ * https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
+ * http://paulbourke.net/geometry/reflected/
+ * @param {Ray|Segment} ray     Ray to bounce off the edge
+ * @param {Ray|Segment} edge    Segment with A and B endpoints
+ * @returns {null|{ reflectionPoint: {PIXI.Point}, reflectionRay: {Ray}, Rr: {PIXI.Point} }}
+ */
+function reflectRayOffEdge(ray, edge, reflectionPoint) {
+  if ( !reflectionPoint ) {
+    const ix = foundry.utils.lineLineIntersection(ray.A, ray.B, edge.A, edge.B);
+    if ( !ix ) return null;
+    reflectionPoint = new PIXI.Point(ix.x, ix.y);
+  }
+
+  // Calculate the normals for the edge; pick the one closest to the origin of the ray.
+  const dx = edge.B.x - edge.A.x;
+  const dy = edge.B.y - edge.A.y;
+  const normals = [
+    new PIXI.Point(-dy, dx),
+    new PIXI.Point(dy, -dx)].map(n => n.normalize());
+  const N = PIXI.Point.distanceSquaredBetween(ray.A, reflectionPoint.add(normals[0]))
+    < PIXI.Point.distanceSquaredBetween(ray.A, reflectionPoint.add(normals[1]))
+    ? normals[0] : normals[1];
+
+  // Calculate the incidence vector.
+  const Ri = reflectionPoint.subtract(ray.A);
+
+  // Rr = Ri - 2 * N * (Ri dot N)
+  const dot = Ri.dot(N);
+  const Rr = Ri.subtract(N.multiplyScalar(2 * dot));
+  const reflectionRay = new Ray(reflectionPoint, reflectionPoint.add(Rr));
+
+  return { reflectionPoint, reflectionRay, Rr };
 }
 
 /**
