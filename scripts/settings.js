@@ -42,7 +42,9 @@ export const SETTINGS = {
       CENTER: "center",
       OVERLAP: "overlap"
     }
-  }
+  },
+
+  CHANGELOG: "changelog"
 };
 
 export function getSetting(settingName) {

@@ -30,6 +30,9 @@ import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTempl
 
 import * as getShape from "./getShape.js";
 
+// Self-executing scripts for hooks
+import "./changelog.js";
+
 /**
  * Tell DevMode that we want a flag for debugging this module.
  * https://github.com/League-of-Foundry-Developers/foundryvtt-devMode
