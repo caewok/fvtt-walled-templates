@@ -17,6 +17,10 @@ import { ClockwiseSweepShape, pointFromKey } from "./ClockwiseSweepShape.js";
 import { ClipperPaths } from "./geometry/ClipperPaths.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
 
+
+// Number of pixels to push away from a corner when generating a spread template.
+const CORNER_SPACER = 10;
+
 /**
  * Use ClockwiseSweep to construct the polygon shape, passing it this template object.
  */
@@ -184,7 +188,10 @@ function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastRe
       }
     };
 
+    // Cache the original template shape to avoid replacing it.
+    const templateShape = template.originalShape;
     newTemplate.originalShape = originalShape(template, newTemplate.document);
+    template.originalShape = templateShape;
 
     const cfg = {
       debug: sweep.config.debug,
@@ -281,7 +288,10 @@ function reflect(template, sweep, fakeTemplate = template, level = 0) {
     }
   };
 
+  // Cache the original template shape to avoid replacing it.
+  const templateShape = template.originalShape;
   newTemplate.originalShape = originalShape(template, newTemplate.document);
+  template.originalShape = templateShape;
 
   const cfg = {
     debug: sweep.config.debug,
@@ -360,18 +370,22 @@ function spread(template, sweep, fakeTemplate = template, level = 0) {
   const doc = fakeTemplate.document;
   const useRecursion = level < CONFIG[MODULE_ID].recursions[doc.t];
   for ( const cornerKey of sweep.cornersEncountered ) {
-    const origin = pointFromKey(cornerKey);
+    const corner = pointFromKey(cornerKey);
 
     // If the corner is beyond the template, ignore.
-    const dist = PIXI.Point.distanceBetween(sweep.origin, origin);
+    const dist = PIXI.Point.distanceBetween(sweep.origin, corner);
     const distGrid = dist * dInv;
     if ( doc.distance < distGrid ) continue;
+
+    // Adjust the origin so that it is 2 pixels off the wall at that corner, in direction of the wall.
+    // If more than one wall, find the balance point.
+    const extendedCorner = extendCornerFromWalls(cornerKey, sweep.edgesEncountered, sweep.origin);
 
     // Construct a fake template to use for the sweep.
     const newTemplate = {
       document: {
-        x: origin.x,
-        y: origin.y,
+        x: corner.x,
+        y: corner.y,
         direction: doc.direction,
         distance: doc.distance - distGrid,
         angle: doc.angle,
@@ -380,7 +394,11 @@ function spread(template, sweep, fakeTemplate = template, level = 0) {
         elevation: doc.elevation ?? 0
       }
     };
+
+    // Cache the original template shape to avoid replacing it.
+    const templateShape = template.originalShape;
     newTemplate.originalShape = originalShape(template, newTemplate.document);
+    template.originalShape = templateShape;
 
     const cfg = {
       debug: sweep.config.debug,
@@ -390,12 +408,12 @@ function spread(template, sweep, fakeTemplate = template, level = 0) {
     };
 
     // Add in elevation for Wall Height to use
-    origin.b = newTemplate.document.elevation;
-    origin.t = newTemplate.document.elevation;
-    origin.object = {};
+    extendedCorner.b = newTemplate.document.elevation;
+    extendedCorner.t = newTemplate.document.elevation;
+    extendedCorner.object = {};
 
     const newSweep = new ClockwiseSweepShape();
-    newSweep.initialize(origin, cfg);
+    newSweep.initialize(extendedCorner, cfg);
     newSweep.compute();
     polys.push(newSweep);
 
@@ -405,6 +423,129 @@ function spread(template, sweep, fakeTemplate = template, level = 0) {
     }
   }
   return polys;
+}
+
+/**
+ * Adjust a corner point to offset from the wall by 2 pixels.
+ * Offset should move in the direction of the wall.
+ * If more than one wall at this corner, use the average vector between the
+ * rightmost and leftmost walls on the side of the template origin.
+ * @param {number} cornerKey      Key value for the corner
+ * @param {Set<Wall>} wallSet     Walls to test
+ * @param {Point} templateOrigin  Origin of the template
+ */
+function extendCornerFromWalls(cornerKey, wallSet, templateOrigin) {
+  if ( !wallSet.size ) return pointFromKey(cornerKey);
+
+  const walls = [...wallSet].filter(w => w.wallKeys.has(cornerKey));
+  if ( !walls.length ) return pointFromKey(cornerKey); // Should not occur.
+  if ( walls.length === 1 ) {
+    const w = walls[0];
+    let [cornerPt, otherPt] = w.A.key === cornerKey ? [w.A, w.B] : [w.B, w.A];
+    cornerPt = new PIXI.Point(cornerPt.x, cornerPt.y);
+    otherPt = new PIXI.Point(otherPt.x, otherPt.y);
+    const dist = PIXI.Point.distanceBetween(cornerPt, otherPt);
+    return otherPt.towardsPoint(cornerPt, dist + CORNER_SPACER);  // 2 pixels ^ 2 = 4
+  }
+
+  // Segment with the smallest (incl. negative) orientation is ccw to the point
+  // Segment with the largest orientation is cw to the point
+  const orient = foundry.utils.orient2dFast;
+  const segments = [...walls].map(w => {
+    // Construct new segment objects so walls are not modified.
+    const [cornerPt, otherPt] = w.A.key === cornerKey ? [w.A, w.B] : [w.B, w.A];
+    const segment = {
+      A: new PIXI.Point(cornerPt.x, cornerPt.y),
+      B: new PIXI.Point(otherPt.x, otherPt.y)
+    };
+    segment.orient = orient(cornerPt, otherPt, templateOrigin);
+    return segment;
+  });
+  segments.sort((a, b) => a.orient - b.orient);
+
+  // Get the directional vector that splits the segments in two from the corner.
+  let ccw = segments[0];
+  let cw = segments[segments.length - 1];
+  let dir = averageSegments(ccw.A, ccw.B, cw.B);
+
+  // The dir is the point between the smaller angle of the two segments.
+  // Check if we need that point or its opposite, depending on location of the template origin.
+  let pt = ccw.A.add(dir.multiplyScalar(CORNER_SPACER));
+  let oPcw = orient(cw.A, cw.B, pt);
+  let oTcw = orient(cw.A, cw.B, templateOrigin);
+  if ( Math.sign(oPcw) !== Math.sign(oTcw) ) pt = ccw.A.add(dir.multiplyScalar(-CORNER_SPACER));
+  else {
+    let oPccw = orient(ccw.A, ccw.B, pt);
+    let oTccw = orient(ccw.A, ccw.B, templateOrigin);
+    if ( Math.sign(oPccw) !== Math.sign(oTccw) ) pt = ccw.A.add(dir.multiplyScalar(-CORNER_SPACER));
+  }
+
+  return pt;
+
+  //return dir;
+
+
+  // drawPoint(pt)
+
+  // Move along the direction vector (from the corner) 2 pixels.
+  //return ccw.A.add(dir.multiplyScalar(100));
+}
+
+
+/**
+ * Calculate the normalized directional vector from a segment.
+ * @param {PIXI.Point} a   First endpoint of the segment
+ * @param {PIXI.Point} b   Second endpoint of the segment
+ * @returns {PIXI.Point} A normalized directional vector
+ */
+function normalizedVectorFromSegment(a, b) {
+  return b.subtract(a).normalize();
+}
+
+/* -------------------------------------------- */
+
+/**
+ * Get the normalized vectors pointing clockwise and counterclockwise from a segment.
+ * Orientation is measured A --> B --> vector.
+ * @param {PIXI.Point} a   First endpoint of the segment
+ * @param {PIXI.Point} b   Second endpoint of the segment
+ * @returns {cw: PIXI.Point, ccw: PIXI.Point} Normalized directional vectors labeled cw and ccw.
+ */
+function orthogonalVectorsToSegment(a, b) {
+  // Calculate the normalized vectors orthogonal to the edge
+  const norm = normalizedVectorFromSegment(a, b);
+  const cw = new PIXI.Point(-norm.y, norm.x);
+  const ccw = new PIXI.Point(norm.y, -norm.x);
+  return { cw, ccw };
+}
+
+/* -------------------------------------------- */
+
+/**
+ * Find the normalized directional vector between two segments that share a common point A.
+ * The vector returned will indicate a direction midway between the segments A|B and A|C.
+ * The vector will indicate a direction clockwise from A|B.
+ * In other words, the vector returned is the sum of the normalized vector of each segment.
+ * @param {Point} a   Shared endpoint of the two segments A|B and A|C
+ * @param {Point} b   Second endpoint of the segment A|B
+ * @param {Point} c   Second endpoint of the segment B|C
+ * @returns {Point} A normalized directional vector
+ */
+function averageSegments(a, b, c, outPoint) {
+  // If c is collinear, return the orthogonal vector in the clockwise direction
+  const orient = foundry.utils.orient2dFast(a, b, c);
+  if ( !orient ) return orthogonalVectorsToSegment(a, b).cw;
+
+  const normB = normalizedVectorFromSegment(a, b);
+  const normC = normalizedVectorFromSegment(a, c);
+
+  outPoint ??= new PIXI.Point();
+  normB.add(normC, outPoint).multiplyScalar(0.5, outPoint);
+
+  // If c is ccw to b, then negate the result to get the vector going the opposite direction.
+  // if ( orient > 0 ) outPoint.multiplyScalar(-1, outPoint);
+
+  return outPoint;
 }
 
 
