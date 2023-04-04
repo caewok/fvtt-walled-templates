@@ -41,7 +41,7 @@ export function computeSweepPolygon() {
   const templateShape = this.document.t;
 
   const wallsBlock = this.item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-    ?? this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK);
+    ?? this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
     ?? getSetting(SETTINGS.DEFAULTS[templateShape])
     ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
 

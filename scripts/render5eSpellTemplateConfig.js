@@ -35,36 +35,3 @@ export async function walledTemplatesRender5eSpellTemplateConfig(app, html, data
 
   html.find(".input-select-select").first().after(myHTML);
 }
-
-/**
- * Wrap AbilityTemplate.fromItem
- * Check if item enabled marked walled templates; change template flag accordingly
- *
- * @param {Item5e} item               The Item object for which to construct the template
- * @returns {AbilityTemplate|null}     The template object, or null if the item does not produce a template
- */
-// export function walledTemplate5eFromItem(wrapped, item) {
-//   const template = wrapped(item);
-//
-//   if (template) {
-//     const wallsblock = item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK);
-//     const wallrestriction = item.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION);
-//
-//     template.document.flags[MODULE_ID] = {};
-//     template.document.flags[MODULE_ID][`${FLAGS.WALLS_BLOCK}`] = wallsblock;
-//     template.document.flags[MODULE_ID][`${FLAGS.WALL_RESTRICTION}`] = wallrestriction;
-//
-// //     await template.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsblock);
-// //     await template.document.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, wallrestriction);
-//
-//     // Cannot use setFlag b/c template.data has no id
-//
-//     //template.data.update({ [`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`]: wallsblock });
-//     //template.data.update({ [`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`]: wallrestriction });
-//     // Or template.data.update({ [key]: is_enabled })
-//     // Or template.data.update({ [`flags.${MODULE_ID}`]: { "enabled": is_enabled}})
-//
-//   }
-//
-//   return template;
-// }
