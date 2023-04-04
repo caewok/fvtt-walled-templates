@@ -37,3 +37,26 @@ export async function walledTemplatesRenderMeasuredTemplateElevationConfig(app, 
   const dataInject = 'input[name="width"]';
   html.find(dataInject).first().closest(".form-group").after(myHTML);
 }
+
+/**
+ * Wrapper for MeasuredTemplateConfig.defaultOptions
+ * Make the template config window resize height automatically, to accommodate
+ * different parameters.
+ * @param {Function} wrapper
+ * @return {Object} See MeasuredTemplateConfig.defaultOptions.
+ */
+export function defaultOptionsMeasuredTemplateConfig(wrapper) {
+  const options = wrapper();
+  return foundry.utils.mergeObject(options, {
+    height: "auto"
+  });
+}
+
+/**
+ * Wrap MeasuredTemplateConfig.prototype._render.
+ * Store the original values for this object.
+ */
+export async function _renderMeasuredTemplateConfig(wrapper, force, options) {
+  if ( !this.rendered ) this.original = this.object.toObject();
+  return wrapper(force, options);
+}

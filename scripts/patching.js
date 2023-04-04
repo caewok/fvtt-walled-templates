@@ -9,6 +9,7 @@ canvas
 "use strict";
 
 import { MODULE_ID } from "./const.js";
+import { defaultOptionsMeasuredTemplateConfig, _renderMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
 import {
   walledTemplateGetCircleShape,
   walledTemplateGetConeShape,
@@ -33,6 +34,10 @@ export function registerWalledTemplates() {
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getRectShape", walledTemplateGetRectShape, libWrapper.WRAPPER);
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getRayShape", walledTemplateGetRayShape, libWrapper.WRAPPER);
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getGridHighlightPositions", getGridHighlightPositionsMeasuredTemplate, libWrapper.WRAPPER);
+
+  libWrapper.register(MODULE_ID, "MeasuredTemplateConfig.defaultOptions", defaultOptionsMeasuredTemplateConfig, libWrapper.WRAPPER);
+  libWrapper.register(MODULE_ID, "MeasuredTemplateConfig.prototype._render", _renderMeasuredTemplateConfig, libWrapper.WRAPPER);
+
 
   if ( game.system.id === "swade" ) {
     libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype._getConeShape", _getConeShapeSwadeMeasuredTemplate, libWrapper.WRAPPER);
