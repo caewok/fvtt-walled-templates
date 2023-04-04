@@ -459,3 +459,22 @@ function controlTokenHook(object, controlled) {
   if ( controlled ) user._lastSelected = object;
   else if ( user.lastSelected === object ) user._lastDeselected = object;
 }
+
+Hooks.on("dnd5e.useItem", dnd5eUseItemHook);
+
+/**
+ * Hook dnd template creation from item, so item flags regarding the template can be added.
+ */
+function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-line no-unused-vars
+  log("dnd5e.useItem hook", item);
+  if ( !templates || !item ) return;
+
+  // Add item flags to the template(s)
+  for ( const template of templates ) {
+    const shape = template.t;
+    const wallsBlock = item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) ?? getSetting(SETTINGS.DEFAULTS[shape]);
+    const wallRestriction = CONFIG[MODULE_ID].defaultWallRestrictions[shape];
+    template.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsBlock);
+    template.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, wallRestriction);
+  }
+}
