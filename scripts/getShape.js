@@ -11,7 +11,7 @@ foundry
 "use strict";
 
 import { log } from "./util.js";
-import { debugPolygons, SETTINGS } from "./settings.js";
+import { debugPolygons, SETTINGS, getSetting } from "./settings.js";
 import { MODULE_ID, FLAGS } from "./const.js";
 import { ClockwiseSweepShape, pointFromKey } from "./ClockwiseSweepShape.js";
 import { ClipperPaths } from "./geometry/ClipperPaths.js";
@@ -37,14 +37,18 @@ const CORNER_SPACER = 10;
  */
 export function computeSweepPolygon() {
   log("Starting computeSweepPolygon", this);
-
+  const templateShape = this.document.t;
+  const wallsBlock = this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
+    ?? getSetting(SETTINGS.DEFAULTS[templateShape]) ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
+  const wallRestriction = this.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
+    ?? CONFIG[MODULE_ID].defaultWallRestrictions[templateShape] ?? "move";
   const origin = { x: this.x, y: this.y };
 
   // Trick Wall Height into keeping walls based on elevation of the token that created the template
 
   const cfg = {
     debug: debugPolygons(),
-    type: this.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) ?? "move",
+    type: wallRestriction,
     source: this,
     boundaryShapes: this.getBoundaryShapes()
   };
@@ -59,10 +63,9 @@ export function computeSweepPolygon() {
   sweep.compute();
 
   // Spread or reflect, based on settings and template shape.
-  const templateShape = this.document.t;
   let shape = sweep;
 
-  if ( this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === SETTINGS.DEFAULTS.CHOICES.RECURSE
+  if ( wallsBlock === SETTINGS.DEFAULTS.CHOICES.RECURSE
     && CONFIG[MODULE_ID].recursions[templateShape] ) {
     let recurseFn;
     switch ( templateShape ) {
@@ -481,14 +484,6 @@ function extendCornerFromWalls(cornerKey, wallSet, templateOrigin) {
   }
 
   return pt;
-
-  //return dir;
-
-
-  // drawPoint(pt)
-
-  // Move along the direction vector (from the corner) 2 pixels.
-  //return ccw.A.add(dir.multiplyScalar(100));
 }
 
 
