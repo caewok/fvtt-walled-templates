@@ -1,3 +1,9 @@
+## 0.5.0
+Added option to configure circles and rectangles to spread around walls.
+Added option to configure rays and cones to reflect off walls.
+Added option to configure templates to be *move*, *light*, *sound*, or *sight*. Templates will ignore walls that do not block the corresponding type.
+
+
 ## 0.4.9
 Update geometry lib to v0.1.4.
 

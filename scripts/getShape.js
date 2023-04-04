@@ -11,11 +11,15 @@ foundry
 "use strict";
 
 import { log } from "./util.js";
-import { debugPolygons, SETTINGS } from "./settings.js";
+import { debugPolygons, SETTINGS, getSetting } from "./settings.js";
 import { MODULE_ID, FLAGS } from "./const.js";
 import { ClockwiseSweepShape, pointFromKey } from "./ClockwiseSweepShape.js";
 import { ClipperPaths } from "./geometry/ClipperPaths.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
+
+
+// Number of pixels to push away from a corner when generating a spread template.
+const CORNER_SPACER = 10;
 
 /**
  * Use ClockwiseSweep to construct the polygon shape, passing it this template object.
@@ -33,14 +37,24 @@ import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
  */
 export function computeSweepPolygon() {
   log("Starting computeSweepPolygon", this);
-
   const origin = { x: this.x, y: this.y };
+  const templateShape = this.document.t;
+
+  const wallsBlock = this.item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
+    ?? this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
+    ?? getSetting(SETTINGS.DEFAULTS[templateShape])
+    ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
+
+  const wallRestriction = this.item?.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
+    ?? this.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
+    ?? CONFIG[MODULE_ID].defaultWallRestrictions[templateShape]
+    ?? "move";
 
   // Trick Wall Height into keeping walls based on elevation of the token that created the template
 
   const cfg = {
     debug: debugPolygons(),
-    type: this.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) ?? "move",
+    type: wallRestriction,
     source: this,
     boundaryShapes: this.getBoundaryShapes()
   };
@@ -55,10 +69,9 @@ export function computeSweepPolygon() {
   sweep.compute();
 
   // Spread or reflect, based on settings and template shape.
-  const templateShape = this.document.t;
   let shape = sweep;
 
-  if ( this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === SETTINGS.DEFAULTS.CHOICES.RECURSE
+  if ( wallsBlock === SETTINGS.DEFAULTS.CHOICES.RECURSE
     && CONFIG[MODULE_ID].recursions[templateShape] ) {
     let recurseFn;
     switch ( templateShape ) {
@@ -115,6 +128,7 @@ function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastRe
   const maxDist = doc.distance * dMult;
   const maxDist2 = Math.pow(maxDist, 2);
   const useRecursion = level < CONFIG[MODULE_ID].recursions[doc.t];
+  const orient = foundry.utils.orient2dFast;
 
   // Locate wall segments that the cone hits.
   // For each segment, calculate the reflection ray based on normal of that edge.
@@ -132,7 +146,7 @@ function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastRe
       // Any reflecting edge must be on the side of the reflecting wall opposite the origin.
       // Omit the last reflected wall.
       if ( edge.id === lastReflectedWall.id ) continue;
-      const oEdge = foundry.utils.orient2dFast(edge.A, edge.B, templateOrigin);
+      const oEdge = orient(edge.A, edge.B, templateOrigin);
       if ( Math.sign(oEdge) === oLastReflected ) continue;
     }
 
@@ -143,8 +157,8 @@ function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastRe
 
     // Edge will be nearly collinear with sweep edge, but probably not exactly b/c sweep rounds endpoints.
     for ( const sweepEdge of sweepEdges ) {
-      if ( Number.between(foundry.utils.orient2dFast(edge.A, edge.B, sweepEdge.A), COLLINEAR_MIN_NEG, COLLINEAR_MIN_POS)
-        && Number.between(foundry.utils.orient2dFast(edge.A, edge.B, sweepEdge.B), COLLINEAR_MIN_NEG, COLLINEAR_MIN_POS) ) {
+      if ( Number.between(orient(edge.A, edge.B, sweepEdge.A), COLLINEAR_MIN_NEG, COLLINEAR_MIN_POS)
+        && Number.between(orient(edge.A, edge.B, sweepEdge.B), COLLINEAR_MIN_NEG, COLLINEAR_MIN_POS) ) {
 
         sweepEdge.wall = edge;
         reflectingEdges.push(sweepEdge);
@@ -183,7 +197,10 @@ function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastRe
       }
     };
 
+    // Cache the original template shape to avoid replacing it.
+    const templateShape = template.originalShape;
     newTemplate.originalShape = originalShape(template, newTemplate.document);
+    template.originalShape = templateShape;
 
     const cfg = {
       debug: sweep.config.debug,
@@ -280,7 +297,10 @@ function reflect(template, sweep, fakeTemplate = template, level = 0) {
     }
   };
 
+  // Cache the original template shape to avoid replacing it.
+  const templateShape = template.originalShape;
   newTemplate.originalShape = originalShape(template, newTemplate.document);
+  template.originalShape = templateShape;
 
   const cfg = {
     debug: sweep.config.debug,
@@ -359,18 +379,22 @@ function spread(template, sweep, fakeTemplate = template, level = 0) {
   const doc = fakeTemplate.document;
   const useRecursion = level < CONFIG[MODULE_ID].recursions[doc.t];
   for ( const cornerKey of sweep.cornersEncountered ) {
-    const origin = pointFromKey(cornerKey);
+    const corner = pointFromKey(cornerKey);
 
     // If the corner is beyond the template, ignore.
-    const dist = PIXI.Point.distanceBetween(sweep.origin, origin);
+    const dist = PIXI.Point.distanceBetween(sweep.origin, corner);
     const distGrid = dist * dInv;
     if ( doc.distance < distGrid ) continue;
+
+    // Adjust the origin so that it is 2 pixels off the wall at that corner, in direction of the wall.
+    // If more than one wall, find the balance point.
+    const extendedCorner = extendCornerFromWalls(cornerKey, sweep.edgesEncountered, sweep.origin);
 
     // Construct a fake template to use for the sweep.
     const newTemplate = {
       document: {
-        x: origin.x,
-        y: origin.y,
+        x: corner.x,
+        y: corner.y,
         direction: doc.direction,
         distance: doc.distance - distGrid,
         angle: doc.angle,
@@ -379,7 +403,11 @@ function spread(template, sweep, fakeTemplate = template, level = 0) {
         elevation: doc.elevation ?? 0
       }
     };
+
+    // Cache the original template shape to avoid replacing it.
+    const templateShape = template.originalShape;
     newTemplate.originalShape = originalShape(template, newTemplate.document);
+    template.originalShape = templateShape;
 
     const cfg = {
       debug: sweep.config.debug,
@@ -389,12 +417,12 @@ function spread(template, sweep, fakeTemplate = template, level = 0) {
     };
 
     // Add in elevation for Wall Height to use
-    origin.b = newTemplate.document.elevation;
-    origin.t = newTemplate.document.elevation;
-    origin.object = {};
+    extendedCorner.b = newTemplate.document.elevation;
+    extendedCorner.t = newTemplate.document.elevation;
+    extendedCorner.object = {};
 
     const newSweep = new ClockwiseSweepShape();
-    newSweep.initialize(origin, cfg);
+    newSweep.initialize(extendedCorner, cfg);
     newSweep.compute();
     polys.push(newSweep);
 
@@ -404,6 +432,121 @@ function spread(template, sweep, fakeTemplate = template, level = 0) {
     }
   }
   return polys;
+}
+
+/**
+ * Adjust a corner point to offset from the wall by 2 pixels.
+ * Offset should move in the direction of the wall.
+ * If more than one wall at this corner, use the average vector between the
+ * rightmost and leftmost walls on the side of the template origin.
+ * @param {number} cornerKey      Key value for the corner
+ * @param {Set<Wall>} wallSet     Walls to test
+ * @param {Point} templateOrigin  Origin of the template
+ */
+function extendCornerFromWalls(cornerKey, wallSet, templateOrigin) {
+  if ( !wallSet.size ) return pointFromKey(cornerKey);
+
+  const walls = [...wallSet].filter(w => w.wallKeys.has(cornerKey));
+  if ( !walls.length ) return pointFromKey(cornerKey); // Should not occur.
+  if ( walls.length === 1 ) {
+    const w = walls[0];
+    let [cornerPt, otherPt] = w.A.key === cornerKey ? [w.A, w.B] : [w.B, w.A];
+    cornerPt = new PIXI.Point(cornerPt.x, cornerPt.y);
+    otherPt = new PIXI.Point(otherPt.x, otherPt.y);
+    const dist = PIXI.Point.distanceBetween(cornerPt, otherPt);
+    return otherPt.towardsPoint(cornerPt, dist + CORNER_SPACER);  // 2 pixels ^ 2 = 4
+  }
+
+  // Segment with the smallest (incl. negative) orientation is ccw to the point
+  // Segment with the largest orientation is cw to the point
+  const orient = foundry.utils.orient2dFast;
+  const segments = [...walls].map(w => {
+    // Construct new segment objects so walls are not modified.
+    const [cornerPt, otherPt] = w.A.key === cornerKey ? [w.A, w.B] : [w.B, w.A];
+    const segment = {
+      A: new PIXI.Point(cornerPt.x, cornerPt.y),
+      B: new PIXI.Point(otherPt.x, otherPt.y)
+    };
+    segment.orient = orient(cornerPt, otherPt, templateOrigin);
+    return segment;
+  });
+  segments.sort((a, b) => a.orient - b.orient);
+
+  // Get the directional vector that splits the segments in two from the corner.
+  let ccw = segments[0];
+  let cw = segments[segments.length - 1];
+  let dir = averageSegments(ccw.A, ccw.B, cw.B);
+
+  // The dir is the point between the smaller angle of the two segments.
+  // Check if we need that point or its opposite, depending on location of the template origin.
+  let pt = ccw.A.add(dir.multiplyScalar(CORNER_SPACER));
+  let oPcw = orient(cw.A, cw.B, pt);
+  let oTcw = orient(cw.A, cw.B, templateOrigin);
+  if ( Math.sign(oPcw) !== Math.sign(oTcw) ) pt = ccw.A.add(dir.multiplyScalar(-CORNER_SPACER));
+  else {
+    let oPccw = orient(ccw.A, ccw.B, pt);
+    let oTccw = orient(ccw.A, ccw.B, templateOrigin);
+    if ( Math.sign(oPccw) !== Math.sign(oTccw) ) pt = ccw.A.add(dir.multiplyScalar(-CORNER_SPACER));
+  }
+
+  return pt;
+}
+
+
+/**
+ * Calculate the normalized directional vector from a segment.
+ * @param {PIXI.Point} a   First endpoint of the segment
+ * @param {PIXI.Point} b   Second endpoint of the segment
+ * @returns {PIXI.Point} A normalized directional vector
+ */
+function normalizedVectorFromSegment(a, b) {
+  return b.subtract(a).normalize();
+}
+
+/* -------------------------------------------- */
+
+/**
+ * Get the normalized vectors pointing clockwise and counterclockwise from a segment.
+ * Orientation is measured A --> B --> vector.
+ * @param {PIXI.Point} a   First endpoint of the segment
+ * @param {PIXI.Point} b   Second endpoint of the segment
+ * @returns {cw: PIXI.Point, ccw: PIXI.Point} Normalized directional vectors labeled cw and ccw.
+ */
+function orthogonalVectorsToSegment(a, b) {
+  // Calculate the normalized vectors orthogonal to the edge
+  const norm = normalizedVectorFromSegment(a, b);
+  const cw = new PIXI.Point(-norm.y, norm.x);
+  const ccw = new PIXI.Point(norm.y, -norm.x);
+  return { cw, ccw };
+}
+
+/* -------------------------------------------- */
+
+/**
+ * Find the normalized directional vector between two segments that share a common point A.
+ * The vector returned will indicate a direction midway between the segments A|B and A|C.
+ * The vector will indicate a direction clockwise from A|B.
+ * In other words, the vector returned is the sum of the normalized vector of each segment.
+ * @param {Point} a   Shared endpoint of the two segments A|B and A|C
+ * @param {Point} b   Second endpoint of the segment A|B
+ * @param {Point} c   Second endpoint of the segment B|C
+ * @returns {Point} A normalized directional vector
+ */
+function averageSegments(a, b, c, outPoint) {
+  // If c is collinear, return the orthogonal vector in the clockwise direction
+  const orient = foundry.utils.orient2dFast(a, b, c);
+  if ( !orient ) return orthogonalVectorsToSegment(a, b).cw;
+
+  const normB = normalizedVectorFromSegment(a, b);
+  const normC = normalizedVectorFromSegment(a, c);
+
+  outPoint ??= new PIXI.Point();
+  normB.add(normC, outPoint).multiplyScalar(0.5, outPoint);
+
+  // If c is ccw to b, then negate the result to get the vector going the opposite direction.
+  // if ( orient > 0 ) outPoint.multiplyScalar(-1, outPoint);
+
+  return outPoint;
 }
 
 
@@ -428,7 +571,13 @@ function useSweep(template) {
   //     && canvas.walls.quadtree
   //     && canvas.walls.innerBounds.length;
 
-  if ( template.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === SETTINGS.DEFAULTS.CHOICES.UNWALLED ) {
+  const templateShape = template.document.t;
+  const wallsBlock = template.item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
+    ?? template.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
+    ?? getSetting(SETTINGS.DEFAULTS[templateShape])
+    ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
+
+  if ( wallsBlock === SETTINGS.DEFAULTS.CHOICES.UNWALLED ) {
     log("useBoundaryPolygon|not enabled. Skipping sweep.");
     return false;
   }
@@ -511,9 +660,8 @@ export function walledTemplateGetConeShape(wrapped, direction, angle, distance, 
  * @param {Number}    distance
  * @return {PIXI.Polygon}
  */
-export function _getConeShapeSwadeMeasuredTemplate(wrapped, direction, angle, distance, returnOriginal = !useSweep(this)) {
-  log(`_getConeShapeSwadeMeasuredTemplate with direction ${direction}, angle ${angle}, distance ${distance}, origin ${this.x},${this.y}`, this);
-
+export function _getConeShapeSwadeMeasuredTemplate(wrapped, direction, angle, distance,
+  returnOriginal = !useSweep(this)) {
   // Make sure the default shape is constructed.
   this.originalShape = wrapped(direction, angle, distance);
   if ( returnOriginal ) return this.originalShape;

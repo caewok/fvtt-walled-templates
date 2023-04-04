@@ -1,6 +1,6 @@
 /* globals
-ClockwiseSweepPolygon,
-CollisionResult
+PIXI,
+foundry
 */
 "use strict";
 
@@ -36,7 +36,7 @@ export class LightWallSweep extends ClockwiseSweepShape {
       a.add(av.normalize().multiplyScalar(cfg.radius)),
       b.add(bv.normalize().multiplyScalar(cfg.radius)),
       b
-    ])
+    ]);
     cfg.boundaryShapes.push(boundary);
   }
 
@@ -44,17 +44,17 @@ export class LightWallSweep extends ClockwiseSweepShape {
    * Eliminate all walls within the exclusionary triangle.
    * @inheritDoc
    */
-   _testWallInclusion(wall, bounds) {
-     // Eliminate all walls on the same side as origin is to a|b
-     const { exclusionarySide, exclusionaryTriangle, lightWall } = this.config;
-     const triPts = exclusionaryTriangle.points;
-     const a = { x: triPts[2], y: triPts[3] };
-     const b = { x: triPts[4], y: triPts[5] };
+  _testWallInclusion(wall, bounds) {
+    // Eliminate all walls on the same side as origin is to a|b
+    const { exclusionarySide, exclusionaryTriangle, lightWall } = this.config;
+    const triPts = exclusionaryTriangle.points;
+    const a = { x: triPts[2], y: triPts[3] };
+    const b = { x: triPts[4], y: triPts[5] };
 
-     if ( Math.sign(foundry.utils.orient2dFast(a, b, wall.A)) === exclusionarySide
-       && Math.sign(foundry.utils.orient2dFast(a, b, wall.B)) === exclusionarySide ) return false;
+    if ( Math.sign(foundry.utils.orient2dFast(a, b, wall.A)) === exclusionarySide
+      && Math.sign(foundry.utils.orient2dFast(a, b, wall.B)) === exclusionarySide ) return false;
 
-     if ( wall.id === lightWall.id || !super._testWallInclusion(wall, bounds) ) return false;
-     return !exclusionaryTriangle.lineSegmentIntersects(wall.A, wall.B, { inside: true });
-   }
+    if ( wall.id === lightWall.id || !super._testWallInclusion(wall, bounds) ) return false;
+    return !exclusionaryTriangle.lineSegmentIntersects(wall.A, wall.B, { inside: true });
+  }
 }

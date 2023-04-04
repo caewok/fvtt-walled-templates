@@ -1,7 +1,9 @@
 /* globals
 libWrapper,
 game,
-MeasuredTemplate
+MeasuredTemplate,
+MeasuredTemplateDocument,
+canvas
 */
 
 "use strict";
@@ -15,7 +17,6 @@ import {
   _getConeShapeSwadeMeasuredTemplate,
   getBoundaryShapes,
   computeSweepPolygon } from "./getShape.js";
-import { walledTemplate5eFromItem } from "./render5eSpellTemplateConfig.js";
 import {
   walledTemplatesMeasuredTemplateRefresh,
   boundsOverlap,
@@ -32,11 +33,6 @@ export function registerWalledTemplates() {
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getRectShape", walledTemplateGetRectShape, libWrapper.WRAPPER);
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getRayShape", walledTemplateGetRayShape, libWrapper.WRAPPER);
   libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getGridHighlightPositions", getGridHighlightPositionsMeasuredTemplate, libWrapper.WRAPPER);
-
-  if ( game.system.id === "dnd5e" ) {
-    // Catch when template is created from item; set walled template enabled based on item
-    libWrapper.register(MODULE_ID, "game.dnd5e.canvas.AbilityTemplate.fromItem", walledTemplate5eFromItem, libWrapper.WRAPPER);
-  }
 
   if ( game.system.id === "swade" ) {
     libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype._getConeShape", _getConeShapeSwadeMeasuredTemplate, libWrapper.WRAPPER);
@@ -89,7 +85,7 @@ export function registerWalledTemplates() {
 
   if ( !Object.hasOwn(MeasuredTemplateDocument.prototype, "elevation") ) {
     Object.defineProperty(MeasuredTemplateDocument.prototype, "elevation", {
-      get: function () {
+      get: function() {
         return this.flags?.levels?.elevation ?? canvas.primary.background.elevation;
       }
     });

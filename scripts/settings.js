@@ -23,7 +23,8 @@ export const SETTINGS = {
   DIAGONAL_SCALING: {
     ray: "diagonal-scaling-ray",
     cone: "diagonal-scaling-cone",
-    circle: "diagonal-scaling-circle"
+    circle: "diagonal-scaling-circle",
+    rect: "diagonal-scaling-rect" // Not currently used
   },
 
   AUTOTARGET: {
@@ -73,7 +74,7 @@ export function registerSettings() {
     choices: {
       [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
       [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
-      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`),
+      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`)
     }
   });
 
@@ -87,7 +88,7 @@ export function registerSettings() {
     choices: {
       [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
       [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
-      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`),
+      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`)
     }
   });
 
@@ -101,7 +102,7 @@ export function registerSettings() {
     choices: {
       [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
       [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
-      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`),
+      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`)
     }
   });
 
@@ -116,7 +117,7 @@ export function registerSettings() {
     choices: {
       [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
       [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
-      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`),
+      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`)
     }
   });
 

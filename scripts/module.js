@@ -2,7 +2,10 @@
 Hooks,
 game,
 canvas,
-isEmpty
+isEmpty,
+CONFIG,
+CONST,
+foundry
 */
 
 "use strict";
@@ -29,6 +32,10 @@ import { walledTemplatesRenderMeasuredTemplateConfig, walledTemplatesRenderMeasu
 import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
 
 import * as getShape from "./getShape.js";
+
+// API
+import { ClockwiseSweepShape } from "./ClockwiseSweepShape.js";
+import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -70,7 +77,9 @@ Hooks.once("init", async function() {
   registerGeometry();
 
   game.modules.get(MODULE_ID).api = {
-    getShape
+    getShape,
+    ClockwiseSweepShape,
+    LightWallSweep
   };
 });
 
@@ -157,7 +166,7 @@ Hooks.on("renderMeasuredTemplateConfig", async (app, html, data) => {
   renderData.walledtemplates = {
     blockoptions: LABELS.WALLS_BLOCK,
     walloptions: Object.fromEntries(CONST.WALL_RESTRICTION_TYPES.map(key => [key, key]))
-   };
+  };
 
   foundry.utils.mergeObject(data, renderData, { inplace: true });
 });
@@ -376,7 +385,7 @@ function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
     const elevation = estimateTemplateElevation(id);
 
     // Add elevation flag. Sneakily, use the levels flag.
-    updates[`flags.levels.elevation`] = elevation;
+    updates["flags.levels.elevation"] = elevation;
   }
 
 
@@ -444,9 +453,28 @@ function scaleDiagonalDistance(direction, distance) {
 Hooks.on("controlToken", controlTokenHook);
 
 function controlTokenHook(object, controlled) {
-  console.log(`controlTokenHook for user ${game.userId} with ${object.name} controlled: ${controlled}`)
+  console.log(`controlTokenHook for user ${game.userId} with ${object.name} controlled: ${controlled}`);
   const user = game.user;
 
   if ( controlled ) user._lastSelected = object;
-  else if ( user.lastSelected = object ) user._lastDeselected = object;
+  else if ( user.lastSelected === object ) user._lastDeselected = object;
+}
+
+Hooks.on("dnd5e.useItem", dnd5eUseItemHook);
+
+/**
+ * Hook dnd template creation from item, so item flags regarding the template can be added.
+ */
+function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-line no-unused-vars
+  log("dnd5e.useItem hook", item);
+  if ( !templates || !item ) return;
+
+  // Add item flags to the template(s)
+  for ( const template of templates ) {
+    const shape = template.t;
+    const wallsBlock = item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) ?? getSetting(SETTINGS.DEFAULTS[shape]);
+    const wallRestriction = CONFIG[MODULE_ID].defaultWallRestrictions[shape];
+    template.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsBlock);
+    template.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, wallRestriction);
+  }
 }

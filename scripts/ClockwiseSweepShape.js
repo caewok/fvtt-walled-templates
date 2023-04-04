@@ -21,8 +21,6 @@ function pointFromKey(key) {
 t.shape._sweep.edgesEncountered.forEach(edge => draw.segment(edge))
 t.shape._sweep.cornersEncountered.forEach(corner => draw.point(pointFromKey(corner), { radius: 2 }))
 
-
-
 */
 
 /**
@@ -111,6 +109,20 @@ export class ClockwiseSweepShape extends ClockwiseSweepPolygon {
       pt.cwEdges.forEach(edge => this.edgesEncountered.add(edge.wall));
     });
   }
+
+  /**
+   * Modify _testWallInclusion to always reject collinear walls.
+   * (Needed b/c currently that test allows collinear walls for move type, which breaks sweep.)
+   * @inheritDoc
+   */
+   _testWallInclusion(wall, bounds) {
+     const res = super._testWallInclusion(wall, bounds);
+     if ( !res ) return false;
+
+     const side = wall.orientPoint(this.origin);
+     return Boolean(side); // !side --> false
+   }
+
 }
 
 //  Same as PolygonVertex
@@ -134,5 +146,5 @@ export function keyFromPoint(x, y) {
 export function pointFromKey(key) {
   const x = ~~(key * INV_MAX_TEXTURE_SIZE);
   const y = key % MAX_TEXTURE_SIZE;
-  return {x, y}
+  return {x, y};
 }
