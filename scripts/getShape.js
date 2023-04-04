@@ -37,12 +37,18 @@ const CORNER_SPACER = 10;
  */
 export function computeSweepPolygon() {
   log("Starting computeSweepPolygon", this);
-  const templateShape = this.document.t;
-  const wallsBlock = this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-    ?? getSetting(SETTINGS.DEFAULTS[templateShape]) ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
-  const wallRestriction = this.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
-    ?? CONFIG[MODULE_ID].defaultWallRestrictions[templateShape] ?? "move";
   const origin = { x: this.x, y: this.y };
+  const templateShape = this.document.t;
+
+  const wallsBlock = this.item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
+    ?? this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK);
+    ?? getSetting(SETTINGS.DEFAULTS[templateShape])
+    ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
+
+  const wallRestriction = this.item?.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
+    ?? this.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
+    ?? CONFIG[MODULE_ID].defaultWallRestrictions[templateShape]
+    ?? "move";
 
   // Trick Wall Height into keeping walls based on elevation of the token that created the template
 
