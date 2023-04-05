@@ -81,7 +81,7 @@ Hooks.once("init", async function() {
      * (Placing directly on the corner will cause the LOS sweep to fail to round the corner.)
      * @type {number}
      */
-     cornerSpacer = 10
+     cornerSpacer: 10
   };
 
   registerWalledTemplates();
