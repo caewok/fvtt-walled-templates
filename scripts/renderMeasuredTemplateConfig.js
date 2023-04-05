@@ -51,12 +51,3 @@ export function defaultOptionsMeasuredTemplateConfig(wrapper) {
     height: "auto"
   });
 }
-
-/**
- * Wrap MeasuredTemplateConfig.prototype._render.
- * Store the original values for this object.
- */
-export async function _renderMeasuredTemplateConfig(wrapper, force, options) {
-  if ( !this.rendered ) this.original = this.object.toObject();
-  return wrapper(force, options);
-}
