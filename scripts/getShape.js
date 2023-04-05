@@ -18,9 +18,6 @@ import { ClipperPaths } from "./geometry/ClipperPaths.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
 
 
-// Number of pixels to push away from a corner when generating a spread template.
-const CORNER_SPACER = 10;
-
 /**
  * Use ClockwiseSweep to construct the polygon shape, passing it this template object.
  */
@@ -444,6 +441,8 @@ function spread(template, sweep, fakeTemplate = template, level = 0) {
  * @param {Point} templateOrigin  Origin of the template
  */
 function extendCornerFromWalls(cornerKey, wallSet, templateOrigin) {
+  const CORNER_SPACER = CONFIG[MODULE_ID]?.cornerSpacer ?? 10;
+
   if ( !wallSet.size ) return pointFromKey(cornerKey);
 
   const walls = [...wallSet].filter(w => w.wallKeys.has(cornerKey));

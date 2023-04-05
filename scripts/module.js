@@ -65,12 +65,23 @@ Hooks.once("init", async function() {
       cone: 4
     },
 
+    /**
+     * Default wall restriction type for each template type.
+     * @type { object: string }
+     */
     defaultWallRestrictions: {
       circle: "move",
       rect: "move",
       ray: "move",
       cone: "move"
-    }
+    },
+
+    /**
+     * Pixels away from the corner to place child templates when spreading.
+     * (Placing directly on the corner will cause the LOS sweep to fail to round the corner.)
+     * @type {number}
+     */
+     cornerSpacer = 10
   };
 
   registerWalledTemplates();
