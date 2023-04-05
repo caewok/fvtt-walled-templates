@@ -23,6 +23,8 @@ export async function walledTemplatesRenderMeasuredTemplateConfig(app, html, dat
   const myHTML = await renderTemplate(template, data);
   log("config rendered HTML", myHTML);
   html.find(".form-group").last().after(myHTML);
+
+  app.setPosition(app.position);
 }
 
 
@@ -36,6 +38,8 @@ export async function walledTemplatesRenderMeasuredTemplateElevationConfig(app, 
   log("elevation config rendered HTML", myHTML);
   const dataInject = 'input[name="width"]';
   html.find(dataInject).first().closest(".form-group").after(myHTML);
+
+  app.setPosition(app.position);
 }
 
 /**
