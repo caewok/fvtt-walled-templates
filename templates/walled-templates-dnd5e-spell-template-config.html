@@ -1,9 +1,22 @@
 {{#if isTemplate}}
-<div class="form-group">
-      <label>{{localize "walledtemplates.dnd5eSpellTemplateConfiguration.enabled.Name"}}</label>
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name"}}</label>
       <div class="form-fields">
-        <input type="checkbox" name="flags.walledtemplates.enabled" {{ checked item.flags.walledtemplates.enabled }}/>
+        <select name="flags.walledtemplates.wallsBlock">
+          {{ selectOptions walledtemplates.blockoptions selected=item.flags.walledtemplates.wallsBlock localize=true }}
+        </select>
       </div>
-</div>
+      <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint"}}</p>
+    </div>
+
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name"}}</label>
+      <div class="form-fields">
+        <select name="flags.walledtemplates.wallRestriction">
+          {{ selectOptions walledtemplates.walloptions selected=item.flags.walledtemplates.wallRestriction localize=true }}
+        </select>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint"}}</p>
+    </div>
 {{/if}}
 

@@ -1,10 +1,28 @@
 {
     "walledtemplates.MeasuredTemplateConfiguration.LegendTitle": "Walled Templates",
-    "walledtemplates.MeasuredTemplateConfiguration.enabled.Name": "Blocked by Walls",
-    "walledtemplates.dnd5eSpellTemplateConfiguration.enabled.Name": "Blocked by Walls",
+    "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name": "Walls",
+    "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint": "Circles/Rectangles: Spread; Rays/Cones: Reflect.",
 
-    "walledtemplates.settings.default-to-walled.Name": "Default to walls block",
-    "walledtemplates.settings.default-to-walled.Hint": "Default newly-created templates to be blocked by walls. You can toggle whether walls block in each template's configuration.",
+    "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name": "Wall Restriction Type",
+    "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint": "Walls that do not block this restriction type will be ignored by the template",
+
+    "walledtemplates.MeasuredTemplateConfiguration.unwalled": "Do not block template",
+    "walledtemplates.MeasuredTemplateConfiguration.walled": "Block template",
+    "walledtemplates.MeasuredTemplateConfiguration.recurse": "Reflect/Spread template",
+
+    "walledtemplates.settings.default_circle.Name": "Default Circle",
+    "walledtemplates.settings.default_cone.Name": "Default Cone",
+    "walledtemplates.settings.default_ray.Name": "Default Ray",
+    "walledtemplates.settings.default_rect.Name": "Default Rectangle",
+
+    "walledtemplates.settings.default_circle.Hint": "Select default for newly created circle templates. Circles can spread but not reflect.",
+    "walledtemplates.settings.default_cone.Hint": "Select default for newly created cone templates. Cones can reflect but not spread.",
+    "walledtemplates.settings.default_ray.Hint": "Select default for newly created ray templates. Rays can reflect but not spread.",
+    "walledtemplates.settings.default_rect.Hint": "Select default for newly created rectangle templates. Rectangles can spread but not reflect.",
+
+    "walledtemplates.settings.unwalled": "Not blocked by walls",
+    "walledtemplates.settings.walled": "Blocked by walls",
+    "walledtemplates.settings.recurse": "Reflected/Spread",
 
     "walledtemplates.settings.autotarget-menu.Name": "Enable autotargeting",
     "walledtemplates.settings.autotarget-menu.Hint": "When toggle option is selected, a bullseye control button in the template control bar will allow you to switch between targeting or not targeting.",

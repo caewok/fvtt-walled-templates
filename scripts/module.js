@@ -2,7 +2,10 @@
 Hooks,
 game,
 canvas,
-isEmpty
+isEmpty,
+CONFIG,
+CONST,
+foundry
 */
 
 "use strict";
@@ -18,7 +21,7 @@ await foundry.utils.benchmark(fn, 1e04, t)
 // Basics
 import { log } from "./util.js";
 import { SETTINGS, registerSettings, getSetting, toggleSetting } from "./settings.js";
-import { MODULE_ID, FLAGS } from "./const.js";
+import { MODULE_ID, FLAGS, LABELS } from "./const.js";
 
 // Patches
 import { registerWalledTemplates } from "./patching.js";
@@ -29,6 +32,13 @@ import { walledTemplatesRenderMeasuredTemplateConfig, walledTemplatesRenderMeasu
 import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
 
 import * as getShape from "./getShape.js";
+
+// API
+import { ClockwiseSweepShape } from "./ClockwiseSweepShape.js";
+import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
+
+// Self-executing scripts for hooks
+import "./changelog.js";
 
 /**
  * Tell DevMode that we want a flag for debugging this module.
@@ -41,11 +51,46 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 Hooks.once("init", async function() {
   log("Initializing...");
 
+  // Set CONFIGS used by this module.
+  CONFIG[MODULE_ID] = {
+    /**
+     * Number of recursions for each template type when using spread or reflect.
+     * (circle|rect: spread; ray|cone: reflect)
+     * @type { object: number }
+     */
+    recursions: {
+      circle: 4,
+      rect: 4,
+      ray: 8,
+      cone: 4
+    },
+
+    /**
+     * Default wall restriction type for each template type.
+     * @type { object: string }
+     */
+    defaultWallRestrictions: {
+      circle: "move",
+      rect: "move",
+      ray: "move",
+      cone: "move"
+    },
+
+    /**
+     * Pixels away from the corner to place child templates when spreading.
+     * (Placing directly on the corner will cause the LOS sweep to fail to round the corner.)
+     * @type {number}
+     */
+     cornerSpacer: 10
+  };
+
   registerWalledTemplates();
   registerGeometry();
 
   game.modules.get(MODULE_ID).api = {
-    getShape
+    getShape,
+    ClockwiseSweepShape,
+    LightWallSweep
   };
 });
 
@@ -81,9 +126,23 @@ Hooks.once("ready", async function() {
   // Ensure every template has an enabled flag; set to world setting if missing.
   // Happens if templates were created without Walled Templates module enabled
   canvas.templates.objects.children.forEach(t => {
+    const shape = t.document.t;
+
     if ( typeof t.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined" ) {
-      t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULT_WALLED));
+      // Conversion from v0.4 properties to v0.5.
+      const enabled = t.document.getFlag(MODULE_ID, "enabled");
+      if ( typeof enabled !== "undefined" ) {
+        t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, enabled
+          ? SETTINGS.DEFAULTS.CHOICES.WALLED : SETTINGS.DEFAULTS.CHOICES.UNWALLED);
+      } else {
+        t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULTS[shape]));
+      }
     }
+
+    if ( typeof t.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
+      t.document.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, CONFIG[MODULE_ID].defaultWallRestrictions[shape]);
+    }
+
   });
 });
 
@@ -113,6 +172,14 @@ Hooks.on("getSceneControlButtons", controls => {
 Hooks.on("renderMeasuredTemplateConfig", async (app, html, data) => {
   walledTemplatesRenderMeasuredTemplateConfig(app, html, data);
   if ( !game.modules.get("levels")?.active ) walledTemplatesRenderMeasuredTemplateElevationConfig(app, html, data);
+
+  const renderData = {};
+  renderData.walledtemplates = {
+    blockoptions: LABELS.WALLS_BLOCK,
+    walloptions: Object.fromEntries(CONST.WALL_RESTRICTION_TYPES.map(key => [key, key]))
+  };
+
+  foundry.utils.mergeObject(data, renderData, { inplace: true });
 });
 
 
@@ -320,6 +387,8 @@ Hooks.on("preCreateMeasuredTemplate", preCreateMeasuredTemplateHook);
 function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
   log("Hooking preCreateMeasuredTemplate", templateD, updateData);
 
+  const { distance: gridDist, size: gridSize } = canvas.scene.grid;
+  const { t, distance, direction, x, y } = templateD;
   const updates = {};
 
   // If Levels is active, defer to Levels for template elevation. Otherwise, estimate from token.
@@ -327,52 +396,48 @@ function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
     const elevation = estimateTemplateElevation(id);
 
     // Add elevation flag. Sneakily, use the levels flag.
-    updates[`flags.levels.elevation`] = elevation;
+    updates["flags.levels.elevation"] = elevation;
   }
+
 
   // Only create if the id does not already exist
   if (typeof templateD.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
-    log(`Creating template ${id} with default setting ${getSetting(SETTINGS.DEFAULT_WALLED)}.`, templateD, updateData);
-
     // In v10, setting the flag throws an error about not having id
     // template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
-    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = getSetting(SETTINGS.DEFAULT_WALLED);
-
-  } else {
-    log(`preCreateMeasuredTemplate: template enabled flag already set to ${templateD.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)}`);
+    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = getSetting(SETTINGS.DEFAULTS[t]);
   }
 
-  const { distance: gridDist, size: gridSize } = canvas.scene.grid;
-  const { t, distance, direction, x, y } = templateD;
+  if ( typeof templateD.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
+    updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = CONFIG[MODULE_ID].defaultWallRestrictions[t];
+  }
 
-  if ( t === "circle"
-    && getSetting(SETTINGS.DIAGONAL_SCALING.CIRCLE)
-    && ((distance / gridDist) >= 1) ) {
-    // Switch circles to squares if applicable
-    // Conforms with 5-5-5 diagonal rule.
-    // Only if the template is 1 grid unit or larger.
-    // See dndHelpers for original:
-    // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L91
-    const radiusPx = ( distance / gridDist ) * gridSize;
+  if ( getSetting(SETTINGS.DIAGONAL_SCALING[t]) ) {
+    if ( t === "circle" && ((distance / gridDist) >= 1) ) {
+      // Switch circles to squares if applicable
+      // Conforms with 5-5-5 diagonal rule.
+      // Only if the template is 1 grid unit or larger.
+      // See dndHelpers for original:
+      // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L91
+      const radiusPx = ( distance / gridDist ) * gridSize;
 
-    // Calculate the square's hypotenuse based on the 5-5-5 diagonal distance
-    const length = distance * 2;
-    const squareDist = Math.hypot(length, length);
+      // Calculate the square's hypotenuse based on the 5-5-5 diagonal distance
+      const length = distance * 2;
+      const squareDist = Math.hypot(length, length);
 
-    log(`preCreateMeasuredTemplate: switching circle ${x},${y} distance ${distance} to rectangle ${x - radiusPx},${y - radiusPx} distance ${squareDist}`);
+      log(`preCreateMeasuredTemplate: switching circle ${x},${y} distance ${distance} to rectangle ${x - radiusPx},${y - radiusPx} distance ${squareDist}`);
 
-    updates.x = templateD.x - radiusPx;
-    updates.y = templateD.y - radiusPx;
-    updates.direction = 45;
-    updates.distance = squareDist;
-    updates.t = "rect";
+      updates.x = templateD.x - radiusPx;
+      updates.y = templateD.y - radiusPx;
+      updates.direction = 45;
+      updates.distance = squareDist;
+      updates.t = "rect";
 
-  } else if ( (t === "ray" && getSetting(SETTINGS.DIAGONAL_SCALING.RAY))
-    || (t === "cone" && getSetting(SETTINGS.DIAGONAL_SCALING.CONE)) ) {
-    // Extend rays or cones to conform to 5-5-5 diagonal, if applicable.
-    // See dndHelpers for original:
-    // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L78
-    updates.distance = scaleDiagonalDistance(direction, distance);
+    } else if ( t === "ray" || t === "cone" ) {
+      // Extend rays or cones to conform to 5-5-5 diagonal, if applicable.
+      // See dndHelpers for original:
+      // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L78
+      updates.distance = scaleDiagonalDistance(direction, distance);
+    }
   }
 
   if ( !isEmpty(updates) ) templateD.updateSource(updates);
@@ -399,9 +464,28 @@ function scaleDiagonalDistance(direction, distance) {
 Hooks.on("controlToken", controlTokenHook);
 
 function controlTokenHook(object, controlled) {
-  console.log(`controlTokenHook for user ${game.userId} with ${object.name} controlled: ${controlled}`)
+  console.log(`controlTokenHook for user ${game.userId} with ${object.name} controlled: ${controlled}`);
   const user = game.user;
 
   if ( controlled ) user._lastSelected = object;
-  else if ( user.lastSelected = object ) user._lastDeselected = object;
+  else if ( user.lastSelected === object ) user._lastDeselected = object;
+}
+
+Hooks.on("dnd5e.useItem", dnd5eUseItemHook);
+
+/**
+ * Hook dnd template creation from item, so item flags regarding the template can be added.
+ */
+function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-line no-unused-vars
+  log("dnd5e.useItem hook", item);
+  if ( !templates || !item ) return;
+
+  // Add item flags to the template(s)
+  for ( const template of templates ) {
+    const shape = template.t;
+    const wallsBlock = item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) ?? getSetting(SETTINGS.DEFAULTS[shape]);
+    const wallRestriction = CONFIG[MODULE_ID].defaultWallRestrictions[shape];
+    template.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsBlock);
+    template.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, wallRestriction);
+  }
 }

@@ -8,12 +8,23 @@ import { log } from "./util.js";
 import { MODULE_ID } from "./const.js";
 
 export const SETTINGS = {
-  DEFAULT_WALLED: "default-to-walled",
+  DEFAULTS: {
+    circle: "default_circle",
+    cone: "default_cone",
+    ray: "default_ray",
+    rect: "default_rect",
+    CHOICES: {
+      UNWALLED: "unwalled",
+      WALLED: "walled",
+      RECURSE: "recurse"
+    }
+  },
 
   DIAGONAL_SCALING: {
-    RAY: "diagonal-scaling-ray",
-    CONE: "diagonal-scaling-cone",
-    CIRCLE: "diagonal-scaling-circle"
+    ray: "diagonal-scaling-ray",
+    cone: "diagonal-scaling-cone",
+    circle: "diagonal-scaling-circle",
+    rect: "diagonal-scaling-rect" // Not currently used
   },
 
   AUTOTARGET: {
@@ -32,7 +43,9 @@ export const SETTINGS = {
       CENTER: "center",
       OVERLAP: "overlap"
     }
-  }
+  },
+
+  CHANGELOG: "changelog"
 };
 
 export function getSetting(settingName) {
@@ -51,13 +64,61 @@ export async function setSetting(settingName, value) {
 export function registerSettings() {
   log("Registering walled template switch");
 
-  game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALLED, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLED}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLED}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.circle, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.circle}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.circle}.Hint`),
     scope: "world",
     config: true,
-    default: true,
-    type: Boolean
+    default: "unwalled",
+    type: String,
+    choices: {
+      [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
+      [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
+      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`)
+    }
+  });
+
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.cone, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.cone}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.cone}.Hint`),
+    scope: "world",
+    config: true,
+    default: "unwalled",
+    type: String,
+    choices: {
+      [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
+      [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
+      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`)
+    }
+  });
+
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.rect, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.rect}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.rect}.Hint`),
+    scope: "world",
+    config: true,
+    default: "unwalled",
+    type: String,
+    choices: {
+      [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
+      [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
+      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`)
+    }
+  });
+
+
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.ray, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.ray}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.ray}.Hint`),
+    scope: "world",
+    config: true,
+    default: "unwalled",
+    type: String,
+    choices: {
+      [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
+      [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
+      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`)
+    }
   });
 
   game.settings.register(MODULE_ID, SETTINGS.AUTOTARGET.ENABLED, {
@@ -115,27 +176,27 @@ export function registerSettings() {
       || value === SETTINGS.AUTOTARGET.CHOICES.YES)
   });
 
-  game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.RAY, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.RAY}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.RAY}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.ray, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.ray}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.ray}.Hint`),
     type: Boolean,
     default: false,
     scope: "world",
     config: true
   });
 
-  game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.CONE, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.CONE}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.CONE}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.cone, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.cone}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.cone}.Hint`),
     type: Boolean,
     default: false,
     scope: "world",
     config: true
   });
 
-  game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.CIRCLE, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.CIRCLE}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.CIRCLE}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.circle, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.circle}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING.circle}.Hint`),
     type: Boolean,
     default: false,
     scope: "world",
