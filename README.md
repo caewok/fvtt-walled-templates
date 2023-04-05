@@ -136,14 +136,14 @@ defaultWallRestrictions: {
   rect: "move",
   ray: "move",
   cone: "move"
-}    
+},    
 
 /**
  * Pixels away from the corner to place child templates when spreading.
  * (Placing directly on the corner will cause the LOS sweep to fail to round the corner.)
  * @type {number}
  */
- cornerSpacer = 10
+ cornerSpacer: 10
 ```
 Increasing the number of recursions will increase the number of reflections permitted, or for spreading, number of generations of children that may be spawned. There is a performance cost to increase recursions. 
 
