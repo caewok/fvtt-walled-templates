@@ -148,7 +148,6 @@ defaultWallRestrictions: {
 Increasing the number of recursions will increase the number of reflections permitted, or for spreading, number of generations of children that may be spawned. There is a performance cost to increase recursions. 
 
 # Known issues
-- The MeasuredTemplate config currently does not correctly set its height until dragged. 
 
 ## Circles
 
