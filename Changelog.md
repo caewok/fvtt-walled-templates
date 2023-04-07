@@ -1,3 +1,8 @@
+## 0.5.1
+Update geometry lib to v0.1.5.
+Add recurse data flag for use by other modules.
+Fix dropping templates from the chat log in dnd5e (lookup item using dnd5e origin flag).
+
 ## 0.5.0
 Added option to configure circles and rectangles to spread around walls. Addresses issue #22.
 Added option to configure rays and cones to reflect off walls.
