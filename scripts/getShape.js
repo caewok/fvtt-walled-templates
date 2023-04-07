@@ -24,6 +24,37 @@ import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
 
 
 /**
+ * Determine the flag properties for a given template.
+ * These might be derived from an associated item or from default settings.
+ * @param {Template} template
+ * @returns {object} { wallsBlock: string, wallRestriction: string }
+ */
+function templateFlagProperties(template) {
+  const templateShape = template.document.t;
+  let item = template.item;
+  if ( game.system.id === "dnd5e" && !item ) {
+    const uuid = template.document.getFlag("dnd5e", "origin");
+    if ( origin ) {
+      const leaves = game.documentIndex.uuids[uuid]?.leaves;
+      if ( leaves ) item = leaves.find(leaf => leaf.uuid === uuid)?.entry;
+    }
+  }
+
+  const wallsBlock = item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
+    ?? template.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
+    ?? getSetting(SETTINGS.DEFAULTS[templateShape])
+    ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
+
+  const wallRestriction = item?.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
+    ?? template.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
+    ?? CONFIG[MODULE_ID].defaultWallRestrictions[templateShape]
+    ?? "move";
+
+  return { wallsBlock, wallRestriction };
+}
+
+
+/**
  * Helper function that presumes this.shape has been set.
  * If walled templates are not enabled, return the default this.shape.
  * Otherwise, pass ClockwiseSweep this object, which in turn calls this object's
@@ -37,19 +68,9 @@ export function computeSweepPolygon() {
 
   const origin = { x: this.x, y: this.y };
   const templateShape = this.document.t;
-
-  const wallsBlock = this.item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-    ?? this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-    ?? getSetting(SETTINGS.DEFAULTS[templateShape])
-    ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
-
-  const wallRestriction = this.item?.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
-    ?? this.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
-    ?? CONFIG[MODULE_ID].defaultWallRestrictions[templateShape]
-    ?? "move";
+  const { wallsBlock, wallRestriction } = templateFlagProperties(this);
 
   // Trick Wall Height into keeping walls based on elevation of the token that created the template
-
   const cfg = {
     debug: debugPolygons(),
     type: wallRestriction,
@@ -333,7 +354,7 @@ function reflect(template, sweep, fakeTemplate = template, level = 0) {
   if ( useRecursion ) {
     const { polys: childPolys, recurseData: childData } = reflect(template, newSweep, newTemplate, level);
     polys.push(...childPolys);
-    if ( childData.length ) recurseData.push(childData);
+    if ( childData.length ) recurseData.push(...childData);
   }
 
   return { polys, recurseData };
@@ -587,12 +608,7 @@ function useSweep(template) {
   //   return this.document.getFlag(MODULE_ID, "enabled")
   //     && canvas.walls.quadtree
   //     && canvas.walls.innerBounds.length;
-
-  const templateShape = template.document.t;
-  const wallsBlock = template.item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-    ?? template.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-    ?? getSetting(SETTINGS.DEFAULTS[templateShape])
-    ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
+  const { wallsBlock } = templateFlagProperties(template);
 
   if ( wallsBlock === SETTINGS.DEFAULTS.CHOICES.UNWALLED ) {
     log("useBoundaryPolygon|not enabled. Skipping sweep.");
