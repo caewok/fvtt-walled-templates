@@ -357,7 +357,7 @@ function estimateTemplateElevation(id) {
 
   if ( !token && canvas.tokens.active ) {
     const cToken = canvas.tokens.controlled;
-    console.log(`${cToken.map(t => t.name)} controlled by ${id} or ${game.user.id}`);
+    // console.log(`${cToken.map(t => t.name)} controlled by ${id} or ${game.user.id}`);
 
     // If a single token is selected, use that.
     // If multiple tokens, use the last selected
@@ -464,7 +464,7 @@ function scaleDiagonalDistance(direction, distance) {
 Hooks.on("controlToken", controlTokenHook);
 
 function controlTokenHook(object, controlled) {
-  console.log(`controlTokenHook for user ${game.userId} with ${object.name} controlled: ${controlled}`);
+  // console.log(`controlTokenHook for user ${game.userId} with ${object.name} controlled: ${controlled}`);
   const user = game.user;
 
   if ( controlled ) user._lastSelected = object;

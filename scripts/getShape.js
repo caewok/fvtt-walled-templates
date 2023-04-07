@@ -24,6 +24,37 @@ import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
 
 
 /**
+ * Determine the flag properties for a given template.
+ * These might be derived from an associated item or from default settings.
+ * @param {Template} template
+ * @returns {object} { wallsBlock: string, wallRestriction: string }
+ */
+function templateFlagProperties(template) {
+  const templateShape = template.document.t;
+  let item = template.item;
+  if ( game.system.id === "dnd5e" && !item ) {
+    const uuid = template.document.getFlag("dnd5e", "origin");
+    if ( origin ) {
+      const leaves = game.documentIndex.uuids[uuid]?.leaves;
+      if ( leaves ) item = leaves.find(leaf => leaf.uuid === uuid)?.entry;
+    }
+  }
+
+  const wallsBlock = item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
+    ?? template.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
+    ?? getSetting(SETTINGS.DEFAULTS[templateShape])
+    ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
+
+  const wallRestriction = item?.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
+    ?? template.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
+    ?? CONFIG[MODULE_ID].defaultWallRestrictions[templateShape]
+    ?? "move";
+
+  return { wallsBlock, wallRestriction };
+}
+
+
+/**
  * Helper function that presumes this.shape has been set.
  * If walled templates are not enabled, return the default this.shape.
  * Otherwise, pass ClockwiseSweep this object, which in turn calls this object's
@@ -34,21 +65,12 @@ import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
  */
 export function computeSweepPolygon() {
   log("Starting computeSweepPolygon", this);
+
   const origin = { x: this.x, y: this.y };
   const templateShape = this.document.t;
-
-  const wallsBlock = this.item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-    ?? this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-    ?? getSetting(SETTINGS.DEFAULTS[templateShape])
-    ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
-
-  const wallRestriction = this.item?.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
-    ?? this.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
-    ?? CONFIG[MODULE_ID].defaultWallRestrictions[templateShape]
-    ?? "move";
+  const { wallsBlock, wallRestriction } = templateFlagProperties(this);
 
   // Trick Wall Height into keeping walls based on elevation of the token that created the template
-
   const cfg = {
     debug: debugPolygons(),
     type: wallRestriction,
@@ -77,13 +99,15 @@ export function computeSweepPolygon() {
       case "cone": recurseFn = reflectCone; break;
       case "ray": recurseFn = reflect; break;
     }
-    const polys = recurseFn(this, sweep);
+    const { polys, recurseData } = recurseFn(this, sweep);
     polys.push(sweep);
     const paths = ClipperPaths.fromPolygons(polys);
     const combined = paths.combine();
     combined.clean();
     shape = combined.toPolygons()[0]; // TODO: Can there ever be more than 1?
     shape.polys = polys;
+
+    if ( this.id ) this.document.setFlag(MODULE_ID, FLAGS.RECURSE_DATA, recurseData);
   }
 
   // Shift to origin 0,0 as expected for Template shape.
@@ -115,6 +139,7 @@ const COLLINEAR_MIN_POS = 10;
 function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastReflectedWall = undefined) {
   level += 1;
   const polys = [];
+  const recurseData = [];
 
   const d = canvas.dimensions;
   const dMult = (d.size / d.distance);
@@ -163,7 +188,7 @@ function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastRe
       }
     }
   }
-  if ( !reflectingEdges.length ) return polys;
+  if ( !reflectingEdges.length ) return { polys, recurseData };
 
   // For each reflecting edge, create a cone template using a shadow cone based on reflected distance.
   // Set origin of the sweep to just inside the edge, in the middle.
@@ -181,12 +206,14 @@ function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastRe
 
     // Set the new sweep origin to be just inside the reflecting wall, to avoid using sweep
     // on the wrong side of the wall.
+    const direction = Math.toDegrees(reflectionRay.angle);
+    const distance = doc.distance;
     const newTemplate = {
       document: {
         x: shadowConeOrigin.x,
         y: shadowConeOrigin.y,
-        direction: Math.toDegrees(reflectionRay.angle),
-        distance: doc.distance,
+        direction,
+        distance,
         angle: doc.angle,
         width: doc.width,
         t: doc.t,
@@ -217,16 +244,18 @@ function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastRe
     reflectionSweep.compute();
 
     polys.push(reflectionSweep);
+    recurseData.push({ reflectionPoint, shadowConeOrigin, reflectedWall: reflectingEdge.wall, distance, direction });
 
     //   Draw.shape(reflectionSweep);
 
     if ( useRecursion ) {
-      const res = reflectCone(template, reflectionSweep, newTemplate, level, reflectingEdge.wall);
-      polys.push(...res);
+      const { polys: childPolys, recurseData: childData } = reflectCone(template, reflectionSweep, newTemplate, level, reflectingEdge.wall);
+      polys.push(...childPolys);
+      if ( childData.length ) recurseData.push(childData);
     }
   }
 
-  return polys;
+  return { polys, recurseData };
 }
 
 
@@ -238,6 +267,7 @@ function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastRe
 function reflect(template, sweep, fakeTemplate = template, level = 0) {
   level += 1;
   const polys = [];
+  const recurseData = [];
   const d = canvas.dimensions;
   const dMult = (d.size / d.distance);
   const dInv = 1 / dMult;
@@ -261,7 +291,7 @@ function reflect(template, sweep, fakeTemplate = template, level = 0) {
 
     walls.push(wallRay);
   }
-  if ( !walls.length ) return polys;
+  if ( !walls.length ) return { polys, recurseData };
 
   // Only reflect off the first wall encountered.
   walls.sort((a, b) => a._reflectionDistance - b.reflectionDistance);
@@ -281,12 +311,14 @@ function reflect(template, sweep, fakeTemplate = template, level = 0) {
   // Change to the distance remaining
   // Construct a fake template to use for the sweep.
   const reflectionDist = reflectedWall._reflectionDistance;
+  const distance = doc.distance - (reflectionDist * dInv);
+  const direction = Math.toDegrees(reflectionRay.angle);
   const newTemplate = {
     document: {
       x: reflectedOrigin.x,
       y: reflectedOrigin.y,
-      direction: Math.toDegrees(reflectionRay.angle),
-      distance: doc.distance - (reflectionDist * dInv),
+      direction,
+      distance,
       angle: doc.angle,
       width: doc.width,
       t: doc.t,
@@ -315,15 +347,17 @@ function reflect(template, sweep, fakeTemplate = template, level = 0) {
   newSweep.initialize(reflectedOrigin, cfg);
   newSweep.compute();
   polys.push(newSweep);
+  recurseData.push({ reflectionPoint, reflectedOrigin, reflectedWall, distance, direction });
 
   //   Draw.shape(newSweep);
 
   if ( useRecursion ) {
-    const res = reflect(template, newSweep, newTemplate, level);
-    polys.push(...res);
+    const { polys: childPolys, recurseData: childData } = reflect(template, newSweep, newTemplate, level);
+    polys.push(...childPolys);
+    if ( childData.length ) recurseData.push(...childData);
   }
 
-  return polys;
+  return { polys, recurseData };
 }
 
 /**
@@ -370,6 +404,7 @@ function reflectRayOffEdge(ray, edge, reflectionPoint) {
 function spread(template, sweep, fakeTemplate = template, level = 0) {
   level += 1;
   const polys = [];
+  const recurseData = [];
   const d = canvas.dimensions;
   const dMult = (d.size / d.distance);
   const dInv = 1 / dMult;
@@ -388,12 +423,13 @@ function spread(template, sweep, fakeTemplate = template, level = 0) {
     const extendedCorner = extendCornerFromWalls(cornerKey, sweep.edgesEncountered, sweep.origin);
 
     // Construct a fake template to use for the sweep.
+    const distance = doc.distance - distGrid;
     const newTemplate = {
       document: {
         x: corner.x,
         y: corner.y,
         direction: doc.direction,
-        distance: doc.distance - distGrid,
+        distance,
         angle: doc.angle,
         width: doc.width,
         t: doc.t,
@@ -423,12 +459,15 @@ function spread(template, sweep, fakeTemplate = template, level = 0) {
     newSweep.compute();
     polys.push(newSweep);
 
+    recurseData.push({ corner, extendedCorner, distance });
+
     if ( useRecursion ) {
-      const res = spread(template, newSweep, newTemplate, level);
-      polys.push(...res);
+      const { polys: childPolys, recurseData: childData } = spread(template, newSweep, newTemplate, level);
+      polys.push(...childPolys);
+      if ( childData.length ) recurseData.push(childData);
     }
   }
-  return polys;
+  return { polys, recurseData };
 }
 
 /**
@@ -569,12 +608,7 @@ function useSweep(template) {
   //   return this.document.getFlag(MODULE_ID, "enabled")
   //     && canvas.walls.quadtree
   //     && canvas.walls.innerBounds.length;
-
-  const templateShape = template.document.t;
-  const wallsBlock = template.item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-    ?? template.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-    ?? getSetting(SETTINGS.DEFAULTS[templateShape])
-    ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
+  const { wallsBlock } = templateFlagProperties(template);
 
   if ( wallsBlock === SETTINGS.DEFAULTS.CHOICES.UNWALLED ) {
     log("useBoundaryPolygon|not enabled. Skipping sweep.");

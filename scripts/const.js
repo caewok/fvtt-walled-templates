@@ -7,7 +7,8 @@ export const MODULE_ID = "walledtemplates";
 
 export const FLAGS = {
   WALLS_BLOCK: "wallsBlock",
-  WALL_RESTRICTION: "wallRestriction"
+  WALL_RESTRICTION: "wallRestriction",
+  RECURSE_DATA: "recurseData"
 };
 
 export const LABELS = {
