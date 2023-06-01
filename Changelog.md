@@ -1,6 +1,7 @@
 ## 0.5.2
 Fix for console error when placing square templates (issue #26).
-Ignore targeting for tokens that have the `actor.system.details.type.custom` property set to "NoTarget". To set this in Foundry, enable an active effect on the token with "Attribute Key" set to "system.details.type.custom", "Change Mode" set to "Add", and "Effect Value" set to "NoTarget".
+
+Ignore targeting for tokens that have the `actor.system.details.type.custom` property set to "NoTarget". To set this in Foundry, enable an active effect on the token with "Attribute Key" set to "system.details.type.custom", "Change Mode" set to "Add", and "Effect Value" set to "NoTarget". (Issue #28.)
 
 ## 0.5.1
 Update geometry lib to v0.1.5.
