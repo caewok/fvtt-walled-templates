@@ -203,6 +203,12 @@ export function registerSettings() {
     config: true
   });
 
+  game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.rect, {
+    type: Boolean,
+    default: false,
+    scope: "world",
+    config: false
+  });
 
   log("Done registering settings.");
 }
