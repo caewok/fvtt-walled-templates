@@ -47,6 +47,18 @@ Hooks.once("ready", () => {
             option. You may need to update your preferred default settings accordingly. A "CONFIG.walledtemplates" property
             has also been added to allow more customization. See the Git page for details.`
     })
+
+    .addEntry({
+      version: "0.5.2",
+      title: "Wall Restriction and Global Defaults",
+      body: `\
+          - **Wall Restriction Default Settings:** GMs can now set default choices for the wall restriction
+            type for the different template shapes in Settings. (This was previously a hidden CONFIG setting.)
+
+          - **Global Defaults in DND5e Spell Items:** In dnd5e spell configuration for template spells,
+            the choice will default to "Use global default" for wall blocking and wall restriction type.
+            (This will not affect existing spell items.)`
+    })
     .build()
     ?.render(true);
 });
