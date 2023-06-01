@@ -20,6 +20,19 @@ export const SETTINGS = {
     }
   },
 
+  DEFAULT_WALL_RESTRICTIONS: {
+    circle: "default-circle-wall-restriction",
+    cone: "default-cone-wall-restriction",
+    ray: "default-ray-wall-restriction",
+    rect: "default-rect-wall-restriction",
+    CHOICES: {
+      LIGHT: "light",
+      MOVE: "move",
+      SIGHT: "sight",
+      SOUND: "sound"
+    }
+  },
+
   DIAGONAL_SCALING: {
     ray: "diagonal-scaling-ray",
     cone: "diagonal-scaling-cone",
@@ -69,12 +82,28 @@ export function registerSettings() {
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.circle}.Hint`),
     scope: "world",
     config: true,
-    default: "unwalled",
+    default: SETTINGS.DEFAULTS.CHOICES.UNWALLED,
     type: String,
     choices: {
       [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
       [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
       [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`)
+    }
+  });
+
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALL_RESTRICTIONS.circle, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.circle}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.circle}.Hint`),
+    scope: "world",
+    config: true,
+    default: SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE,
+    type: String,
+    choices: {
+      // Use the default Foundry en.json WALLS version
+      [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.LIGHT]: game.i18n.localize("WALLS.Light"),
+      [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE]: game.i18n.localize("WALLS.Movement"),
+      [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.SIGHT]: game.i18n.localize("WALLS.Sight"),
+      [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.SOUND]: game.i18n.localize("WALLS.Sound")
     }
   });
 
@@ -83,12 +112,28 @@ export function registerSettings() {
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.cone}.Hint`),
     scope: "world",
     config: true,
-    default: "unwalled",
+    default: SETTINGS.DEFAULTS.CHOICES.UNWALLED,
     type: String,
     choices: {
       [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
       [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
       [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`)
+    }
+  });
+
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALL_RESTRICTIONS.cone, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.cone}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.cone}.Hint`),
+    scope: "world",
+    config: true,
+    default: SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE,
+    type: String,
+    choices: {
+      // Use the default Foundry en.json WALLS version
+      [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.LIGHT]: game.i18n.localize("WALLS.Light"),
+      [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE]: game.i18n.localize("WALLS.Movement"),
+      [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.SIGHT]: game.i18n.localize("WALLS.Sight"),
+      [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.SOUND]: game.i18n.localize("WALLS.Sound")
     }
   });
 
@@ -97,7 +142,7 @@ export function registerSettings() {
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.rect}.Hint`),
     scope: "world",
     config: true,
-    default: "unwalled",
+    default: SETTINGS.DEFAULTS.CHOICES.UNWALLED,
     type: String,
     choices: {
       [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
@@ -106,18 +151,49 @@ export function registerSettings() {
     }
   });
 
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALL_RESTRICTIONS.rect, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.rect}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.rect}.Hint`),
+    scope: "world",
+    config: true,
+    default: SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE,
+    type: String,
+    choices: {
+      // Use the default Foundry en.json WALLS version
+      [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.LIGHT]: game.i18n.localize("WALLS.Light"),
+      [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE]: game.i18n.localize("WALLS.Movement"),
+      [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.SIGHT]: game.i18n.localize("WALLS.Sight"),
+      [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.SOUND]: game.i18n.localize("WALLS.Sound")
+    }
+  });
 
   game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.ray, {
     name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.ray}.Name`),
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.ray}.Hint`),
     scope: "world",
     config: true,
-    default: "unwalled",
+    default: SETTINGS.DEFAULTS.CHOICES.UNWALLED,
     type: String,
     choices: {
       [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
       [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
       [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`)
+    }
+  });
+
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALL_RESTRICTIONS.ray, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.ray}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.ray}.Hint`),
+    scope: "world",
+    config: true,
+    default: SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE,
+    type: String,
+    choices: {
+      // Use the default Foundry en.json WALLS version
+      [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.LIGHT]: game.i18n.localize("WALLS.Light"),
+      [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE]: game.i18n.localize("WALLS.Movement"),
+      [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.SIGHT]: game.i18n.localize("WALLS.Sight"),
+      [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.SOUND]: game.i18n.localize("WALLS.Sound")
     }
   });
 

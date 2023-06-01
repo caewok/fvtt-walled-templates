@@ -20,6 +20,16 @@
     "walledtemplates.settings.default_ray.Hint": "Select default for newly created ray templates. Rays can reflect but not spread.",
     "walledtemplates.settings.default_rect.Hint": "Select default for newly created rectangle templates. Rectangles can spread but not reflect.",
 
+    "walledtemplates.settings.default-circle-wall-restriction.Name": "Default Circle Wall Restriction",
+    "walledtemplates.settings.default-cone-wall-restriction.Name": "Default Cone Wall Restriction",
+    "walledtemplates.settings.default-ray-wall-restriction.Name": "Default Ray Wall Restriction",
+    "walledtemplates.settings.default-rect-wall-restriction.Name": "Default Rectangle Wall Restriction",
+
+    "walledtemplates.settings.default-circle-wall-restriction.Hint": "Treat as this type for purposes of testing if a given wall blocks the template.",
+    "walledtemplates.settings.default-cone-wall-restriction.Hint": "Treat as this type for purposes of testing if a given wall blocks the template.",
+    "walledtemplates.settings.default-ray-wall-restriction.Hint": "Treat as this type for purposes of testing if a given wall blocks the template.",
+    "walledtemplates.settings.default-rect-wall-restriction.Hint": "Treat as this type for purposes of testing if a given wall blocks the template.",
+
     "walledtemplates.settings.unwalled": "Not blocked by walls",
     "walledtemplates.settings.walled": "Blocked by walls",
     "walledtemplates.settings.recurse": "Reflected/Spread",
