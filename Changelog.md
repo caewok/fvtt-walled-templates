@@ -3,6 +3,8 @@ Fix for console error when placing square templates (issue #26).
 
 Ignore targeting for tokens that have the `actor.system.details.type.custom` property set to "NoTarget". To set this in Foundry, enable an active effect on the token with "Attribute Key" set to "system.details.type.custom", "Change Mode" set to "Add", and "Effect Value" set to "NoTarget". (Issue #28.)
 
+Add settings so the GM can set a default wall restriction type for each template shape. Use a "Global default" choice in spell item drop-downs to pass through the default wall restriction and wall blocking choice to the template when created. (Issue #27.)
+
 ## 0.5.1
 Update geometry lib to v0.1.5.
 Add recurse data flag for use by other modules.
