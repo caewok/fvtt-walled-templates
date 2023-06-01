@@ -25,10 +25,10 @@
     "walledtemplates.settings.default-ray-wall-restriction.Name": "Default Ray Wall Restriction",
     "walledtemplates.settings.default-rect-wall-restriction.Name": "Default Rectangle Wall Restriction",
 
-    "walledtemplates.settings.default-circle-wall-restriction.Hint": "Treat as this type for purposes of testing if a given wall blocks the template.",
-    "walledtemplates.settings.default-cone-wall-restriction.Hint": "Treat as this type for purposes of testing if a given wall blocks the template.",
-    "walledtemplates.settings.default-ray-wall-restriction.Hint": "Treat as this type for purposes of testing if a given wall blocks the template.",
-    "walledtemplates.settings.default-rect-wall-restriction.Hint": "Treat as this type for purposes of testing if a given wall blocks the template.",
+    "walledtemplates.settings.default-circle-wall-restriction.Hint": "Walls that block this type will block circle templates.",
+    "walledtemplates.settings.default-cone-wall-restriction.Hint": "Walls that block this type will block cone templates.",
+    "walledtemplates.settings.default-ray-wall-restriction.Hint": "Walls that block this type will block ray templates.",
+    "walledtemplates.settings.default-rect-wall-restriction.Hint": "Walls that block this type will block rectangular templates.",
 
     "walledtemplates.settings.unwalled": "Not blocked by walls",
     "walledtemplates.settings.walled": "Blocked by walls",
