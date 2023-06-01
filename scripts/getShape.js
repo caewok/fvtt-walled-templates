@@ -12,7 +12,7 @@ foundry
 
 import { log } from "./util.js";
 import { debugPolygons, SETTINGS, getSetting } from "./settings.js";
-import { MODULE_ID, FLAGS } from "./const.js";
+import { MODULE_ID, FLAGS, LABELS } from "./const.js";
 import { ClockwiseSweepShape, pointFromKey } from "./ClockwiseSweepShape.js";
 import { ClipperPaths } from "./geometry/ClipperPaths.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
@@ -40,15 +40,18 @@ function templateFlagProperties(template) {
     }
   }
 
-  const wallsBlock = item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
+  let wallsBlock = item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
     ?? template.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
     ?? getSetting(SETTINGS.DEFAULTS[templateShape])
     ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
 
-  const wallRestriction = item?.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
+  let wallRestriction = item?.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
     ?? template.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
-    ?? CONFIG[MODULE_ID].defaultWallRestrictions[templateShape]
-    ?? "move";
+    ?? getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[templateShape])
+    ?? SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE;
+
+  if ( wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULTS[templateShape]);
+  if ( wallRestriction === LABELS.GLOBAL_DEFAULT ) wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[templateShape]);
 
   return { wallsBlock, wallRestriction };
 }
