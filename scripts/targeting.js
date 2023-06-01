@@ -53,6 +53,10 @@ export function autotargetToken({ only_visible = false } = {}) {
 
   const targets = canvas.tokens.placeables.filter(token => {
     if ( only_visible && !token.visible ) { return false; }
+
+    // Midi-qol; Walled Templates issue #28.
+    if ( getProperty(t, "actor.system.details.type.custom")?.includes("NoTarget") ) return false;
+
     const tBounds = tokenBounds(token);
     return this.boundsOverlap(tBounds);
   });
