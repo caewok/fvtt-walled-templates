@@ -13,7 +13,7 @@ This could be used in combination with other modules or macros that automaticall
 ## Summary of major version updates
 - v0.3: Option to enable autotargeting of tokens under templates.
 - v0.4: Requires Foundry v10; drops v9 compatibility.
-- v0.5: Templates can reflect off walls (rays/cones) or spread around walls (circles, rectangles). 
+- v0.5: Templates can reflect off walls (rays/cones) or spread around walls (circles, rectangles).
 
 # Installation
 
@@ -48,7 +48,7 @@ The "Reflect/Spread" setting, when applied to rays or cones, will cause these te
 
 ## Spread
 
-The "Reflect/Spread" setting, when applied to circles or rectangles, causes the template to "spread" around corners. When the template encounters a wall corner, it propogates a "child" template with radius equal to the remaining distance for the template at that point. In other words, a circle template that encounters a corner will create a smaller circle template at that corner, allowing it to expand around the corner. Multiple "children" can be spawned for a given template. 
+The "Reflect/Spread" setting, when applied to circles or rectangles, causes the template to "spread" around corners. When the template encounters a wall corner, it propogates a "child" template with radius equal to the remaining distance for the template at that point. In other words, a circle template that encounters a corner will create a smaller circle template at that corner, allowing it to expand around the corner. Multiple "children" can be spawned for a given template.
 
 [Walled Template Circle Spread.webm](https://user-images.githubusercontent.com/1267134/229948904-35a39500-c479-41c2-872b-02f47ea880cc.webm)
 
@@ -71,6 +71,8 @@ Walled Templates v0.3.0 adds settings to autotarget tokens touched by the templa
 3. Enable autotargeting everywhere.
 
 Several settings specified at the "world" level allow you to specify rules for autotargeting. (See below.)
+
+To disable autotargeting on a per-actor basis, enable an active effect on the token with "Attribute Key" set to "system.details.type.custom", "Change Mode" set to "Add", and "Effect Value" set to "NoTarget". This property is the same as that used by Midi Qol to ignore targeting.
 
 # Settings
 
@@ -107,10 +109,10 @@ Options (2) and (3) add a toggle switch to the template controls on the left sid
 
 # Advanced usage
 
-## API 
+## API
 This module adds two flags to template objects:
-- `flags.walledtemplates.wallsBlock`: String. `unwalled`, `walled`, or `recurse`. 
-- `flags.walledtemplates.wallRestriction`: String. `light`, `sound`, `sight`, or `move`. 
+- `flags.walledtemplates.wallsBlock`: String. `unwalled`, `walled`, or `recurse`.
+- `flags.walledtemplates.wallRestriction`: String. `light`, `sound`, `sight`, or `move`.
 
 ## CONFIG
 This module adds several values to `CONFIG.walledtemplates` that modules, macros, or world scripts can modify:
@@ -136,7 +138,7 @@ defaultWallRestrictions: {
   rect: "move",
   ray: "move",
   cone: "move"
-},    
+},
 
 /**
  * Pixels away from the corner to place child templates when spreading.
@@ -145,7 +147,7 @@ defaultWallRestrictions: {
  */
  cornerSpacer: 10
 ```
-Increasing the number of recursions will increase the number of reflections permitted, or for spreading, number of generations of children that may be spawned. There is a performance cost to increase recursions. 
+Increasing the number of recursions will increase the number of reflections permitted, or for spreading, number of generations of children that may be spawned. There is a performance cost to increase recursions.
 
 # Known issues
 
