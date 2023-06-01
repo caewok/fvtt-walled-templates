@@ -16,18 +16,21 @@ import { MODULE_ID, FLAGS, LABELS } from "./const.js";
  * templates/scene/template-config.html
  */
 export async function walledTemplatesRender5eSpellTemplateConfig(app, html, data) {
-  // Set default to be whatever the world setting is
-  const areaType = data.system.target.type;
+  // By default, rely on the global settings.
   if (typeof data.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
-    const shape = CONFIG.DND5E.areaTargetTypes[areaType]?.template ?? "circle";
-    data.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULTS[shape]));
+    data.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, LABELS.GLOBAL_DEFAULT);
+  }
+
+  if (typeof data.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined") {
+    data.document.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, LABELS.GLOBAL_DEFAULT);
   }
 
   // Set variable to know if we are dealing with a template
+  const areaType = data.system.target.type;
   data.isTemplate = areaType in CONFIG.DND5E.areaTargetTypes;
   data.walledtemplates = {
-    blockoptions: LABELS.WALLS_BLOCK,
-    walloptions: Object.fromEntries(CONST.WALL_RESTRICTION_TYPES.map(key => [key, key]))
+    blockoptions: LABELS.SPELL_TEMPLATE.WALLS_BLOCK,
+    walloptions: LABELS.SPELL_TEMPLATE.WALL_RESTRICTION
   };
 
   const template = `modules/${MODULE_ID}/templates/walled-templates-dnd5e-spell-template-config.html`;

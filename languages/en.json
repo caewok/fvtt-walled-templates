@@ -6,6 +6,7 @@
     "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name": "Wall Restriction Type",
     "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint": "Walls that do not block this restriction type will be ignored by the template",
 
+    "walledtemplates.MeasuredTemplateConfiguration.globalDefault": "Use global default",
     "walledtemplates.MeasuredTemplateConfiguration.unwalled": "Do not block template",
     "walledtemplates.MeasuredTemplateConfiguration.walled": "Block template",
     "walledtemplates.MeasuredTemplateConfiguration.recurse": "Reflect/Spread template",
@@ -19,6 +20,16 @@
     "walledtemplates.settings.default_cone.Hint": "Select default for newly created cone templates. Cones can reflect but not spread.",
     "walledtemplates.settings.default_ray.Hint": "Select default for newly created ray templates. Rays can reflect but not spread.",
     "walledtemplates.settings.default_rect.Hint": "Select default for newly created rectangle templates. Rectangles can spread but not reflect.",
+
+    "walledtemplates.settings.default-circle-wall-restriction.Name": "Default Circle Wall Restriction",
+    "walledtemplates.settings.default-cone-wall-restriction.Name": "Default Cone Wall Restriction",
+    "walledtemplates.settings.default-ray-wall-restriction.Name": "Default Ray Wall Restriction",
+    "walledtemplates.settings.default-rect-wall-restriction.Name": "Default Rectangle Wall Restriction",
+
+    "walledtemplates.settings.default-circle-wall-restriction.Hint": "Walls that block this type will block circle templates.",
+    "walledtemplates.settings.default-cone-wall-restriction.Hint": "Walls that block this type will block cone templates.",
+    "walledtemplates.settings.default-ray-wall-restriction.Hint": "Walls that block this type will block ray templates.",
+    "walledtemplates.settings.default-rect-wall-restriction.Hint": "Walls that block this type will block rectangular templates.",
 
     "walledtemplates.settings.unwalled": "Not blocked by walls",
     "walledtemplates.settings.walled": "Blocked by walls",

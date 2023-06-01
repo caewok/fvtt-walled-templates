@@ -66,17 +66,6 @@ Hooks.once("init", async function() {
     },
 
     /**
-     * Default wall restriction type for each template type.
-     * @type { object: string }
-     */
-    defaultWallRestrictions: {
-      circle: "move",
-      rect: "move",
-      ray: "move",
-      cone: "move"
-    },
-
-    /**
      * Pixels away from the corner to place child templates when spreading.
      * (Placing directly on the corner will cause the LOS sweep to fail to round the corner.)
      * @type {number}
@@ -140,9 +129,8 @@ Hooks.once("ready", async function() {
     }
 
     if ( typeof t.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
-      t.document.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, CONFIG[MODULE_ID].defaultWallRestrictions[shape]);
+      t.document.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape]));
     }
-
   });
 });
 
@@ -176,7 +164,7 @@ Hooks.on("renderMeasuredTemplateConfig", async (app, html, data) => {
   const renderData = {};
   renderData.walledtemplates = {
     blockoptions: LABELS.WALLS_BLOCK,
-    walloptions: Object.fromEntries(CONST.WALL_RESTRICTION_TYPES.map(key => [key, key]))
+    walloptions: LABELS.WALL_RESTRICTION
   };
 
   foundry.utils.mergeObject(data, renderData, { inplace: true });
@@ -408,7 +396,7 @@ function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
   }
 
   if ( typeof templateD.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
-    updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = CONFIG[MODULE_ID].defaultWallRestrictions[t];
+    updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[t]);
   }
 
   if ( getSetting(SETTINGS.DIAGONAL_SCALING[t]) ) {
@@ -483,8 +471,11 @@ function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-
   // Add item flags to the template(s)
   for ( const template of templates ) {
     const shape = template.t;
-    const wallsBlock = item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) ?? getSetting(SETTINGS.DEFAULTS[shape]);
-    const wallRestriction = CONFIG[MODULE_ID].defaultWallRestrictions[shape];
+    let wallsBlock = item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK);
+    let wallRestriction = item.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION);
+    if ( !wallsBlock || wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULTS[shape]);
+    if ( !wallRestriction || wallRestriction === LABELS.GLOBAL_DEFAULT ) wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape]);
+
     template.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsBlock);
     template.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, wallRestriction);
   }
