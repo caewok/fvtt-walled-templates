@@ -6,6 +6,7 @@
     "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name": "Wall Restriction Type",
     "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint": "Walls that do not block this restriction type will be ignored by the template",
 
+    "walledtemplates.MeasuredTemplateConfiguration.globalDefault": "Use global default",
     "walledtemplates.MeasuredTemplateConfiguration.unwalled": "Do not block template",
     "walledtemplates.MeasuredTemplateConfiguration.walled": "Block template",
     "walledtemplates.MeasuredTemplateConfiguration.recurse": "Reflect/Spread template",
