@@ -50,7 +50,7 @@ export class WalledTemplate {
    * @override
    */
   get doRecursion() {
-    return this.wallsBlock === SETTINGS.DEFAULTS.CHOICES.RECURSE
+    return this.options.wallsBlock === SETTINGS.DEFAULTS.CHOICES.RECURSE
       && CONFIG[MODULE_ID].recursions[this.t];
   }
 
