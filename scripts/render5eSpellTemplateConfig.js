@@ -1,12 +1,9 @@
 /* globals
 CONFIG,
-renderTemplate,
-CONST
+renderTemplate
 */
-
 "use strict";
 
-import { getSetting, SETTINGS } from "./settings.js";
 import { MODULE_ID, FLAGS, LABELS } from "./const.js";
 
 /**

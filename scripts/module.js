@@ -31,12 +31,10 @@ import { registerGeometry } from "./geometry/registration.js";
 import { walledTemplatesRenderMeasuredTemplateConfig, walledTemplatesRenderMeasuredTemplateElevationConfig } from "./renderMeasuredTemplateConfig.js";
 import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
 
-import * as getShape from "./getShape.js";
-
 // API
 import { ClockwiseSweepShape } from "./ClockwiseSweepShape.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
-import * as WalledTemplate from "./WalledTemplate.js";
+import * as WalledTemplateClasses from "./WalledTemplate.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -60,10 +58,10 @@ Hooks.once("init", async function() {
      * @type { object: number }
      */
     recursions: {
-      circle: 4,
-      rect: 4,
-      ray: 8,
-      cone: 4
+      circle: 1,
+      rect: 1,
+      ray: 1,
+      cone: 1
     },
 
     /**
@@ -74,14 +72,14 @@ Hooks.once("init", async function() {
      cornerSpacer: 10
   };
 
-  registerWalledTemplates();
   registerGeometry();
+  registerWalledTemplates();
 
   game.modules.get(MODULE_ID).api = {
     getShape,
     ClockwiseSweepShape,
     LightWallSweep,
-    WalledTemplate
+    WalledTemplateClasses
   };
 });
 

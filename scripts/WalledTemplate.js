@@ -27,6 +27,7 @@ export class WalledTemplate {
    * @typedef {object} WalledTemplateOptions
    * @property {SETTINGS.DEFAULTS.CHOICES} wallsBlock
    * @property {CONST.WALL_RESTRICTION_TYPES} wallRestriction
+   * @property {number} level
    */
 
   /** @type {WalledTemplateOptions} */
@@ -35,6 +36,11 @@ export class WalledTemplate {
   /** @type {ClockwiseSweepShape|LightWallSweep} */
   sweepClass = ClockwiseSweepShape;
 
+  /**
+   * @param {Point3d} origin    Center point of the template
+   * @param {number} distance   Distance, in pixel units
+   * @param {WalledTemplateOptions} [options]
+   */
   constructor(origin, distance, { wallsBlock, wallRestriction, level } = {}) {
     this.origin.copyFrom(origin);
     this.distance = distance ?? 0;
@@ -133,10 +139,13 @@ export class WalledTemplate {
 
   static fromMeasuredTemplate(template) {
     const opts = templateFlagProperties(template);
+
+    // Convert to pixel units
     const { angle, t, x, y, elevation } = template.document;
     const width = template.document.width * canvas.dimensions.distancePixels;
     const { angle: direction, distance } = template.ray;
-    const origin = new Point3d(x, y, elevation ?? 0);
+    const elevationZ = CONFIG.GeometryLib.utils.gridUnitsToPixels(elevation ?? 0);
+    const origin = new Point3d(x, y, elevationZ);
 
     switch ( t ) {
       case "circle":
@@ -158,6 +167,11 @@ export class WalledTemplateCircle extends WalledTemplate {
   /** @type {ClockwiseSweepShape|LightWallSweep} */
   sweepClass = ClockwiseSweepShape;
 
+  /**
+   * @param {Point3d} origin    Center point of the template
+   * @param {number} distance   Radius of the circle, in pixel units
+   * @param {WalledTemplateOptions} [options]
+   */
   constructor(origin, distance, opts = {}) {
     super(origin, distance, opts);
   }
@@ -182,6 +196,9 @@ export class WalledTemplateCircle extends WalledTemplate {
     return MeasuredTemplate.getCircleShape(this.distance + 1);
   }
 
+  // TODO: Track spread points.
+  // If the origin is nearly equal to the sweep origin, don't use it unless distance is larger.
+
   /**
    * For each wall within distance of the template origin,
    * re-run sweep, using the corner as the origin and the remaining distance as the radius.
@@ -189,7 +206,7 @@ export class WalledTemplateCircle extends WalledTemplate {
   spread(sweep) {
     const polys = [];
     const recurseData = [];
-    const useRecursion = this.level < CONFIG[MODULE_ID].recursions[this.t];
+    const useRecursion = this.options.level < CONFIG[MODULE_ID].recursions[this.t];
 
     for ( const cornerKey of sweep.cornersEncountered ) {
       const spreadTemplate = this.generateSpread(cornerKey, sweep.edgesEncountered);
@@ -217,19 +234,16 @@ export class WalledTemplateCircle extends WalledTemplate {
    */
   generateSpread(cornerKey, edgesEncountered) {
     const corner = pointFromKey(cornerKey);
-    const dMult = canvas.dimensions.distancePixels;
-    const dInv = 1 / dMult;
 
     // If the corner is beyond this template, ignore
     const dist = PIXI.Point.distanceBetween(this.origin, corner);
-    const distGrid = dist * dInv;
-    if ( this.distance < distGrid ) return null;
+    if ( this.distance < dist ) return null;
 
     // Adjust the origin so that it is 2 pixels off the wall at that corner, in direction of the wall.
     // If more than one wall, find the balance point.
     const extendedCorner = extendCornerFromWalls(cornerKey, edgesEncountered, this.origin);
 
-    const distance = this.distance - distGrid;
+    const distance = this.distance - dist;
     const opts = duplicate(this.options);
     opts.level += 1;
     opts.corner = corner;
@@ -247,7 +261,7 @@ export class WalledTemplateRay extends WalledTemplate {
    * Angle of the ray, in degrees.
    * @type {number}
    */
-  direction = 0;
+  angle = 0;
 
   /** @type {number} */
   width = 0;
@@ -255,9 +269,16 @@ export class WalledTemplateRay extends WalledTemplate {
   /** @type {"circle"|"cone"|"rect"|"ray"} */
   t = "ray";
 
-  constructor(origin, distance, direction, width, opts = {}) {
+  /**
+   * @param {Point3d} origin    Center point of the template
+   * @param {number} distance   Distance of the ray, in pixel units
+   * @param {number} angle      Direction of the ray, in radians
+   * @param {number} width      Width of the ray, in pixel units
+   * @param {WalledTemplateOptions} [options]
+   */
+  constructor(origin, distance, angle, width, opts = {}) {
     super(origin, distance, opts);
-    if ( direction !== undefined ) this.direction = direction;
+    if ( angle !== undefined ) this.angle = angle;
     if ( width !== undefined ) this.width = width;
 
   }
@@ -284,7 +305,7 @@ export class WalledTemplateRay extends WalledTemplate {
   reflect(sweep) {
     const polys = [];
     const recurseData = [];
-    const useRecursion = this.level < CONFIG[MODULE_ID].recursions[this.t];
+    const useRecursion = this.options.level < CONFIG[MODULE_ID].recursions[this.t];
 
     const reflection = this.generateReflection(sweep.edgesEncountered);
     if ( !reflection ) return { polys, recurseData };
@@ -308,10 +329,7 @@ export class WalledTemplateRay extends WalledTemplate {
    * @returns {WalledTemplateRay|null}
    */
   generateReflection(edges) {
-    const dMult = canvas.dimensions.distancePixels;
-    const dInv = 1 / dMult;
-    const angle = Math.toRadians(this.direction);
-    const dirRay = Ray.fromAngle(this.origin.x, this.origin.y, angle, this.distance * dMult);
+    const dirRay = Ray.fromAngle(this.origin.x, this.origin.y, this.angle, this.distance);
 
     // Sort walls by closest collision to the template origin, skipping those that do not intersect.
     const walls = [];
@@ -323,7 +341,7 @@ export class WalledTemplateRay extends WalledTemplate {
       wallRay._reflectionDistance = PIXI.Point.distanceBetween(this.origin, ix);
 
       // If the wall intersection is beyond the template, ignore.
-      if ( this.distance < wallRay._reflectionDistance * dInv ) continue;
+      if ( this.distance < wallRay._reflectionDistance ) continue;
 
       walls.push(wallRay);
     }
@@ -346,21 +364,17 @@ export class WalledTemplateRay extends WalledTemplate {
 
     // Change to the distance remaining
     // Construct a fake template to use for the sweep.
-    const reflectionDist = reflectedWall._reflectionDistance;
-    const distance = this.distance - (reflectionDist * dInv);
-    const direction = Math.toDegrees(reflectionRay.angle);
     const opts = duplicate(this.options);
     opts.level += 1;
     opts.reflectedWall = reflectedWall;
 
     return new this.constructor(
       new Point3d(reflectedOrigin.x, reflectedOrigin.y, this.origin.z),
-      distance,
-      direction,
+      this.distance - reflectedWall._reflectionDistance,
+      reflectionRay.angle,
       this.width,
       opts);
   }
-
 }
 
 /**
