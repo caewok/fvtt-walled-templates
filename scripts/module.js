@@ -36,6 +36,7 @@ import * as getShape from "./getShape.js";
 // API
 import { ClockwiseSweepShape } from "./ClockwiseSweepShape.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
+import * as WalledTemplate from "./WalledTemplate.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -79,7 +80,8 @@ Hooks.once("init", async function() {
   game.modules.get(MODULE_ID).api = {
     getShape,
     ClockwiseSweepShape,
-    LightWallSweep
+    LightWallSweep,
+    WalledTemplate
   };
 });
 

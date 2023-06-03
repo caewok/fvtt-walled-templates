@@ -11,11 +11,12 @@ foundry
 "use strict";
 
 import { log } from "./util.js";
-import { debugPolygons, SETTINGS, getSetting } from "./settings.js";
-import { MODULE_ID, FLAGS, LABELS } from "./const.js";
+import { debugPolygons, SETTINGS } from "./settings.js";
+import { MODULE_ID, FLAGS } from "./const.js";
 import { ClockwiseSweepShape, pointFromKey } from "./ClockwiseSweepShape.js";
 import { ClipperPaths } from "./geometry/ClipperPaths.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
+import { WalledTemplate, templateFlagProperties } from "./WalledTemplate.js";
 
 
 /**
@@ -24,38 +25,39 @@ import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
 
 
 /**
- * Determine the flag properties for a given template.
- * These might be derived from an associated item or from default settings.
- * @param {Template} template
- * @returns {object} { wallsBlock: string, wallRestriction: string }
+ * Wrap MeasuredTemplate.prototype._computeShape
+ * Allow the original shape to be constructed, then build from that.
+ * @returns {PIXI.Circle|PIXI.Rectangle|PIXI.Polygon}
  */
-function templateFlagProperties(template) {
-  const templateShape = template.document.t;
-  let item = template.item;
-  if ( game.system.id === "dnd5e" && !item ) {
-    const uuid = template.document.getFlag("dnd5e", "origin");
-    if ( origin ) {
-      const leaves = game.documentIndex.uuids[uuid]?.leaves;
-      if ( leaves ) item = leaves.find(leaf => leaf.uuid === uuid)?.entry;
-    }
+export function _computeShapeMeasuredTemplate(wrapped) {
+  // Store the original shape.
+  this.originalShape = wrapped();
+  if ( !requiresSweep(this) ) return this.originalShape;
+
+
+  const walledTemplate = WalledTemplate.fromMeasuredTemplate(this);
+  const poly = walledTemplate.computeSweepPolygon();
+
+  poly.x = this.originalShape.x;
+  poly.y = this.originalShape.y;
+  poly.radius = this.originalShape.radius;
+
+  if ( !poly || isNaN(poly.points[0]) ) {
+    console.error("_computeShapeMeasuredTemplate poly is broken.");
+    return this.originalShape;
   }
-
-  let wallsBlock = item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-    ?? template.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-    ?? getSetting(SETTINGS.DEFAULTS[templateShape])
-    ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
-
-  let wallRestriction = item?.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
-    ?? template.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
-    ?? getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[templateShape])
-    ?? SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE;
-
-  if ( wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULTS[templateShape]);
-  if ( wallRestriction === LABELS.GLOBAL_DEFAULT ) wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[templateShape]);
-
-  return { wallsBlock, wallRestriction };
+  return poly;
 }
 
+/**
+ * Determine if a sweep is needed for a template.
+ * @param {MeasuredTemplate}
+ * @returns {boolean}
+ */
+function requiresSweep(template) {
+  const { wallsBlock } = templateFlagProperties(template);
+  return wallsBlock !== SETTINGS.DEFAULTS.CHOICES.UNWALLED;
+}
 
 /**
  * Helper function that presumes this.shape has been set.
@@ -252,7 +254,8 @@ function reflectCone(template, sweep, fakeTemplate = template, level = 0, lastRe
     //   Draw.shape(reflectionSweep);
 
     if ( useRecursion ) {
-      const { polys: childPolys, recurseData: childData } = reflectCone(template, reflectionSweep, newTemplate, level, reflectingEdge.wall);
+      const { polys: childPolys, recurseData: childData } = reflectCone(
+        template, reflectionSweep, newTemplate, level, reflectingEdge.wall);
       polys.push(...childPolys);
       if ( childData.length ) recurseData.push(childData);
     }
@@ -646,7 +649,7 @@ function useSweep(template) {
  * @param {Number}   distance   Radius of the circle.
  * @return {PIXI.Polygon}
  */
-export function walledTemplateGetCircleShape(wrapped, distance, returnOriginal = !useSweep(this)) {
+export function getWalledTemplateCircleShape(wrapped, distance, returnOriginal = !useSweep(this)) {
   log(`walledTemplateGetCircleShape with distance ${distance}, origin ${this.x},${this.y}`, this);
 
   // Make sure the default shape is constructed.
@@ -874,3 +877,85 @@ function getRayBoundaryShapes(shape, origin) {
   const ray = shape.translate(origin.x, origin.y);
   return [ray];
 }
+
+// NOTE: Original shape calculations
+// From Foundry v11.299.
+
+/**
+ * Original shape calculation from Foundry v11.
+ * Get a Circular area of effect given a radius of effect
+ * @param {number} distance
+ * @returns {PIXI.Circle}
+ */
+export function getCircleShape(distance) {
+  return new PIXI.Circle(0, 0, distance);
+}
+
+/**
+ * Original shape calculation from Foundry v11.
+ * Get a Conical area of effect given a direction, angle, and distance
+ * @param {number} direction
+ * @param {number} angle
+ * @param {number} distance
+ * @returns {PIXI.Polygon}
+ */
+export function getConeShape(direction, angle, distance) {
+  angle = angle || 90;
+  const coneType = game.settings.get("core", "coneTemplateType");
+
+  // For round cones - approximate the shape with a ray every 3 degrees
+  let angles;
+  if ( coneType === "round" ) {
+    const da = Math.min(angle, 3);
+    angles = Array.fromRange(Math.floor(angle/da)).map(a => (angle/-2) + (a*da)).concat([angle/2]);
+  }
+
+  // For flat cones, direct point-to-point
+  else {
+    angles = [(angle/-2), (angle/2)];
+    distance /= Math.cos(Math.toRadians(angle/2));
+  }
+
+  // Get the cone shape as a polygon
+  const rays = angles.map(a => Ray.fromAngle(0, 0, direction + Math.toRadians(a), distance+1));
+  const points = rays.reduce((arr, r) => {
+    return arr.concat([r.B.x, r.B.y]);
+  }, [0, 0]).concat([0, 0]);
+  return new PIXI.Polygon(points);
+}
+
+/**
+ * Original shape calculation from Foundry v11.
+ * Get a Rectangular area of effect given a width and height
+ * @param {number} direction
+ * @param {number} distance
+ * @returns {PIXI.Rectangle}
+ */
+export function getRectShape(direction, distance) {
+  let d = canvas.dimensions;
+  let r = Ray.fromAngle(0, 0, direction, distance);
+  let dx = Math.round(r.dx / (d.size / 2)) * (d.size / 2);
+  let dy = Math.round(r.dy / (d.size / 2)) * (d.size / 2);
+  return new PIXI.Rectangle(0, 0, dx, dy).normalize();
+}
+
+/**
+ * Original shape calculation from Foundry v11.
+ * Get a rotated Rectangular area of effect given a width, height, and direction
+ * @param {number} direction
+ * @param {number} distance
+ * @param {number} width
+ * @returns {PIXI.Polygon}
+ */
+export function getRayShape(direction, distance, width) {
+  let up = Ray.fromAngle(0, 0, direction - Math.toRadians(90), (width / 2)+1);
+  let down = Ray.fromAngle(0, 0, direction + Math.toRadians(90), (width / 2)+1);
+  let l1 = Ray.fromAngle(up.B.x, up.B.y, direction, distance+1);
+  let l2 = Ray.fromAngle(down.B.x, down.B.y, direction, distance+1);
+
+  // Create Polygon shape and draw
+  const points = [down.B.x, down.B.y, up.B.x, up.B.y, l1.B.x, l1.B.y, l2.B.x, l2.B.y];
+  return new PIXI.Polygon(points);
+}
+
+
