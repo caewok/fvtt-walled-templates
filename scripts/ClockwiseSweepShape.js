@@ -109,20 +109,6 @@ export class ClockwiseSweepShape extends ClockwiseSweepPolygon {
       pt.cwEdges.forEach(edge => this.edgesEncountered.add(edge.wall));
     });
   }
-
-  /**
-   * Modify _testWallInclusion to always reject collinear walls.
-   * (Needed b/c currently that test allows collinear walls for move type, which breaks sweep.)
-   * @inheritDoc
-   */
-   _testWallInclusion(wall, bounds) {
-     const res = super._testWallInclusion(wall, bounds);
-     if ( !res ) return false;
-
-     const side = wall.orientPoint(this.origin);
-     return Boolean(side); // !side --> false
-   }
-
 }
 
 //  Same as PolygonVertex
