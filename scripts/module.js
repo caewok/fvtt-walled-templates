@@ -58,7 +58,7 @@ Hooks.once("init", async function() {
      * @type { object: number }
      */
     recursions: {
-      circle: 1,
+      circle: 2,
       rect: 1,
       ray: 1,
       cone: 1

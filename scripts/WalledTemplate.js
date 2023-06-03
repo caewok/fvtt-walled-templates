@@ -91,7 +91,7 @@ export class WalledTemplate {
     let recurseData;
 
     if ( this.doRecursion ) {
-      const res = this.recurseFn(sweep);
+      const res = this.recurseFn(sweep, new Map());
       recurseData = res.recurseData;
       const polys = res.polys;
       polys.push(sweep);
@@ -185,7 +185,6 @@ export class WalledTemplateCircle extends WalledTemplate {
    */
   getOriginalShape() { return MeasuredTemplate.getCircleShape(this.distance); }
 
-
   /**
    * Get boundary shape for this sized circle set to the origin.
    * @returns {PIXI.Circle}
@@ -203,12 +202,12 @@ export class WalledTemplateCircle extends WalledTemplate {
    * For each wall within distance of the template origin,
    * re-run sweep, using the corner as the origin and the remaining distance as the radius.
    */
-  spread(sweep) {
+  spread(sweep, cornerTracker) {
     const polys = [];
     const recurseData = [];
 
     for ( const cornerKey of sweep.cornersEncountered ) {
-      const spreadTemplate = this.generateSpread(cornerKey, sweep.edgesEncountered);
+      const spreadTemplate = this.generateSpread(cornerKey, sweep.edgesEncountered, cornerTracker);
       if ( !spreadTemplate ) continue;
 
       const spreadSweep = spreadTemplate.computeSweep(ClockwiseSweepShape);
@@ -216,7 +215,7 @@ export class WalledTemplateCircle extends WalledTemplate {
       recurseData.push(spreadTemplate);
 
       if ( spreadTemplate.doRecursion ) {
-        const { polys: childPolys, recurseData: childData } = spreadTemplate.spread(spreadSweep);
+        const { polys: childPolys, recurseData: childData } = spreadTemplate.spread(spreadSweep, cornerTracker);
         polys.push(...childPolys);
         if ( childData.length ) recurseData.push(...childData);
       }
@@ -225,18 +224,22 @@ export class WalledTemplateCircle extends WalledTemplate {
     return { polys, recurseData};
   }
 
-
   /**
    * Generate a new CircleTemplate based on spreading from a designated corner.
    * @param {PIXI.Point} corner
    * @returns {WalledTemplateCircle|null}
    */
-  generateSpread(cornerKey, edgesEncountered) {
+  generateSpread(cornerKey, edgesEncountered, cornerTracker) {
     const corner = pointFromKey(cornerKey);
 
     // If the corner is beyond this template, ignore
     const dist = PIXI.Point.distanceBetween(this.origin, corner);
     if ( this.distance < dist ) return null;
+
+    // Skip if we already created a spread at this corner.
+    const prevCornerDist = cornerTracker.get(cornerKey);
+    if ( prevCornerDist && prevCornerDist <= dist ) return null;
+    cornerTracker.set(cornerKey, dist);
 
     // Adjust the origin so that it is 2 pixels off the wall at that corner, in direction of the wall.
     // If more than one wall, find the balance point.
