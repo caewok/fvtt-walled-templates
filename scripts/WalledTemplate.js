@@ -57,7 +57,7 @@ export class WalledTemplate {
    */
   get doRecursion() {
     return this.options.wallsBlock === SETTINGS.DEFAULTS.CHOICES.RECURSE
-      && CONFIG[MODULE_ID].recursions[this.t];
+      && this.options.level < CONFIG[MODULE_ID].recursions[this.t];
   }
 
   /**
@@ -177,7 +177,7 @@ export class WalledTemplateCircle extends WalledTemplate {
   }
 
   /** @type {boolean} */
-  get doRecursion() { return super.doRecursion && CONFIG[MODULE_ID].recursions[this.t]; }
+  get doRecursion() { return super.doRecursion && this.options.level < CONFIG[MODULE_ID].recursions[this.t]; }
 
   /**
    * Get the original version of this shape.
@@ -206,7 +206,6 @@ export class WalledTemplateCircle extends WalledTemplate {
   spread(sweep) {
     const polys = [];
     const recurseData = [];
-    const useRecursion = this.options.level < CONFIG[MODULE_ID].recursions[this.t];
 
     for ( const cornerKey of sweep.cornersEncountered ) {
       const spreadTemplate = this.generateSpread(cornerKey, sweep.edgesEncountered);
@@ -216,7 +215,7 @@ export class WalledTemplateCircle extends WalledTemplate {
       polys.push(spreadSweep);
       recurseData.push(spreadTemplate);
 
-      if ( useRecursion ) {
+      if ( spreadTemplate.doRecursion ) {
         const { polys: childPolys, recurseData: childData } = spreadTemplate.spread(spreadSweep);
         polys.push(...childPolys);
         if ( childData.length ) recurseData.push(...childData);
@@ -305,7 +304,6 @@ export class WalledTemplateRay extends WalledTemplate {
   reflect(sweep) {
     const polys = [];
     const recurseData = [];
-    const useRecursion = this.options.level < CONFIG[MODULE_ID].recursions[this.t];
 
     const reflection = this.generateReflection(sweep.edgesEncountered);
     if ( !reflection ) return { polys, recurseData };
@@ -313,7 +311,7 @@ export class WalledTemplateRay extends WalledTemplate {
     polys.push(reflectionSweep);
     recurseData.push(reflection);
 
-    if ( useRecursion ) {
+    if ( reflection.useRecursion ) {
       const { polys: childPolys, recurseData: childData } = reflection.reflect(reflectionSweep);
       polys.push(...childPolys);
       if ( childData.length ) recurseData.push(...childData);
