@@ -58,10 +58,10 @@ Hooks.once("init", async function() {
      * @type { object: number }
      */
     recursions: {
-      circle: 2,
-      rect: 1,
-      ray: 1,
-      cone: 1
+      circle: 4,
+      rect: 4,
+      ray: 8,
+      cone: 4
     },
 
     /**
@@ -76,7 +76,6 @@ Hooks.once("init", async function() {
   registerWalledTemplates();
 
   game.modules.get(MODULE_ID).api = {
-    getShape,
     ClockwiseSweepShape,
     LightWallSweep,
     WalledTemplateClasses

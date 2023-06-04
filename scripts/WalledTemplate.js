@@ -36,6 +36,8 @@ export class WalledTemplate {
   /** @type {ClockwiseSweepShape|LightWallSweep} */
   sweepClass = ClockwiseSweepShape;
 
+  _boundaryWalls = new Set();
+
   /**
    * @param {Point3d} origin    Center point of the template
    * @param {number} distance   Distance, in pixel units
@@ -49,6 +51,10 @@ export class WalledTemplate {
 
     // For recursion, what level of recursion are we at?
     this.options.level = level ?? 0;
+
+    // The WalledTemplate instance is generated per-scene, so we can store the boundary walls here.
+    // Alternatively could test ids, but this is probably better long-term.
+    this._boundaryWalls = new Set([...canvas.walls.outerBounds, ...canvas.walls.innerBounds]);
   }
 
   /**
@@ -174,6 +180,7 @@ export class WalledTemplateCircle extends WalledTemplate {
    */
   constructor(origin, distance, opts = {}) {
     super(origin, distance, opts);
+    this.options.corner = opts.corner;
   }
 
   /** @type {boolean} */
@@ -282,27 +289,28 @@ export class WalledTemplateRay extends WalledTemplate {
     super(origin, distance, opts);
     if ( angle !== undefined ) this.angle = angle;
     if ( width !== undefined ) this.width = width;
-
+    this.options.reflectedWall = opts.reflectedWall;
+    this.options.reflectionRay = opts.reflectionRay;
+    this.options.Rr = opts.Rr;
   }
 
   /**
    * Get the original version of this shape.
    * @returns {PIXI.Polygon}
    */
-  getOriginalShape() { return MeasuredTemplate.getRayShape(this.direction, this.distance, this.width); }
+  getOriginalShape() { return MeasuredTemplate.getRayShape(this.angle, this.distance, this.width); }
 
   /**
    * Get boundary shape for this sized circle set to the origin.
    * @returns {PIXI.Circle}
    */
-  getBoundaryShape() { return MeasuredTemplate.getRayShape(this.direction, this.distance, this.width); }
+  getBoundaryShape() { return MeasuredTemplate.getRayShape(this.angle, this.distance, this.width); }
 
   /**
    * For each wall within distance of the template origin,
    * re-run sweep, changing the direction based on bouncing it off the wall.
    * Use remaining distance.
    * @param {ClockwiseSweepPolygon} sweep   Results of prior sweep.
-
    */
   reflect(sweep) {
     const polys = [];
@@ -314,7 +322,7 @@ export class WalledTemplateRay extends WalledTemplate {
     polys.push(reflectionSweep);
     recurseData.push(reflection);
 
-    if ( reflection.useRecursion ) {
+    if ( reflection.doRecursion ) {
       const { polys: childPolys, recurseData: childData } = reflection.reflect(reflectionSweep);
       polys.push(...childPolys);
       if ( childData.length ) recurseData.push(...childData);
@@ -333,8 +341,9 @@ export class WalledTemplateRay extends WalledTemplate {
     const dirRay = Ray.fromAngle(this.origin.x, this.origin.y, this.angle, this.distance);
 
     // Sort walls by closest collision to the template origin, skipping those that do not intersect.
-    const walls = [];
+    const wallRays = [];
     for ( const edge of edges) {
+      if ( this._boundaryWalls.has(edge) ) continue;
       const ix = foundry.utils.lineSegmentIntersection(dirRay.A, dirRay.B, edge.A, edge.B);
       if ( !ix ) continue;
       const wallRay = new Ray(edge.A, edge.B);
@@ -344,19 +353,20 @@ export class WalledTemplateRay extends WalledTemplate {
       // If the wall intersection is beyond the template, ignore.
       if ( this.distance < wallRay._reflectionDistance ) continue;
 
-      walls.push(wallRay);
+      wallRays.push(wallRay);
     }
-    if ( !walls.length ) return null;
+    if ( !wallRays.length ) return null;
 
     // Only reflect off the first wall encountered.
-    walls.sort((a, b) => a._reflectionDistance - b.reflectionDistance);
-    const reflectedWall = walls[0];
+    wallRays.sort((a, b) => a._reflectionDistance - b._reflectionDistance);
+    const reflectedWall = wallRays[0];
     const reflectionPoint = new PIXI.Point(reflectedWall._reflectionPoint.x, reflectedWall._reflectionPoint.y);
     const { reflectionRay, Rr } = reflectRayOffEdge(dirRay, reflectedWall, reflectionPoint);
 
 
     // Set the new origin to be just inside the reflecting wall, to avoid using sweep
     // on the wrong side of the wall.
+    // Need to move at least 2 pixels to avoid rounding issues.
     const reflectedOrigin = reflectionPoint.add(Rr.normalize());
     // This version would be on the wall: const reflectedOrigin = reflectionPoint;
 
@@ -368,6 +378,8 @@ export class WalledTemplateRay extends WalledTemplate {
     const opts = duplicate(this.options);
     opts.level += 1;
     opts.reflectedWall = reflectedWall;
+    opts.reflectionRay = reflectionRay;
+    opts.Rr = Rr;
 
     return new this.constructor(
       new Point3d(reflectedOrigin.x, reflectedOrigin.y, this.origin.z),
