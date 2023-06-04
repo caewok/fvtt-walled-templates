@@ -26,7 +26,6 @@ export function _computeShapeMeasuredTemplate(wrapped) {
   this.originalShape = wrapped();
   if ( !requiresSweep(this) ) return this.originalShape;
 
-
   const walledTemplate = WalledTemplate.fromMeasuredTemplate(this);
   const poly = walledTemplate.computeSweepPolygon();
 
