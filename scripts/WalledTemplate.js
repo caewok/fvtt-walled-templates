@@ -17,6 +17,9 @@ import { SETTINGS, getSetting, debugPolygons } from "./settings.js";
 import { ClockwiseSweepShape, pointFromKey } from "./ClockwiseSweepShape.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
 
+// Debugging
+import { Draw } from "./geometry/Draw.js";
+
 const MIN_PARALLEL_EPSILON = 1e-04;
 const MIN_DIST_EPSILON = 1 + MIN_PARALLEL_EPSILON;
 
@@ -204,6 +207,14 @@ export class WalledTemplate {
     return [shape.translate(this.origin.x, this.origin.y)];
   }
 
+  // For debugging, draw the template shape on the canvas.
+  draw({ color, fillAlpha } = {}) {
+    fillAlpha ??= 0;
+    color ??= Draw.COLORS.yellow;
+    const fill = fillAlpha ? color : false;
+    this.getTranslatedBoundaryShapes().forEach(s => Draw.shape(s, { color, fill, fillAlpha }));
+  }
+
   static fromMeasuredTemplate(template) {
     const opts = templateFlagProperties(template);
 
@@ -366,7 +377,7 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
    * @returns {WalledTemplateRectangle|null}
    */
   _generateSpreadFromCorner(cornerKey, edgesEncountered, cornerTracker) {
-    const out = super._generateSpread(cornerKey, edgesEncountered, cornerTracker);
+    const out = super._generateSpreadFromCorner(cornerKey, edgesEncountered, cornerTracker);
     if ( !out ) return out;
     out.direction = this.direction;
     return out;
