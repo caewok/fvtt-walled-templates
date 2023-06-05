@@ -7,6 +7,7 @@ MeasuredTemplate,
 PIXI,
 Ray
 */
+/* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
 import { MODULE_ID, FLAGS, LABELS } from "./const.js";
@@ -15,6 +16,9 @@ import { ClipperPaths } from "./geometry/ClipperPaths.js";
 import { SETTINGS, getSetting, debugPolygons } from "./settings.js";
 import { ClockwiseSweepShape, pointFromKey } from "./ClockwiseSweepShape.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
+
+const MIN_PARALLEL_EPSILON = 1e-04;
+const MIN_DIST_EPSILON = 1 + MIN_PARALLEL_EPSILON;
 
 export class WalledTemplate {
   /** @type {Point3d} */
@@ -45,6 +49,7 @@ export class WalledTemplate {
    */
   constructor(origin, distance, { wallsBlock, wallRestriction, level } = {}) {
     this.origin.copyFrom(origin);
+    this.origin.roundDecimals(); // Avoid annoying issues with precision.
     this.distance = distance ?? 0;
     this.options.wallsBlock = wallsBlock ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
     this.options.wallRestriction = wallRestriction ?? SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE;
@@ -68,7 +73,7 @@ export class WalledTemplate {
 
   /**
    * Run a clockwise sweep for this template.
-   * @param {ClockwiseSweepShape|LightWallSweep} sweepClass
+   * @param {Wall} [lightWall]    Wall used when using the LightWall class
    * @returns {ClockwiseSweepShape|LightWallSweep}
    */
   computeSweep() {
@@ -76,7 +81,8 @@ export class WalledTemplate {
       debug: debugPolygons(),
       type: this.options.wallRestriction,
       source: this,
-      boundaryShapes: this.getTranslatedBoundaryShapes()
+      boundaryShapes: this.getTranslatedBoundaryShapes(),
+      lightWall: this.options.lastReflectedEdge // Only used for cones
     };
 
     // Add in elevation for Wall Height to use
@@ -85,7 +91,10 @@ export class WalledTemplate {
     origin.t = this.origin.z;
     origin.object = {};
 
-    const sweep = new this.sweepClass();
+    let sweepClass = this.sweepClass;
+    if ( sweepClass === LightWallSweep && !this.options.lastReflectedEdge) sweepClass = ClockwiseSweepShape;
+
+    const sweep = new sweepClass();
     sweep.initialize(origin, cfg);
     sweep.compute();
     return sweep;
@@ -97,7 +106,7 @@ export class WalledTemplate {
     let recurseData;
 
     if ( this.doRecursion ) {
-      const res = this.recurseFn(sweep, new Map());
+      const res = this._recurse(sweep, new Map());
       recurseData = res.recurseData;
       const polys = res.polys;
       polys.push(sweep);
@@ -118,6 +127,60 @@ export class WalledTemplate {
     poly._recurseData = recurseData;
     return poly;
   }
+
+  // -------------------- //
+
+  /**
+   * For a given sweep result, re-run by moving the origin in a manner specific to the
+   * shape and shrinking the shape.
+   * For example:
+   * - Circle: Draw circle at each wall corner, shrinking the circle radius relative to
+   *           the distance from this template's origin.
+   * - Ray: Draw ray reflecting a given wall, shrinking the ray length relative to
+   *        the distance from this template's origin.
+   * Subclasses implement the specific recursion template generation.
+   * @param {ClockwiseSweepPolygon} sweep   Sweep result for this template.
+   * @param {Map} recursionTracker          A map that can be utilized to avoid repeats in the recursion.
+   * @returns {object} Array of polygons generated and an array of generated sub-templates.
+   */
+  _recurse(sweep, recursionTracker) {
+    const polys = [];
+    const recurseData = [];
+    const subtemplates = this._generateSubtemplates(sweep, recursionTracker);
+
+    // Subtemplates may be length zero, which will cause this to return empty arrays.
+    for ( const subtemplate of subtemplates ) {
+      if ( !subtemplate ) {
+        console.error("_recurse encountered bad subtemplate!");
+      }
+
+      const subsweep = subtemplate.computeSweep();
+      polys.push(subsweep);
+      recurseData.push(subtemplate);
+
+      if ( subtemplate.doRecursion ) {
+        const { polys: childPolys, recurseData: childData } = subtemplate._recurse(subsweep, recursionTracker);
+        polys.push(...childPolys);
+        if ( childData.length ) recurseData.push(...childData);
+      }
+    }
+
+    return { polys, recurseData };
+  }
+
+  /**
+   * Generate new smaller template(s) based on the sweep.
+   * For example, generate templates based on spreading from corners or reflecting from walls.
+   * Must be implemented by the subclass.
+   * @param {PIXI.Point} corner
+   * @returns {WalledTemplate[]|null}
+   */
+  _generateSubtemplates(_sweep, _recursionTracker) {
+    console.error("WalledTemplate.prototype._generateSubtemplates must be implemented by subclass.");
+    return null;
+  }
+
+  // -------------------- //
 
   /**
    * @override
@@ -212,33 +275,20 @@ export class WalledTemplateCircle extends WalledTemplate {
     return MeasuredTemplate.getCircleShape(this.distance + 1);
   }
 
-  // TODO: Track spread points.
-  // If the origin is nearly equal to the sweep origin, don't use it unless distance is larger.
-
   /**
-   * For each wall within distance of the template origin,
-   * re-run sweep, using the corner as the origin and the remaining distance as the radius.
+   * Generate a new CircleTemplate based on spreading from the corners present in the sweep.
+   * @param {ClockwiseSweepPolygon} sweep   Sweep result for this template.
+   * @param {Map} recursionTracker          A map that can be utilized to avoid repeats in the recursion.
+   * @returns {object} Array of polygons generated and an array of generated sub-templates.
+   * @override
    */
-  spread(sweep, cornerTracker) {
-    const polys = [];
-    const recurseData = [];
-
+  _generateSubtemplates(sweep, cornerTracker) {
+    const subtemplates = [];
     for ( const cornerKey of sweep.cornersEncountered ) {
-      const spreadTemplate = this.generateSpread(cornerKey, sweep.edgesEncountered, cornerTracker);
-      if ( !spreadTemplate ) continue;
-
-      const spreadSweep = spreadTemplate.computeSweep();
-      polys.push(spreadSweep);
-      recurseData.push(spreadTemplate);
-
-      if ( spreadTemplate.doRecursion ) {
-        const { polys: childPolys, recurseData: childData } = spreadTemplate.spread(spreadSweep, cornerTracker);
-        polys.push(...childPolys);
-        if ( childData.length ) recurseData.push(...childData);
-      }
+      const spreadTemplate = this._generateSpreadFromCorner(cornerKey, sweep.edgesEncountered, cornerTracker);
+      if ( spreadTemplate ) subtemplates.push(spreadTemplate);
     }
-
-    return { polys, recurseData};
+    return subtemplates;
   }
 
   /**
@@ -246,7 +296,7 @@ export class WalledTemplateCircle extends WalledTemplate {
    * @param {PIXI.Point} corner
    * @returns {WalledTemplateCircle|null}
    */
-  generateSpread(cornerKey, edgesEncountered, cornerTracker) {
+  _generateSpreadFromCorner(cornerKey, edgesEncountered, cornerTracker) {
     const corner = pointFromKey(cornerKey);
 
     // If the corner is beyond this template, ignore
@@ -315,8 +365,8 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
    * @param {PIXI.Point} corner
    * @returns {WalledTemplateRectangle|null}
    */
-  generateSpread(cornerKey, edgesEncountered, cornerTracker) {
-    const out = super.generateSpread(cornerKey, edgesEncountered, cornerTracker);
+  _generateSpreadFromCorner(cornerKey, edgesEncountered, cornerTracker) {
+    const out = super._generateSpread(cornerKey, edgesEncountered, cornerTracker);
     if ( !out ) return out;
     out.direction = this.direction;
     return out;
@@ -360,42 +410,17 @@ export class WalledTemplateRay extends WalledTemplate {
   getOriginalShape() { return MeasuredTemplate.getRayShape(this.direction, this.distance, this.width); }
 
   /**
-   * For each wall within distance of the template origin,
-   * re-run sweep, changing the direction based on bouncing it off the wall.
-   * Use remaining distance.
-   * @param {ClockwiseSweepPolygon} sweep   Results of prior sweep.
-   */
-  reflect(sweep) {
-    const polys = [];
-    const recurseData = [];
-
-    const reflection = this.generateReflection(sweep.edgesEncountered);
-    if ( !reflection ) return { polys, recurseData };
-    const reflectionSweep = reflection.computeSweep();
-    polys.push(reflectionSweep);
-    recurseData.push(reflection);
-
-    if ( reflection.doRecursion ) {
-      const { polys: childPolys, recurseData: childData } = reflection.reflect(reflectionSweep);
-      polys.push(...childPolys);
-      if ( childData.length ) recurseData.push(...childData);
-    }
-
-    return { polys, recurseData };
-  }
-
-  /**
    * Generate a new WalledTemplateRay based on reflecting off the first wall encountered
    * from this WalledTemplateRay.
    * @param {Set<Wall>|Map<Wall>|Wall[]}
    * @returns {WalledTemplateRay|null}
    */
-  generateReflection(edges) {
+  _generateSubtemplates(sweep) {
     const dirRay = Ray.fromAngle(this.origin.x, this.origin.y, this.direction, this.distance);
 
     // Sort walls by closest collision to the template origin, skipping those that do not intersect.
     const wallRays = [];
-    for ( const edge of edges) {
+    for ( const edge of sweep.edgesEncountered) {
       if ( this._boundaryWalls.has(edge) ) continue;
       const ix = foundry.utils.lineSegmentIntersection(dirRay.A, dirRay.B, edge.A, edge.B);
       if ( !ix ) continue;
@@ -408,14 +433,15 @@ export class WalledTemplateRay extends WalledTemplate {
 
       wallRays.push(wallRay);
     }
-    if ( !wallRays.length ) return null;
+    if ( !wallRays.length ) return [];
 
     // Only reflect off the first wall encountered.
     wallRays.sort((a, b) => a._reflectionDistance - b._reflectionDistance);
     const reflectedWall = wallRays[0];
     const reflectionPoint = new PIXI.Point(reflectedWall._reflectionPoint.x, reflectedWall._reflectionPoint.y);
-    const { reflectionRay, Rr } = reflectRayOffEdge(dirRay, reflectedWall, reflectionPoint);
-
+    const reflection = reflectRayOffEdge(dirRay, reflectedWall, reflectionPoint);
+    if ( !reflection ) return [];
+    const { reflectionRay, Rr } = reflection;
 
     // Set the new origin to be just inside the reflecting wall, to avoid using sweep
     // on the wrong side of the wall.
@@ -435,10 +461,11 @@ export class WalledTemplateRay extends WalledTemplate {
     opts.direction = reflectionRay.angle;
     opts.width = this.width;
 
-    return new this.constructor(
+    const rayTemplate = new this.constructor(
       new Point3d(reflectedOrigin.x, reflectedOrigin.y, this.origin.z),
       this.distance - reflectedWall._reflectionDistance,
       opts);
+    return [rayTemplate];
   }
 }
 
@@ -462,7 +489,7 @@ export class WalledTemplateCone extends WalledTemplateRay {
   constructor(origin, distance, opts = {}) {
     super(origin, distance, opts);
     if ( Object.hasOwn(opts, "angle") ) this.angle = opts.angle;
-    this.options.lastReflectedWall = opts.lastReflectedWall;
+    this.options.lastReflectedEdge = opts.lastReflectedEdge;
   }
 
   /**
@@ -479,43 +506,6 @@ export class WalledTemplateCone extends WalledTemplateRay {
   getOriginalShape() { return MeasuredTemplate.getConeShape(this.direction, this.width, this.distance); }
 
   /**
-   * For each wall within the distance of the template origin,
-   * re-run sweep for the reflection of the cone (shadow cone). Invert the reflection against the
-   * reflected cone shape to get the reflected portion.
-   * Recurse by using the reflected cone origin.
-   * The shadow cone is the cone shape that could be used to describe the reflection,
-   * where the origin is the reflection of the original origin, through the wall.
-   * @param {ClockwiseSweepPolygon} sweep   Results of prior sweep.
-   */
-  reflect(sweep) {
-    const polys = [];
-    const recurseData = [];
-
-    const reflections = this.generateReflections(sweep);
-    if ( !reflections ) return { polys, recurseData };
-
-    // Conduct a sweep using each reflected cone shape as a boundary (shadow cone).
-    for ( const reflection of reflections ) {
-      const reflectionSweep = reflection.computeSweep();
-      polys.push(reflectionSweep);
-      recurseData.push(reflection);
-
-      if ( reflection.doRecursion ) {
-        const { polys: childPolys, recurseData: childData } = reflection.reflect(reflectionSweep);
-        polys.push(...childPolys);
-        if ( childData.length ) recurseData.push(...childData);
-      }
-    }
-
-    return { polys, recurseData };
-  }
-
-  // TODO: For cones, the reflect should be from the edges of the cone.
-  // One approach: Shoot the reflected middle line straight through the wall.
-  //   At the distance between template origin and wall intersection, that is the new origin.
-  //   Cone sides go from there through the wall. In other words, the entire cone is reflected.
-
-  /**
    * Locate wall segments that the cone hits.
    * For each segment, calculate the reflection ray based on normal of that edge.
    * For each reflecting edge, create a cone template using a shadow cone based on reflected distance.
@@ -523,83 +513,152 @@ export class WalledTemplateCone extends WalledTemplateRay {
    * @param {Set<Wall>|Map<Wall>|Wall[]}
    * @returns {WalledTemplateRay|null}
    */
-  generateReflections(sweep) {
-    const COLLINEAR_MIN_NEG = -10;
-    const COLLINEAR_MIN_POS = 10;
+  _generateSubtemplates(sweep) {
     const maxDist = this.distance;
     const maxDist2 = Math.pow(maxDist, 2);
-    const dirRay = Ray.fromAngle(this.origin.x, this.origin.y, this.direction, this.distance);
-    const { closestPointToSegment, orient2dFast } = foundry.utils;
+    const templateOrigin = this.origin.to2d();
+    const dirRay = Ray.fromAngle(templateOrigin.x, templateOrigin.y, this.direction, this.distance);
+    const { closestPointToSegment, orient2dFast, lineLineIntersection, lineSegmentIntersects } = foundry.utils;
 
-    // Sort walls by closest collision to the template origin, skipping those that do not intersect.
     const reflectingEdges = [];
-    const sweepEdges = [...sweep.iterateEdges()];
+
+    // Skip sweep edges that form the edge of the cone projecting from origin.
+    const sweepEdges = [...sweep.iterateEdges({ close: true })]
+      .filter(e => !orient2dFast(e.A, e.B, templateOrigin).almostEqual(0));
+
     const lastReflectedWall = this.options.lastReflectedWall;
     const oLastReflected = lastReflectedWall
-      ? Math.sign(orient2dFast(lastReflectedWall.A, lastReflectedWall.B, this.origin))
+      ? Math.sign(orient2dFast(lastReflectedWall.A, lastReflectedWall.B, templateOrigin))
       : undefined;
-    for ( const edge of sweep.edgesEncountered) {
+
+    // Locate walls that reflect the cone.
+    // Walls must be within the sweep template or intersect the sweep template
+    for ( const wall of sweep.edgesEncountered ) {
+      // Don't reflect off of bounds
+      if ( this._boundaryWalls.has(wall) ) continue;
+
+      // Need PIXI points later; easier to convert now. (towardsPoint, almostEqual)
+      const wallA = new PIXI.Point(wall.A.x, wall.A.y);
+      const wallB = new PIXI.Point(wall.B.x, wall.B.y);
+
       if ( lastReflectedWall ) {
-        // For recursion:
-        // Any reflecting edge must be on the side of the reflecting wall opposite the origin.
-        // Omit the last reflected wall.
-        if ( edge.id === lastReflectedWall.id ) continue;
-        const oEdge = orient2dFast(edge.A, edge.B, this.origin);
+        // Omit the last reflected.
+        if ( wall.id === lastReflectedWall.id ) continue;
+
+        // Any reflecting wall must be on the side of the reflecting wall opposite the origin.
+        const oEdge = orient2dFast(wallA, wallB, templateOrigin);
         if ( Math.sign(oEdge) === oLastReflected ) continue;
       }
 
       // Edge must be within distance of the template to use.
-      const closestEdgePoint = closestPointToSegment(this.origin, edge.A, edge.B);
-      const minDist2 = PIXI.Point.distanceSquaredBetween(this.origin, closestEdgePoint);
+      const closestEdgePoint = closestPointToSegment(templateOrigin, wallA, wallB);
+      const minDist2 = PIXI.Point.distanceSquaredBetween(templateOrigin, closestEdgePoint);
       if ( minDist2 > maxDist2 ) continue;
 
-      // Edge will be nearly collinear with sweep edge, but probably not exactly b/c sweep rounds endpoints.
-      for ( const sweepEdge of sweepEdges ) {
-        if ( Number.between(orient2dFast(edge.A, edge.B, sweepEdge.A), COLLINEAR_MIN_NEG, COLLINEAR_MIN_POS)
-          && Number.between(orient2dFast(edge.A, edge.B, sweepEdge.B), COLLINEAR_MIN_NEG, COLLINEAR_MIN_POS) ) {
+      // Does the wall border a sweep edge?
+      // Due to rounding, the walls may not exactly overlap the sweep edge.
+      // So we cannot simply test for collinearity
+      // 6 options:
+      //     Edge          eA ----- eB
+      // 1.  Wall A --------------------------- B
+      // 2.  Wall A ------------ B
+      // 3.  Wall              A ----------- B
+      // 4.  Wall              A - B
+      // 5.  Wall A-B
+      // 6.  Wall                          A-B
+      // Instead, shoot a ray from the origin through each point to find an intersection.
+      // If the intersection is within a pixel of the point, count it.
 
-          sweepEdge.wall = edge;
-          reflectingEdges.push(sweepEdge);
-          break;
+      // Determine the left and right wall endpoints, to match to the edge endpoints.
+      const oWallA = orient2dFast(dirRay.A, dirRay.B, wallA);
+      const oWallB = orient2dFast(dirRay.A, dirRay.B, wallB);
+      const [leftWallPoint, rightWallPoint] = oWallA > oWallB ? [wallA, wallB] : [wallB, wallA];
+
+      // Draw line from the origin to each sweep edge point.
+      for ( const sweepEdge of sweepEdges ) {
+        // Left (CCW) and right (CW) edges of the emitted cone for this edge
+        const oEdgeA = orient2dFast(dirRay.A, dirRay.B, sweepEdge.A);
+        const oEdgeB = orient2dFast(dirRay.A, dirRay.B, sweepEdge.B);
+        const [leftEdgePoint, rightEdgePoint] = oEdgeA > oEdgeB
+          ? [sweepEdge.A, sweepEdge.B] : [sweepEdge.B, sweepEdge.A];
+
+        let leftIx;
+        if ( leftEdgePoint.almostEqual(leftWallPoint, MIN_DIST_EPSILON) ) {
+          leftIx = leftEdgePoint;
+          leftIx.t0 = 1;
+        } else if ( lineSegmentIntersects(
+          templateOrigin, templateOrigin.towardsPoint(leftWallPoint, maxDist), leftEdgePoint, rightEdgePoint) ) {
+          leftIx = lineLineIntersection(templateOrigin, leftWallPoint, leftEdgePoint, rightEdgePoint);
+        } else if ( lineSegmentIntersects(templateOrigin,
+          templateOrigin.towardsPoint(leftEdgePoint, maxDist), leftWallPoint, rightWallPoint)) {
+          leftIx = lineLineIntersection(templateOrigin, leftEdgePoint, leftWallPoint, rightWallPoint);
         }
+        if ( !leftIx || leftIx.t0 > MIN_DIST_EPSILON ) continue;
+
+        let rightIx;
+        if ( rightEdgePoint.almostEqual(rightWallPoint, MIN_DIST_EPSILON) ) {
+          rightIx = rightEdgePoint;
+          rightIx.t0 = 1;
+        } else if ( lineSegmentIntersects(templateOrigin,
+          templateOrigin.towardsPoint(rightWallPoint, maxDist), leftEdgePoint, rightEdgePoint) ) {
+          rightIx = lineLineIntersection(templateOrigin, rightWallPoint, leftEdgePoint, rightEdgePoint);
+        } else if ( lineSegmentIntersects(templateOrigin,
+          templateOrigin.towardsPoint(rightEdgePoint, maxDist), leftWallPoint, rightWallPoint)) {
+          rightIx = lineLineIntersection(templateOrigin, rightEdgePoint, leftWallPoint, rightWallPoint);
+        }
+        if ( !rightIx || rightIx.t0 > MIN_DIST_EPSILON ) continue;
+
+        const edge = {
+          A: new PIXI.Point(leftIx.x, leftIx.y),
+          B: new PIXI.Point(rightIx.x, rightIx.y),
+          wall,
+          id: wall.id
+        };
+        reflectingEdges.push(edge);
       }
     }
     const numEdges = reflectingEdges.length;
-    if ( !numEdges ) return null;
+    if ( !numEdges ) return [];
 
     // For each reflecting edge, create a cone template using a shadow cone based on reflected distance.
     // Set origin to just inside the edge, in the middle.
-    const coneTemplates = new Array(numEdges);
-    for ( let i = 0; i < numEdges; i += 1 ) {
-      const reflectingEdge = reflectingEdges[i];
-      const { reflectionPoint, reflectionRay, Rr } = reflectRayOffEdge(dirRay, reflectingEdge);
+    const coneTemplates = [];
+    for ( const reflectingEdge of reflectingEdges ) {
+      const reflection = reflectRayOffEdge(dirRay, reflectingEdge);
+      if ( !reflection ) continue;
+      const { reflectionPoint, reflectionRay, Rr } = reflection;
 
       // Calculate where to originate the shadow cone for the reflection.
       const reflectionDist = PIXI.Point.distanceBetween(this.origin, reflectionPoint);
       const shadowConeV = Rr.normalize().multiplyScalar(reflectionDist);
       const shadowConeOrigin = reflectionPoint.subtract(shadowConeV);
 
-      // Set the new origin to be just inside the reflecting wall, to avoid using sweep
-      // on the wrong side of the wall.
       // Shallow copy the options for the new template.
       const opts = { ...this.options };
       opts.level += 1;
       opts.reflectedWall = reflectingEdge;
       opts.reflectionRay = reflectionRay;
       opts.Rr = Rr;
-      opts.lastReflectedWall = reflectingEdge.wall;
-      opts.angle = reflectionRay.angle;
+      opts.lastReflectedEdge = reflectingEdge;
+      opts.angle = this.angle;
+      opts.direction = reflectionRay.angle;
 
-      coneTemplates[i] = new this.constructor(
+      coneTemplates.push(new this.constructor(
         new Point3d(shadowConeOrigin.x, shadowConeOrigin.y, this.origin.z),
         this.distance,
         opts
-      );
+      ));
     }
 
     return coneTemplates;
   }
 }
+
+// NOTE: Set the recursion types to spread or reflect, accordingly.
+WalledTemplateCircle.prototype._spread = WalledTemplateCircle.prototype._recurse;
+WalledTemplateRay.prototype._reflect = WalledTemplateRay.prototype._recurse;
+WalledTemplateCone.prototype._reflect = WalledTemplateCone.prototype._recurse;
+WalledTemplateRectangle.prototype._spread = WalledTemplateRectangle.prototype._recurse;
 
 // NOTE: Geometric helper functions
 
@@ -639,10 +698,6 @@ function reflectRayOffEdge(ray, edge, reflectionPoint) {
 
   return { reflectionPoint, reflectionRay, Rr };
 }
-
-// NOTE: Set the recursion types to spread or reflect, accordingly.
-WalledTemplateCircle.prototype.recurseFn = WalledTemplateCircle.prototype.spread;
-WalledTemplateRay.prototype.recurseFn = WalledTemplateRay.prototype.reflect;
 
 /**
  * Adjust a corner point to offset from the wall by 2 pixels.
