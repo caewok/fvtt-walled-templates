@@ -518,42 +518,56 @@ export class WalledTemplateCone extends WalledTemplateRay {
     const maxDist2 = Math.pow(maxDist, 2);
     const templateOrigin = this.origin.to2d();
     const dirRay = Ray.fromAngle(templateOrigin.x, templateOrigin.y, this.direction, this.distance);
-    const { closestPointToSegment, orient2dFast, lineLineIntersection, lineSegmentIntersects } = foundry.utils;
-
-    const reflectingEdges = [];
+    const {
+      closestPointToSegment,
+      orient2dFast,
+      lineLineIntersection,
+      lineSegmentIntersects,
+      lineCircleIntersection } = foundry.utils;
 
     // Skip sweep edges that form the edge of the cone projecting from origin.
     const sweepEdges = [...sweep.iterateEdges({ close: true })]
       .filter(e => !orient2dFast(e.A, e.B, templateOrigin).almostEqual(0));
 
-    const lastReflectedWall = this.options.lastReflectedWall;
-    const oLastReflected = lastReflectedWall
-      ? Math.sign(orient2dFast(lastReflectedWall.A, lastReflectedWall.B, templateOrigin))
+    const lastReflectedEdge = this.options.lastReflectedEdge;
+    const oLastReflected = lastReflectedEdge
+      ? Math.sign(orient2dFast(lastReflectedEdge.A, lastReflectedEdge.B, templateOrigin))
       : undefined;
+
+    // Build the left/right cone segments.
+
 
     // Locate walls that reflect the cone.
     // Walls must be within the sweep template or intersect the sweep template
+    const reflectingEdges = [];
     for ( const wall of sweep.edgesEncountered ) {
       // Don't reflect off of bounds
       if ( this._boundaryWalls.has(wall) ) continue;
 
-      // Need PIXI points later; easier to convert now. (towardsPoint, almostEqual)
-      const wallA = new PIXI.Point(wall.A.x, wall.A.y);
-      const wallB = new PIXI.Point(wall.B.x, wall.B.y);
-
-      if ( lastReflectedWall ) {
+      if ( lastReflectedEdge ) {
         // Omit the last reflected.
-        if ( wall.id === lastReflectedWall.id ) continue;
+        if ( wall.id === lastReflectedEdge.id ) continue;
 
         // Any reflecting wall must be on the side of the reflecting wall opposite the origin.
-        const oEdge = orient2dFast(wallA, wallB, templateOrigin);
+        const oEdge = orient2dFast(wall.A, wall.B, templateOrigin);
         if ( Math.sign(oEdge) === oLastReflected ) continue;
       }
 
       // Edge must be within distance of the template to use.
-      const closestEdgePoint = closestPointToSegment(templateOrigin, wallA, wallB);
+      const closestEdgePoint = closestPointToSegment(templateOrigin, wall.A, wall.B);
       const minDist2 = PIXI.Point.distanceSquaredBetween(templateOrigin, closestEdgePoint);
       if ( minDist2 > maxDist2 ) continue;
+
+      // Shrink the wall to be inside the template if necessary.
+      // Shrink the radius slightly to ensure the intersected point will count.
+      const circleIx = lineCircleIntersection(wall.A, wall.B, templateOrigin, maxDist - 2);
+      const numIx = circleIx.intersections.length;
+
+      // Need PIXI points later; easier to convert now. (towardsPoint, almostEqual)
+      const wallA = (!numIx || circleIx.aInside) ? new PIXI.Point(wall.A.x, wall.A.y)
+        : new PIXI.Point(circleIx.intersections[0].x, circleIx.intersections[0].y);
+      const wallB = (!numIx || circleIx.bInside) ? new PIXI.Point(wall.B.x, wall.B.y)
+        : new PIXI.Point(circleIx.intersections.at(-1).x, circleIx.intersections.at(-1).y);
 
       // Does the wall border a sweep edge?
       // Due to rounding, the walls may not exactly overlap the sweep edge.
@@ -590,7 +604,7 @@ export class WalledTemplateCone extends WalledTemplateRay {
           templateOrigin, templateOrigin.towardsPoint(leftWallPoint, maxDist), leftEdgePoint, rightEdgePoint) ) {
           leftIx = lineLineIntersection(templateOrigin, leftWallPoint, leftEdgePoint, rightEdgePoint);
         } else if ( lineSegmentIntersects(templateOrigin,
-          templateOrigin.towardsPoint(leftEdgePoint, maxDist), leftWallPoint, rightWallPoint)) {
+          templateOrigin.towardsPoint(leftEdgePoint, maxDist), leftWallPoint, rightWallPoint) ) {
           leftIx = lineLineIntersection(templateOrigin, leftEdgePoint, leftWallPoint, rightWallPoint);
         }
         if ( !leftIx || leftIx.t0 > MIN_DIST_EPSILON ) continue;
@@ -603,7 +617,7 @@ export class WalledTemplateCone extends WalledTemplateRay {
           templateOrigin.towardsPoint(rightWallPoint, maxDist), leftEdgePoint, rightEdgePoint) ) {
           rightIx = lineLineIntersection(templateOrigin, rightWallPoint, leftEdgePoint, rightEdgePoint);
         } else if ( lineSegmentIntersects(templateOrigin,
-          templateOrigin.towardsPoint(rightEdgePoint, maxDist), leftWallPoint, rightWallPoint)) {
+          templateOrigin.towardsPoint(rightEdgePoint, maxDist), leftWallPoint, rightWallPoint) ) {
           rightIx = lineLineIntersection(templateOrigin, rightEdgePoint, leftWallPoint, rightWallPoint);
         }
         if ( !rightIx || rightIx.t0 > MIN_DIST_EPSILON ) continue;
@@ -630,6 +644,9 @@ export class WalledTemplateCone extends WalledTemplateRay {
 
       // Calculate where to originate the shadow cone for the reflection.
       const reflectionDist = PIXI.Point.distanceBetween(this.origin, reflectionPoint);
+      const distance = this.distance - reflectionDist;
+      if ( distance < 1 ) continue;
+
       const shadowConeV = Rr.normalize().multiplyScalar(reflectionDist);
       const shadowConeOrigin = reflectionPoint.subtract(shadowConeV);
 
@@ -645,7 +662,7 @@ export class WalledTemplateCone extends WalledTemplateRay {
 
       coneTemplates.push(new this.constructor(
         new Point3d(shadowConeOrigin.x, shadowConeOrigin.y, this.origin.z),
-        this.distance,
+        this.distance - reflectionDist,
         opts
       ));
     }
