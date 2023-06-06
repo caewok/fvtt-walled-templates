@@ -105,7 +105,7 @@ Hooks.once("setup", async function() {
 });
 
 
-Hooks.once("ready", async function() {
+Hooks.once("ready", function() {
   log("Ready...");
 
   // Check for whether children exist. See issue #18.
@@ -130,6 +130,13 @@ Hooks.once("ready", async function() {
     if ( typeof t.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
       t.document.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape]));
     }
+  });
+
+  log("Refreshing templates on ready hook.");
+  canvas.templates.placeables.forEach(t => {
+    t.renderFlags.set({
+      refreshShape: true
+    });
   });
 });
 
@@ -174,7 +181,7 @@ Hooks.on("renderMeasuredTemplateConfig", async (app, html, data) => {
  * Redraw templates once the canvas is loaded
  * Cannot use walls to draw templates until canvas.walls.quadtree is loaded.
  */
-Hooks.on("canvasReady", async canvas => {
+Hooks.on("canvasReady", canvas => {
   log("Refreshing templates on canvasReady.");
   canvas.templates.placeables.forEach(t => {
     t.renderFlags.set({
@@ -209,7 +216,9 @@ Hooks.on("createWall", async (document, options, userId) => { // eslint-disable-
     const bbox = t.shape.getBounds().translate(t.x, t.y);
     if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
       log(`Wall ${document.id} intersects ${t.id}`);
-      t.refresh({ redraw: true }); // Async but probably don't need to await
+      t.renderFlags.set({
+        refreshShape: true
+      });
     }
   });
 });
@@ -265,13 +274,17 @@ Hooks.on("updateWall", async (document, change, options, userId) => { // eslint-
   canvas.templates.placeables.forEach(t => {
     if ( t.document.getFlag(MODULE_ID, "redraw") ) {
       t.document.setFlag(MODULE_ID, "redraw", false);
-      t.refresh({ redraw: true }); // Async but probably don't need to await
+      t.renderFlags.set({
+        refreshShape: true
+      });
       return;
     }
     const bbox = t.shape.getBounds().translate(t.x, t.y);
     if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
       log(`Wall ${document.id} intersects ${t.id}`);
-      t.refresh({ redraw: true }); // Async but probably don't need to await
+      t.renderFlags.set({
+        refreshShape: true
+      });
     }
   });
 });
@@ -318,7 +331,9 @@ Hooks.on("deleteWall", async (document, options, userId) => { // eslint-disable-
     const bbox = t.shape.getBounds().translate(t.x, t.y);
     if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
       log(`Wall ${document.id} intersects ${t.id}`);
-      t.refresh({ redraw: true }); // Async but probably don't need to await
+      t.renderFlags.set({
+        refreshShape: true
+      });
     }
   });
 });
