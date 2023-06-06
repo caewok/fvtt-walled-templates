@@ -58,6 +58,15 @@ export class LightWallSweep extends ClockwiseSweepShape {
       const y = Math.floor(r.y);
       const right = Math.ceil(r.right);
       const bottom = Math.ceil(r.bottom);
+
+     //  if ( !Number.isInteger(x)
+//         || !Number.isInteger(y)
+//         || !Number.isInteger(right)
+//         || !Number.isInteger(bottom) ) {
+//         console.error("_boundaryWallsFromRectangle requires integers!", rect);
+//
+//       }
+
       const docs = [
         new cls({_id: `Bounds${name}Top`.padEnd(16, "0"), c: [x, y, right, y]}, ctx),
         new cls({_id: `Bounds${name}Right`.padEnd(16, "0"), c: [right, y, right, bottom]}, ctx),
@@ -92,6 +101,16 @@ export class LightWallSweep extends ClockwiseSweepShape {
         xMinMax.max - xMinMax.min + 4,
         yMinMax.max - yMinMax.min + 4
       );
+
+      // if ( Number.isNaN(encompassingRect.x)
+//         || Number.isNaN(encompassingRect.y)
+//         || Number.isNaN(encompassingRect.width)
+//         || Number.isNaN(encompassingRect.height) ) {
+//
+//         console.error("_identifyEdges boundary rect fail!", rect);
+//       }
+
+
       const boundaries = this._boundaryWallsFromRectangle(encompassingRect);
       for ( let boundary of boundaries ) {
         const edge = PolygonEdge.fromWall(boundary, this.config.type);

@@ -119,6 +119,8 @@ export class WalledTemplate {
       const combined = paths.combine();
       combined.clean();
       shape = combined.toPolygons()[0]; // TODO: Can there ever be more than 1?
+      if ( !shape ) shape = sweep; // Rare but it is possible due to some obscure bug.
+
       shape.polys = polys;
 
       // TODO: Need to deal with storing the recurse data.
@@ -522,6 +524,7 @@ export class WalledTemplateRay extends WalledTemplate {
       const wallRay = new Ray(edge.A, edge.B);
       wallRay._reflectionPoint = ix;
       wallRay._reflectionDistance = PIXI.Point.distanceBetween(this.origin, ix);
+      if ( wallRay._reflectionDist <= 1 ) continue;
 
       // If the wall intersection is beyond the template, ignore.
       if ( this.distance < wallRay._reflectionDistance ) continue;
@@ -739,11 +742,18 @@ export class WalledTemplateCone extends WalledTemplateRay {
 
       // Calculate where to originate the shadow cone for the reflection.
       const reflectionDist = PIXI.Point.distanceBetween(this.origin, reflectionPoint);
+      if ( reflectionDist <= 1 ) continue;
+
       const distance = this.distance - reflectionDist;
       if ( distance < 1 ) continue;
 
       const shadowConeV = Rr.normalize().multiplyScalar(reflectionDist);
       const shadowConeOrigin = reflectionPoint.subtract(shadowConeV);
+
+//       if ( Number.isNaN(shadowConeOrigin.x) || Number.isNaN(shadowConeOrigin.x) ) {
+//         console.error("shadowConeOrigin fail!", this);
+//       }
+
 
       // Shallow copy the options for the new template.
       const opts = { ...this.options };
