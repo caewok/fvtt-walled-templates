@@ -1,13 +1,14 @@
 /* globals
-Hooks,
-game,
 canvas,
-isEmpty,
 CONFIG,
-CONST,
-foundry
+flattenObject,
+foundry,
+game,
+Hooks,
+isEmpty,
+MeasuredTemplate
 */
-
+/* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
 /* Benchmark template construction
@@ -69,7 +70,7 @@ Hooks.once("init", async function() {
      * (Placing directly on the corner will cause the LOS sweep to fail to round the corner.)
      * @type {number}
      */
-     cornerSpacer: 10
+    cornerSpacer: 10
   };
 
   registerGeometry();
@@ -80,6 +81,9 @@ Hooks.once("init", async function() {
     LightWallSweep,
     WalledTemplateClasses
   };
+
+  MeasuredTemplate.RENDER_FLAGS.retarget = {};
+  MeasuredTemplate.RENDER_FLAGS.refreshPosition.propagate.push("retarget");
 });
 
 Hooks.once("setup", async function() {
@@ -105,7 +109,7 @@ Hooks.once("setup", async function() {
 });
 
 
-Hooks.once("ready", function() {
+Hooks.once("ready", async function() {
   log("Ready...");
 
   // Check for whether children exist. See issue #18.
@@ -113,24 +117,28 @@ Hooks.once("ready", function() {
 
   // Ensure every template has an enabled flag; set to world setting if missing.
   // Happens if templates were created without Walled Templates module enabled
-  canvas.templates.objects.children.forEach(t => {
+
+  // Hold all promises so we can await at the end.
+  const promises = [];
+  for ( const t of canvas.templates.objects.children ) {
     const shape = t.document.t;
 
     if ( typeof t.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined" ) {
       // Conversion from v0.4 properties to v0.5.
       const enabled = t.document.getFlag(MODULE_ID, "enabled");
       if ( typeof enabled !== "undefined" ) {
-        t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, enabled
-          ? SETTINGS.DEFAULTS.CHOICES.WALLED : SETTINGS.DEFAULTS.CHOICES.UNWALLED);
+        promises.push(t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, enabled
+          ? SETTINGS.DEFAULTS.CHOICES.WALLED : SETTINGS.DEFAULTS.CHOICES.UNWALLED));
       } else {
-        t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULTS[shape]));
+        promises.push(t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULTS[shape])));
       }
     }
 
     if ( typeof t.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
-      t.document.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape]));
+      promises.push(t.document.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape])));
     }
-  });
+  }
+  if ( promises.length ) await Promise.all(promises);
 
   log("Refreshing templates on ready hook.");
   canvas.templates.placeables.forEach(t => {
@@ -154,7 +162,7 @@ Hooks.on("getSceneControlButtons", controls => {
     onClick: toggle => { // eslint-disable-line no-unused-vars
       toggleSetting(SETTINGS.AUTOTARGET.ENABLED);
       if ( getSetting(SETTINGS.AUTOTARGET.ENABLED) ) {
-        canvas.templates.placeables.forEach(t => t.refresh({ retarget: true }));
+        canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
       }
     }
   });
@@ -488,7 +496,6 @@ function scaleDiagonalDistance(direction, distance) {
 Hooks.on("controlToken", controlTokenHook);
 
 function controlTokenHook(object, controlled) {
-  // console.log(`controlTokenHook for user ${game.userId} with ${object.name} controlled: ${controlled}`);
   const user = game.user;
 
   if ( controlled ) user._lastSelected = object;
@@ -510,7 +517,8 @@ function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-
     let wallsBlock = item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK);
     let wallRestriction = item.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION);
     if ( !wallsBlock || wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULTS[shape]);
-    if ( !wallRestriction || wallRestriction === LABELS.GLOBAL_DEFAULT ) wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape]);
+    if ( !wallRestriction
+      || wallRestriction === LABELS.GLOBAL_DEFAULT ) wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape]);
 
     template.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsBlock);
     template.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, wallRestriction);

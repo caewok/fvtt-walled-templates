@@ -16,9 +16,8 @@ import { Square } from "./geometry/RegularPolygon/Square.js";
  */
 export function _applyRenderFlagsMeasuredTemplate(wrapped, flags) {
   wrapped(flags);
-  if ( flags.refreshShape || flags.refreshPosition ) this.autotargetToken();
+  if ( flags.retarget ) this.autotargetToken();
 }
-
 
 // export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false, retarget = false } = {}) {
 //
