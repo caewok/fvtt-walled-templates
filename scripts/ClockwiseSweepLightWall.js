@@ -53,11 +53,16 @@ export class LightWallSweep extends ClockwiseSweepShape {
     const cls = getDocumentClass("Wall");
     const ctx = {parent: canvas.scene};
     const define = (name, r) => {
+      // Data model for the wall requires integers.
+      const x = Math.floor(r.x);
+      const y = Math.floor(r.y);
+      const right = Math.ceil(r.right);
+      const bottom = Math.ceil(r.bottom);
       const docs = [
-        new cls({_id: `Bounds${name}Top`.padEnd(16, "0"), c: [r.x, r.y, r.right, r.y]}, ctx),
-        new cls({_id: `Bounds${name}Right`.padEnd(16, "0"), c: [r.right, r.y, r.right, r.bottom]}, ctx),
-        new cls({_id: `Bounds${name}Bottom`.padEnd(16, "0"), c: [r.right, r.bottom, r.x, r.bottom]}, ctx),
-        new cls({_id: `Bounds${name}Left`.padEnd(16, "0"), c: [r.x, r.bottom, r.x, r.y]}, ctx)
+        new cls({_id: `Bounds${name}Top`.padEnd(16, "0"), c: [x, y, right, y]}, ctx),
+        new cls({_id: `Bounds${name}Right`.padEnd(16, "0"), c: [right, y, right, bottom]}, ctx),
+        new cls({_id: `Bounds${name}Bottom`.padEnd(16, "0"), c: [right, bottom, x, bottom]}, ctx),
+        new cls({_id: `Bounds${name}Left`.padEnd(16, "0"), c: [x, bottom, x, y]}, ctx)
       ];
       return docs.map(d => new Wall(d));
     };
