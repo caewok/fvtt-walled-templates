@@ -22,6 +22,7 @@ import { Draw } from "./geometry/Draw.js";
 
 const MIN_PARALLEL_EPSILON = 1e-04;
 const MIN_DIST_EPSILON = 1 + MIN_PARALLEL_EPSILON;
+const PI_1_2 = Math.PI * 0.5;
 
 export class WalledTemplate {
   /** @type {Point3d} */
@@ -207,6 +208,28 @@ export class WalledTemplate {
     return [shape.translate(this.origin.x, this.origin.y)];
   }
 
+  /**
+   * Get the bounding box for this shape.
+   * @returns {PIXI.Rectangle}
+   */
+  getBounds() {
+    const shapes = this.getTranslatedBoundaryShapes();
+    if ( shapes.length === 1 ) return shapes[0].getBounds();
+
+    let xMin = Number.POSITIVE_INFINITY;
+    let xMax = Number.NEGATIVE_INFINITY;
+    let yMin = Number.POSITIVE_INFINITY;
+    let yMax = Number.NEGATIVE_INFINITY;
+    shapes.forEach(shape => {
+      const bounds = shape.getBounds();
+      xMin = Math.min(xMin, bounds.left);
+      xMax = Math.max(xMax, bounds.right);
+      yMin = Math.min(yMin, bounds.top);
+      yMax = Math.max(yMax, bounds.bottom);
+    });
+    return new PIXI.Rectangle(xMin, yMin, xMax - xMin, yMax - yMin);
+  }
+
   // For debugging, draw the template shape on the canvas.
   draw({ color, fillAlpha } = {}) {
     fillAlpha ??= 0;
@@ -296,8 +319,8 @@ export class WalledTemplateCircle extends WalledTemplate {
   _generateSubtemplates(sweep, cornerTracker) {
     const subtemplates = [];
     for ( const cornerKey of sweep.cornersEncountered ) {
-      const spreadTemplate = this._generateSpreadFromCorner(cornerKey, sweep.edgesEncountered, cornerTracker);
-      if ( spreadTemplate ) subtemplates.push(spreadTemplate);
+      const spreadTemplates = this._generateSpreadsFromCorner(cornerKey, sweep.edgesEncountered, cornerTracker);
+      if ( spreadTemplates ) subtemplates.push(...spreadTemplates);
     }
     return subtemplates;
   }
@@ -307,7 +330,7 @@ export class WalledTemplateCircle extends WalledTemplate {
    * @param {PIXI.Point} corner
    * @returns {WalledTemplateCircle|null}
    */
-  _generateSpreadFromCorner(cornerKey, edgesEncountered, cornerTracker) {
+  _generateSpreadsFromCorner(cornerKey, edgesEncountered, cornerTracker) {
     const corner = pointFromKey(cornerKey);
 
     // If the corner is beyond this template, ignore
@@ -329,11 +352,11 @@ export class WalledTemplateCircle extends WalledTemplate {
     opts.level += 1;
     opts.corner = corner;
 
-    return new this.constructor(
+    return [new this.constructor(
       new Point3d(extendedCorner.x, extendedCorner.y, this.origin.z),
       distance,
       opts
-    );
+    )];
   }
 }
 
@@ -374,13 +397,72 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
   /**
    * Generate a new RectangleTemplate based on spreading from a designated corner.
    * @param {PIXI.Point} corner
-   * @returns {WalledTemplateRectangle|null}
+   * @returns {WalledTemplateRectangle[]|null}
    */
-  _generateSpreadFromCorner(cornerKey, edgesEncountered, cornerTracker) {
-    const out = super._generateSpreadFromCorner(cornerKey, edgesEncountered, cornerTracker);
-    if ( !out ) return out;
-    out.direction = this.direction;
-    return out;
+  _generateSpreadsFromCorner(cornerKey, edgesEncountered, cornerTracker) {
+    // If the corner is not within the template shape, ignore
+    const corner = pointFromKey(cornerKey);
+    const bounds = this.getBounds();
+    if ( !bounds.contains(corner.x, corner.y) ) return null;
+
+    const out = super._generateSpreadsFromCorner(cornerKey, edgesEncountered, cornerTracker);
+    if ( !out ) return null;
+
+    // Build the rectangle template in 4 directions.
+    // For each one, intersect the shape against the current to get the new distance.
+    // The new shape will be entirely contained by the old.
+    const spread = out[0]; // Circle only produces a single template.
+    const spreads = new Array(4);
+    for ( let i = 0; i < 4; i += 1 ) {
+      spreads[i] = spread.rotateTemplate(Math.normalizeRadians(this.direction + (PI_1_2 * i)), bounds);
+    }
+    return spreads;
+  }
+
+  /**
+   * Construct a template based on this template, rotating around the origin.
+   * Optionally limit the frame of the rectangle.
+   * @param {number} radians                  Amount to rotate the template, in radians
+   * @param {PIXI.Rectangle} [enclosingFrame] Boundary to restrict the resulting template
+   * @returns {WalledTemplateRectangle}
+   */
+  rotateTemplate(radians, enclosingFrame) {
+    const direction = Math.normalizeRadians(this.direction + radians);
+    enclosingFrame ??= canvas.dimensions.rect;
+    const origin2d = this.origin.to2d();
+
+    // Build a new shape and intersect with the frame.
+    const ixShape = MeasuredTemplate.getRectShape(direction, this.distance)
+      .translate(origin2d.x, origin2d.y)
+      .intersection(enclosingFrame);
+
+    // Direction and diagonal may have changed due to the intersection.
+    // 0–90º: SE quadrant
+    // 90–180º: SW quadrant
+    // 180–270º: NW quadrant
+    // 270–360º: NE quadrant
+
+    let oppositeCorner;
+    if ( origin2d.almostEqual(ixShape) ) {
+      oppositeCorner = new PIXI.Point(ixShape.right, ixShape.bottom); // TL -> BR
+    } else if ( origin2d.almostEqual({ x: ixShape.right, y: ixShape.top }) ) {
+      oppositeCorner = new PIXI.Point(ixShape.left, ixShape.bottom); // TR -> BL
+    } else if ( origin2d.almostEqual({ x: ixShape.right, y: ixShape.bottom }) ) {
+      oppositeCorner = new PIXI.Point(ixShape.left, ixShape.top); // BR -> TL
+    } else {
+      oppositeCorner = new PIXI.Point(ixShape.right, ixShape.top); // BL -> TR
+    }
+
+
+    // Construct a template based on this current template with distance and direction modified.
+    const opts = { ...this.options };
+    const delta = oppositeCorner.subtract(origin2d);
+    opts.direction = Math.atan2(delta.y, delta.x);
+    return new this.constructor(
+      this.origin,
+      PIXI.Point.distanceBetween(origin2d, oppositeCorner),
+      opts
+    );
   }
 }
 
