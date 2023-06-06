@@ -177,8 +177,9 @@ Hooks.on("renderMeasuredTemplateConfig", async (app, html, data) => {
 Hooks.on("canvasReady", async canvas => {
   log("Refreshing templates on canvasReady.");
   canvas.templates.placeables.forEach(t => {
-    t.draw();
-    t.refresh({redraw: true}); // Async but probably don't need to await
+    t.renderFlags.set({
+      refreshShape: true
+    });
   });
 });
 
@@ -359,6 +360,27 @@ function estimateTemplateElevation(id) {
   log(`estimateTemplateElevation is ${out} for ${token?.name}`);
 
   return out;
+}
+
+/**
+ * Hook preUpdateMeasuredTemplate to set render flag based on change to the WalledTemplate config.
+ * @param {Document} document                       The existing Document which was updated
+ * @param {object} change                           Differential data that was used to update the document
+ * @param {DocumentModificationContext} options     Additional options which modified the update request
+ * @param {string} userId                           The ID of the User who triggered the update workflow
+ */
+Hooks.on("updateMeasuredTemplate", updateMeasuredTemplateHook);
+
+function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
+  const wtChangeFlags = [
+    `flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`,
+    `flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`
+  ];
+
+  const changed = new Set(Object.keys(flattenObject(data)));
+  if ( wtChangeFlags.some(k => changed.has(k)) ) templateD.object.renderFlags.set({
+    refreshShape: true
+  });
 }
 
 /**
