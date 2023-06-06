@@ -141,6 +141,8 @@ Hooks.once("ready", async function() {
   if ( promises.length ) await Promise.all(promises);
 
   log("Refreshing templates on ready hook.");
+  // Redraw templates once the canvas is loaded
+  // Cannot use walls to draw templates until canvas.walls.quadtree is loaded.
   canvas.templates.placeables.forEach(t => {
     t.renderFlags.set({
       refreshShape: true
@@ -184,27 +186,11 @@ Hooks.on("renderMeasuredTemplateConfig", async (app, html, data) => {
   foundry.utils.mergeObject(data, renderData, { inplace: true });
 });
 
-
-/**
- * Redraw templates once the canvas is loaded
- * Cannot use walls to draw templates until canvas.walls.quadtree is loaded.
- */
-Hooks.on("canvasReady", canvas => {
-  log("Refreshing templates on canvasReady.");
-  canvas.templates.placeables.forEach(t => {
-    t.renderFlags.set({
-      refreshShape: true
-    });
-  });
-});
-
-
 /**
  * Hook wall creation and update to refresh templates
  * https://foundryvtt.com/api/hookEvents.html
  * updateWall
  * createWall
- * TO-DO: Only refresh templates that contain part of the wall
  */
 
 /**
