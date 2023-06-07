@@ -146,7 +146,6 @@ Hooks.once("ready", async function() {
   });
 });
 
-
 Hooks.on("getSceneControlButtons", controls => {
   const control = controls.find(x => x.name === "measure");
   const opt = getSetting(SETTINGS.AUTOTARGET.MENU);
