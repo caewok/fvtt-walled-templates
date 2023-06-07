@@ -13,7 +13,7 @@ import { MODULE_ID, FLAGS } from "./const.js";
  *
  * templates/scene/template-config.html
  */
-export async function walledTemplatesRenderMeasuredTemplateConfig(app, html, data) {
+export async function renderMeasuredTemplateConfig(app, html, data) {
   log("walledTemplatesRenderMeasuredTemplateConfig data", data);
   log(`enabled flag is ${data.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)}`);
   log("walledTemplatesRenderMeasuredTemplateConfig data after", data);
@@ -31,7 +31,7 @@ export async function walledTemplatesRenderMeasuredTemplateConfig(app, html, dat
 /**
  * Inject a setting for elevation
  */
-export async function walledTemplatesRenderMeasuredTemplateElevationConfig(app, html, data) {
+export async function renderMeasuredTemplateElevationConfig(app, html, data) {
   const template = `modules/${MODULE_ID}/templates/walled-templates-measured-template-elevation-config.html`;
 
   const myHTML = await renderTemplate(template, data);

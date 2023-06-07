@@ -29,7 +29,7 @@ import { registerWalledTemplates } from "./patching.js";
 import { registerGeometry } from "./geometry/registration.js";
 
 // Rendering
-import { walledTemplatesRenderMeasuredTemplateConfig, walledTemplatesRenderMeasuredTemplateElevationConfig } from "./renderMeasuredTemplateConfig.js";
+import { renderMeasuredTemplateConfig, renderMeasuredTemplateElevationConfig } from "./renderMeasuredTemplateConfig.js";
 import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
 
 // API
@@ -173,9 +173,11 @@ Hooks.on("getSceneControlButtons", controls => {
 /**
  * Add controls to the measured template configuration
  */
-Hooks.on("renderMeasuredTemplateConfig", async (app, html, data) => {
-  walledTemplatesRenderMeasuredTemplateConfig(app, html, data);
-  if ( !game.modules.get("levels")?.active ) walledTemplatesRenderMeasuredTemplateElevationConfig(app, html, data);
+Hooks.on("renderMeasuredTemplateConfig", renderMeasuredTemplateConfigHook);
+
+function renderMeasuredTemplateConfigHook(app, html, data) {
+  renderMeasuredTemplateConfig(app, html, data);
+  if ( !game.modules.get("levels")?.active ) renderMeasuredTemplateElevationConfig(app, html, data);
 
   const renderData = {};
   renderData.walledtemplates = {
@@ -184,7 +186,8 @@ Hooks.on("renderMeasuredTemplateConfig", async (app, html, data) => {
   };
 
   foundry.utils.mergeObject(data, renderData, { inplace: true });
-});
+}
+
 
 /**
  * Hook template refresh to address the retarget renderFlag.
