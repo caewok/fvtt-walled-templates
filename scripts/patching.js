@@ -75,7 +75,7 @@ export function registerWalledTemplates() {
   wrap("CONFIG.MeasuredTemplate.objectClass.prototype._getGridHighlightPositions", getGridHighlightPositionsMeasuredTemplate);
 
   // ----- MeasuredTemplateConfig ----- //
-  wrap("CONFIG.MeasuredTemplate.objectClass.defaultOptions", defaultOptionsMeasuredTemplateConfig);
+  wrap("MeasuredTemplateConfig.defaultOptions", defaultOptionsMeasuredTemplateConfig);
 
 
   // TODO: Reenable swade fix
@@ -101,15 +101,13 @@ export function registerWalledTemplates() {
   }
 
   // ----- New methods ----- //
-  addClassMethod(MeasuredTemplate, "getCircleShape", getCircleShape);
-  addClassMethod(MeasuredTemplate, "getConeShape", getConeShape);
-  addClassMethod(MeasuredTemplate, "getRectShape", getRectShape);
-  addClassMethod(MeasuredTemplate, "getRayShape", getRayShape);
+  addClassMethod(CONFIG.MeasuredTemplate.objectClass, "getCircleShape", getCircleShape);
+  addClassMethod(CONFIG.MeasuredTemplate.objectClass, "getConeShape", getConeShape);
+  addClassMethod(CONFIG.MeasuredTemplate.objectClass, "getRectShape", getRectShape);
+  addClassMethod(CONFIG.MeasuredTemplate.objectClass, "getRayShape", getRayShape);
 
-//   addClassMethod(MeasuredTemplate.prototype, "getBoundaryShapes", getBoundaryShapes);
-//   addClassMethod(MeasuredTemplate.prototype, "computeSweepPolygon", computeSweepPolygon);
-  addClassMethod(MeasuredTemplate.prototype, "autotargetToken", autotargetToken);
-  addClassMethod(MeasuredTemplate.prototype, "boundsOverlap", boundsOverlap);
+  addClassMethod(CONFIG.MeasuredTemplate.objectClass.prototype, "autotargetToken", autotargetToken);
+  addClassMethod(CONFIG.MeasuredTemplate.objectClass.prototype, "boundsOverlap", boundsOverlap);
 
   addClassGetter(MeasuredTemplateDocument.prototype, "elevation",
     function() { return this.flags?.levels?.elevation ?? canvas.primary.background.elevation; });

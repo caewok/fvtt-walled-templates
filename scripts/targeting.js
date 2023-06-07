@@ -11,6 +11,36 @@ import { log } from "./util.js";
 import { Hexagon } from "./geometry/RegularPolygon/Hexagon.js";
 import { Square } from "./geometry/RegularPolygon/Square.js";
 
+/**
+ * Hook template refresh to address the retarget renderFlag.
+ * Target tokens after drawing/refreshing the template.
+ * See MeasuredTemplate.prototype._applyRenderFlags.
+ * @param {PlaceableObject} object    The object instance being refreshed
+ * @param {RenderFlags} flags
+ */
+export function refreshMeasuredTemplateHook(template, flags) {
+  if ( flags.retarget ) template.autotargetToken();
+}
+
+/**
+ * Hook controlToken to track per-user control.
+ * Each token is deselected prior to the layer deactivating.
+ *
+ * A hook event that fires when any PlaceableObject is selected or
+ * deselected. Substitute the PlaceableObject name in the hook event to
+ * target a specific PlaceableObject type, for example "controlToken".
+ * @function controlPlaceableObject
+ * @memberof hookEvents
+ * @param {PlaceableObject} object The PlaceableObject
+ * @param {boolean} controlled     Whether the PlaceableObject is selected or not
+ */
+export function controlTokenHook(object, controlled) {
+  const user = game.user;
+
+  if ( controlled ) user._lastSelected = object;
+  else if ( user.lastSelected === object ) user._lastDeselected = object;
+}
+
 export function autotargetToken({ only_visible = false } = {}) {
   log("autotargetToken", this);
 
