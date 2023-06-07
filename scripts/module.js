@@ -28,10 +28,6 @@ import { MODULE_ID, FLAGS, LABELS } from "./const.js";
 import { registerWalledTemplates } from "./patching.js";
 import { registerGeometry } from "./geometry/registration.js";
 
-// Rendering
-import { renderMeasuredTemplateConfig, renderMeasuredTemplateElevationConfig } from "./renderMeasuredTemplateConfig.js";
-import { walledTemplatesRender5eSpellTemplateConfig } from "./render5eSpellTemplateConfig.js";
-
 // API
 import { ClockwiseSweepShape } from "./ClockwiseSweepShape.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
@@ -39,7 +35,8 @@ import * as WalledTemplateClasses from "./WalledTemplate.js";
 
 // Hooks
 import { createWallHook, preUpdateWallHook, updateWallHook, deleteWallHook } from "./walls.js";
-
+import { dnd5eUseItemHook, renderItemSheet5eHook } from "./dnd5e.js";
+import { renderMeasuredTemplateConfigHook } from "./renderMeasuredTemplateConfig.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -96,21 +93,10 @@ Hooks.once("setup", function() {
   log("Setup...");
   registerSettings();
 
-  // If using dnd5e, hook the actor item sheet and add a toggle in spell details for
-  // walled templates
-
-  /**
-   * renderItemSheet5e hook
-   * @param {ItemSheet5e} sheet
-   * @param {Object} html
-   * @param {Object} data
-   */
+  // If using dnd5e, hook the actor item sheet to add config options for spells.
   if (game.system.id === "dnd5e") {
-    Hooks.on("renderItemSheet5e", (app, html, data) => {
-      if (data.itemType === "Spell") {
-        walledTemplatesRender5eSpellTemplateConfig(app, html, data);
-      }
-    });
+    Hooks.on("renderItemSheet5e", renderItemSheet5eHook);
+    Hooks.on("dnd5e.useItem", dnd5eUseItemHook);
   }
 });
 
@@ -181,24 +167,10 @@ Hooks.on("getSceneControlButtons", controls => {
 
 // Note: Render hooks
 
-
 /**
  * Add controls to the measured template configuration
  */
 Hooks.on("renderMeasuredTemplateConfig", renderMeasuredTemplateConfigHook);
-
-function renderMeasuredTemplateConfigHook(app, html, data) {
-  renderMeasuredTemplateConfig(app, html, data);
-  if ( !game.modules.get("levels")?.active ) renderMeasuredTemplateElevationConfig(app, html, data);
-
-  const renderData = {};
-  renderData.walledtemplates = {
-    blockoptions: LABELS.WALLS_BLOCK,
-    walloptions: LABELS.WALL_RESTRICTION
-  };
-
-  foundry.utils.mergeObject(data, renderData, { inplace: true });
-}
 
 
 /**
@@ -374,26 +346,6 @@ function controlTokenHook(object, controlled) {
   else if ( user.lastSelected === object ) user._lastDeselected = object;
 }
 
-Hooks.on("dnd5e.useItem", dnd5eUseItemHook);
 
-/**
- * Hook dnd template creation from item, so item flags regarding the template can be added.
- */
-function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-line no-unused-vars
-  log("dnd5e.useItem hook", item);
-  if ( !templates || !item ) return;
 
-  // Add item flags to the template(s)
-  for ( const template of templates ) {
-    const shape = template.t;
-    let wallsBlock = item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK);
-    let wallRestriction = item.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION);
-    if ( !wallsBlock || wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULTS[shape]);
-    if ( !wallRestriction || wallRestriction === LABELS.GLOBAL_DEFAULT ) {
-      wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape]);
-    }
 
-    template.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsBlock);
-    template.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, wallRestriction);
-  }
-}
