@@ -1,9 +1,7 @@
 /* globals
-libWrapper,
+CONFIG,
 game,
-MeasuredTemplate,
-MeasuredTemplateDocument,
-canvas
+libWrapper
 */
 
 "use strict";
@@ -34,14 +32,6 @@ import { getGridHighlightPositionsMeasuredTemplate } from "./highlighting/Foundr
 function wrap(method, fn, options = {}) { libWrapper.register(MODULE_ID, method, fn, libWrapper.WRAPPER, options); }
 
 /**
- * Helper to wrap methods using libWrapper.MIXED.
- * @param {string} method       Method to wrap
- * @param {function} fn   Function to use for the wrap
- * @param {object} [options]    Options passed to libWrapper.register. E.g., { perf_mode: libWrapper.PERF_FAST}
- */
-function wrapMixed(method, fn, options = {}) { libWrapper.register(MODULE_ID, method, fn, libWrapper.MIXED, options); }
-
-/**
  * Helper to add a method to a class.
  * @param {class} cl      Either Class.prototype or Class
  * @param {string} name   Name of the method
@@ -51,20 +41,6 @@ function addClassMethod(cl, name, fn) {
   Object.defineProperty(cl, name, {
     value: fn,
     writable: true,
-    configurable: true
-  });
-}
-
-/**
- * Helper to add a getter to a class.
- * @param {class} cl      Either Class.prototype or Class
- * @param {string} name   Name of the method
- * @param {function} fn   Function to use for the method
- */
-function addClassGetter(cl, name, fn) {
-  if ( Object.hasOwn(cl, name) ) return;
-  Object.defineProperty(cl, name, {
-    get: fn,
     configurable: true
   });
 }
@@ -108,13 +84,7 @@ export function registerWalledTemplates() {
 
   addClassMethod(CONFIG.MeasuredTemplate.objectClass.prototype, "autotargetToken", autotargetToken);
   addClassMethod(CONFIG.MeasuredTemplate.objectClass.prototype, "boundsOverlap", boundsOverlap);
-
-  addClassGetter(MeasuredTemplateDocument.prototype, "elevation",
-    function() { return this.flags?.levels?.elevation ?? canvas.primary.background.elevation; });
 }
-
-// function getCircleShape(distance) { return this.#getCircleShape(distance); }
-// function getConeShape(direction, angle, distance) { return this.#getConeShape(direction, angle, distance); }
 
 // For debugging
 function executeSweepClockwiseSweepPolygon(wrapper) {

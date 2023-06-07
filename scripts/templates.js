@@ -25,15 +25,6 @@ export function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
   const { t, distance, direction, x, y } = templateD;
   const updates = {};
 
-  // If Levels is active, defer to Levels for template elevation. Otherwise, estimate from token.
-  if ( !game.modules.get("levels")?.active ) {
-    const elevation = estimateTemplateElevation(id);
-
-    // Add elevation flag. Sneakily, use the levels flag.
-    updates["flags.levels.elevation"] = elevation;
-  }
-
-
   // Only create if the id does not already exist
   if (typeof templateD.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
     // In v10, setting the flag throws an error about not having id
@@ -100,41 +91,4 @@ function scaleDiagonalDistance(direction, distance) {
   const dirRadians = Math.toRadians(direction);
   const diagonalScale = Math.abs(Math.sin(dirRadians)) + Math.abs(Math.cos(dirRadians));
   return diagonalScale * distance;
-}
-
-/**
- * At preCreateMeasuredTemplate, attempt to get a token associated with the template.
- * Use that token's elevation.
- * If no tokens can be associated with the user, default to 0.
- * @param {string} id   User id who constructed the template
- * @returns {number}  Elevation value, in grid units.
- */
-function estimateTemplateElevation(id) {
-  // Try to find a token for the user
-  const user = game.users.get(id);
-  let token;
-
-  // If in combat, assume it is the combatant if the user owns the combatant
-  if ( !token && game.combat?.started ) {
-    const c = game.combat.combatant;
-    if ( (!c.players.length && user.isGM)
-      || c.players.some(p => p.id === id) ) token = c.token.object;
-  }
-
-  if ( !token && canvas.tokens.active ) {
-    const cToken = canvas.tokens.controlled;
-
-    // If a single token is selected, use that.
-    // If multiple tokens, use the last selected
-    if ( cToken.length === 1 ) token = cToken[0];
-    else token = user._lastSelected;
-  } else if ( !token ) {
-    // Get the last token selected by the user before the layer change
-    token = user._lastDeselected;
-  }
-
-  const out = token?.document?.elevation ?? 0;
-  log(`estimateTemplateElevation is ${out} for ${token?.name}`);
-
-  return out;
 }

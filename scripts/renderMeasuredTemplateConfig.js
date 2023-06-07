@@ -12,7 +12,6 @@ import { MODULE_ID, FLAGS, LABELS } from "./const.js";
 
 export function renderMeasuredTemplateConfigHook(app, html, data) {
   renderMeasuredTemplateConfig(app, html, data);
-  if ( !game.modules.get("levels")?.active ) renderMeasuredTemplateElevationConfig(app, html, data);
 
   const renderData = {};
   renderData.walledtemplates = {
@@ -39,21 +38,6 @@ async function renderMeasuredTemplateConfig(app, html, data) {
   const myHTML = await renderTemplate(template, data);
   log("config rendered HTML", myHTML);
   html.find(".form-group").last().after(myHTML);
-
-  app.setPosition(app.position);
-}
-
-
-/**
- * Inject a setting for elevation
- */
-async function renderMeasuredTemplateElevationConfig(app, html, data) {
-  const template = `modules/${MODULE_ID}/templates/walled-templates-measured-template-elevation-config.html`;
-
-  const myHTML = await renderTemplate(template, data);
-  log("elevation config rendered HTML", myHTML);
-  const dataInject = 'input[name="width"]';
-  html.find(dataInject).first().closest(".form-group").after(myHTML);
 
   app.setPosition(app.position);
 }
