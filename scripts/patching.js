@@ -71,11 +71,11 @@ function addClassGetter(cl, name, fn) {
 
 export function registerWalledTemplates() {
   // ----- MeasuredTemplate ----- //
-  wrap("MeasuredTemplate.prototype._computeShape", _computeShapeMeasuredTemplate);
-  wrap("MeasuredTemplate.prototype._getGridHighlightPositions", getGridHighlightPositionsMeasuredTemplate);
+  wrap("CONFIG.MeasuredTemplate.objectClass.prototype._computeShape", _computeShapeMeasuredTemplate);
+  wrap("CONFIG.MeasuredTemplate.objectClass.prototype._getGridHighlightPositions", getGridHighlightPositionsMeasuredTemplate);
 
   // ----- MeasuredTemplateConfig ----- //
-  wrap("MeasuredTemplateConfig.defaultOptions", defaultOptionsMeasuredTemplateConfig);
+  wrap("CONFIG.MeasuredTemplate.objectClass.defaultOptions", defaultOptionsMeasuredTemplateConfig);
 
 
   // TODO: Reenable swade fix

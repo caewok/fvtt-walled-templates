@@ -43,6 +43,21 @@ async function renderMeasuredTemplateConfig(app, html, data) {
   app.setPosition(app.position);
 }
 
+
+/**
+ * Inject a setting for elevation
+ */
+async function renderMeasuredTemplateElevationConfig(app, html, data) {
+  const template = `modules/${MODULE_ID}/templates/walled-templates-measured-template-elevation-config.html`;
+
+  const myHTML = await renderTemplate(template, data);
+  log("elevation config rendered HTML", myHTML);
+  const dataInject = 'input[name="width"]';
+  html.find(dataInject).first().closest(".form-group").after(myHTML);
+
+  app.setPosition(app.position);
+}
+
 /**
  * Wrapper for MeasuredTemplateConfig.defaultOptions
  * Make the template config window resize height automatically, to accommodate

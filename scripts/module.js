@@ -85,8 +85,8 @@ Hooks.once("init", async function() {
     WalledTemplateClasses
   };
 
-  MeasuredTemplate.RENDER_FLAGS.retarget = {};
-  MeasuredTemplate.RENDER_FLAGS.refreshPosition.propagate.push("retarget");
+  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.retarget = {};
+  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate.push("retarget");
 });
 
 Hooks.once("setup", function() {
