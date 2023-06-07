@@ -86,7 +86,7 @@ Hooks.once("init", async function() {
   MeasuredTemplate.RENDER_FLAGS.refreshPosition.propagate.push("retarget");
 });
 
-Hooks.once("setup", async function() {
+Hooks.once("setup", function() {
   log("Setup...");
   registerSettings();
 
@@ -100,7 +100,7 @@ Hooks.once("setup", async function() {
    * @param {Object} data
    */
   if (game.system.id === "dnd5e") {
-    Hooks.on("renderItemSheet5e", async (app, html, data) => {
+    Hooks.on("renderItemSheet5e", (app, html, data) => {
       if (data.itemType === "Spell") {
         walledTemplatesRender5eSpellTemplateConfig(app, html, data);
       }
@@ -135,7 +135,10 @@ Hooks.once("ready", async function() {
     }
 
     if ( typeof t.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
-      promises.push(t.document.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape])));
+      promises.push(t.document.setFlag(
+        MODULE_ID,
+        FLAGS.WALL_RESTRICTION,
+        getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape])));
     }
   }
   if ( promises.length ) await Promise.all(promises);
@@ -202,8 +205,6 @@ function refreshMeasuredTemplateHook(template, flags) {
   if ( flags.retarget ) template.autotargetToken();
 }
 
-
-
 /**
  * Hook wall creation and update to refresh templates
  * https://foundryvtt.com/api/hookEvents.html
@@ -217,7 +218,9 @@ function refreshMeasuredTemplateHook(template, flags) {
  * @param {Object} options { temporary: Boolean, renderSheet: Boolean, render: Boolean }
  * @param {string} userId
  */
-Hooks.on("createWall", async (document, options, userId) => { // eslint-disable-line no-unused-vars
+Hooks.on("createWall", createWallHook);
+
+function createWallHook(document, options, _userId) {
   if (options.temporary) return;
 
   const A = document._object.A;
@@ -233,8 +236,7 @@ Hooks.on("createWall", async (document, options, userId) => { // eslint-disable-
       });
     }
   });
-});
-
+}
 
 /**
  * Hook for preUpdateWall, so the existing wall can be checked for whether it
@@ -244,14 +246,16 @@ Hooks.on("createWall", async (document, options, userId) => { // eslint-disable-
  * @param {Object} options { diff: Boolean, render: Boolean }
  * @param {string} userId
  */
-Hooks.on("preUpdateWall", async (document, change, options, userId) => { // eslint-disable-line no-unused-vars
+Hooks.on("preUpdateWall", preUpdateWallHook);
+
+async function preUpdateWallHook(document, change, _options, _userId) {
   const A = { x: document.c[0], y: document.c[1] };
   const B = { x: document.c[2], y: document.c[3] };
 
   // Issue #19: Door open/close passes a change.ds but not a change.c
   const new_A = change.c ? { x: change.c[0], y: change.c[1] } : A;
   const new_B = change.c ? { x: change.c[2], y: change.c[3] } : B;
-  log(`Refreshing templates on preUpdateWall ${A.x},${A.y}|${B.x},${B.y} --> ${new_A.x},${new_A.y}|${new_B.x},${new_B.y}`, document, change, options, userId);
+  log(`Refreshing templates on preUpdateWall ${A.x},${A.y}|${B.x},${B.y} --> ${new_A.x},${new_A.y}|${new_B.x},${new_B.y}`);
 
   // We want to update the template if this wall is within the template, but
   // hold until updateWall is called.
@@ -263,10 +267,8 @@ Hooks.on("preUpdateWall", async (document, change, options, userId) => { // esli
       promises.push(t.document.setFlag(MODULE_ID, "redraw", true)); // Async
     }
   });
-  promises.length && ( await Promise.all(promises) ); // eslint-disable-line no-unused-expressions
-
-  return true;
-});
+  promises.length && ( Promise.all(promises) ); // eslint-disable-line no-unused-expressions
+}
 
 /**
  * Hook for updateWall, so the existing wall can be checked for whether it
@@ -276,12 +278,13 @@ Hooks.on("preUpdateWall", async (document, change, options, userId) => { // esli
  * @param {Object} options { diff: Boolean, render: Boolean }
  * @param {string} userId
  */
-Hooks.on("updateWall", async (document, change, options, userId) => { // eslint-disable-line no-unused-vars
+Hooks.on("updateWall", updateWallHook);
+
+function updateWallHook(document, change, options, _userId) {
   if (!options.diff) return;
 
   const A = { x: document.c[0], y: document.c[1] };
   const B = { x: document.c[2], y: document.c[3] };
-  log(`Refreshing templates on updateWall ${A.x},${A.y}|${B.x},${B.y}`, document, change, options, userId);
 
   canvas.templates.placeables.forEach(t => {
     if ( t.document.getFlag(MODULE_ID, "redraw") ) {
@@ -299,33 +302,7 @@ Hooks.on("updateWall", async (document, change, options, userId) => { // eslint-
       });
     }
   });
-});
-
-/**
- * Hook for updateWall.
- * @param {WallDocument} document
- * @param {Object} change { c: Array[], _id: String }  Array of four coordinates plus id
- * @param {Object} options { diff: Boolean, render: Boolean }
- * @param {string} userId
- */
-// Hooks.on("updateWall", async (document, change, options, userId) => { // eslint-disable-line no-unused-vars
-//   if (!options.diff) return;
-//
-//   const A = { x: document.c[0], y: document.c[1] };
-//   const B = { x: document.c[2], y: document.c[3] };
-//   const new_A = { x: change.c[0], y: change.c[1] };
-//   const new_B = { x: change.c[2], y: change.c[3] };
-//   log(`Refreshing templates on updateWall ${A.x},${A.y}|${B.x},${B.y} --> ${new_A.x},${new_A.y}|${new_B.x},${new_B.y}`, document, change, options, userId);
-//
-//   canvas.templates.placeables.forEach(t => {
-//     const bbox = t.shape.getBounds().translate(t.data.x, t.data.y);
-//     if ( bbox.lineSegmentIntersects(A, B, { inside: true })
-//       || bbox.lineSegmentIntersects(new_A, new_B, { inside: true })) {
-//       log(`Wall ${document.id} intersects ${t.id}`);
-//       t.refresh({ redraw: true }); // Async but probably don't need to await
-//     }
-//   });
-// });
+}
 
 /**
  * Hook for deleteWall.
@@ -333,8 +310,9 @@ Hooks.on("updateWall", async (document, change, options, userId) => { // eslint-
  * @param {Object} options { render: Boolean }
  * @param {string} userId
  */
-Hooks.on("deleteWall", async (document, options, userId) => { // eslint-disable-line no-unused-vars
+Hooks.on("deleteWall", deleteWallHook);
 
+function deleteWallHook(document, _options, _userId) {
   const A = { x: document.c[0], y: document.c[1] };
   const B = { x: document.c[2], y: document.c[3] };
   log(`Refreshing templates on deleteWall ${A.x},${A.y}|${B.x},${B.y}.`);
@@ -348,8 +326,7 @@ Hooks.on("deleteWall", async (document, options, userId) => { // eslint-disable-
       });
     }
   });
-});
-
+}
 
 /**
  * At preCreateMeasuredTemplate, attempt to get a token associated with the template.
@@ -372,7 +349,6 @@ function estimateTemplateElevation(id) {
 
   if ( !token && canvas.tokens.active ) {
     const cToken = canvas.tokens.controlled;
-    // console.log(`${cToken.map(t => t.name)} controlled by ${id} or ${game.user.id}`);
 
     // If a single token is selected, use that.
     // If multiple tokens, use the last selected
@@ -521,8 +497,9 @@ function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-
     let wallsBlock = item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK);
     let wallRestriction = item.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION);
     if ( !wallsBlock || wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULTS[shape]);
-    if ( !wallRestriction
-      || wallRestriction === LABELS.GLOBAL_DEFAULT ) wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape]);
+    if ( !wallRestriction || wallRestriction === LABELS.GLOBAL_DEFAULT ) {
+      wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape]);
+    }
 
     template.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsBlock);
     template.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, wallRestriction);
