@@ -187,6 +187,21 @@ Hooks.on("renderMeasuredTemplateConfig", async (app, html, data) => {
 });
 
 /**
+ * Hook template refresh to address the retarget renderFlag.
+ * Target tokens after drawing/refreshing the template.
+ * See MeasuredTemplate.prototype._applyRenderFlags.
+ * @param {PlaceableObject} object    The object instance being refreshed
+ * @param {RenderFlags} flags
+ */
+Hooks.on("refreshMeasuredTemplate", refreshMeasuredTemplateHook);
+
+function refreshMeasuredTemplateHook(template, flags) {
+  if ( flags.retarget ) template.autotargetToken();
+}
+
+
+
+/**
  * Hook wall creation and update to refresh templates
  * https://foundryvtt.com/api/hookEvents.html
  * updateWall

@@ -17,7 +17,6 @@ import {
   getRectShape,
   _computeShapeMeasuredTemplate } from "./getShape.js";
 import {
-  _applyRenderFlagsMeasuredTemplate,
   boundsOverlap,
   autotargetToken } from "./targeting.js";
 import { getGridHighlightPositionsMeasuredTemplate } from "./highlighting/Foundry_highlighting.js";
@@ -74,7 +73,6 @@ export function registerWalledTemplates() {
   // ----- MeasuredTemplate ----- //
   wrap("MeasuredTemplate.prototype._computeShape", _computeShapeMeasuredTemplate);
   wrap("MeasuredTemplate.prototype._getGridHighlightPositions", getGridHighlightPositionsMeasuredTemplate);
-  wrap("MeasuredTemplate.prototype._applyRenderFlags", _applyRenderFlagsMeasuredTemplate);
 
   // ----- MeasuredTemplateConfig ----- //
   wrap("MeasuredTemplateConfig.defaultOptions", defaultOptionsMeasuredTemplateConfig);

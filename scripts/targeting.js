@@ -11,48 +11,6 @@ import { log } from "./util.js";
 import { Hexagon } from "./geometry/RegularPolygon/Hexagon.js";
 import { Square } from "./geometry/RegularPolygon/Square.js";
 
-/**
- * Wrap MeasuredTemplate.prototype._applyRenderFlags to target tokens after drawing.
- */
-export function _applyRenderFlagsMeasuredTemplate(wrapped, flags) {
-  wrapped(flags);
-  if ( flags.retarget ) this.autotargetToken();
-}
-
-// export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false, retarget = false } = {}) {
-//
-//   retarget ||= redraw; // Re-drawing requires re-targeting.
-//
-//   log(`walledTemplatesMeasuredTemplateRefresh ${this.id} redraw ${redraw} retarget ${retarget}`);
-//   const new_cache = this.document.toJSON();
-//   const use_cache = this._template_props_cache && this._template_props_cache === new_cache;
-//
-//   if ( redraw || !use_cache ) {
-//     log("redrawing template");
-//     wrapped();
-//
-//     // Necessary when the borders change
-//     Object.hasOwn(canvas.grid.highlightLayers, `Template.${this.id}`) && this.highlightGrid(); // eslint-disable-line no-unused-expressions
-//
-//     retarget = true;
-//
-//   } else {
-//     log("Using cached template data.");
-//     // Skipping due to cache:
-//     // this._refreshTemplate();
-//     // this.highlightGrid();
-//
-//     // Update the HUD
-//     this._refreshControlIcon();
-//     this._refreshRulerText();
-//   }
-//
-//   retarget && getSetting(SETTINGS.AUTOTARGET.ENABLED) && this.autotargetToken(); // eslint-disable-line no-unused-expressions
-//   this._template_props_cache = this.document.toJSON();
-//
-//   return this;
-// }
-
 export function autotargetToken({ only_visible = false } = {}) {
   log("autotargetToken", this);
 
