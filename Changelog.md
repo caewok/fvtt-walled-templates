@@ -1,5 +1,5 @@
 ## 0.6.0
-Updated for v11.
+Updated for v11. Update geometry lib to v0.2.0.
 
 Refactor the spread/reflect code with some improvements to rectangular spreads.
 
