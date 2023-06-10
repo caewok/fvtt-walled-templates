@@ -69,7 +69,7 @@ export function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
 }
 
 /**
- * Hook preUpdateMeasuredTemplate to set render flag based on change to the WalledTemplate config.
+ * Hook updateMeasuredTemplate to set render flag based on change to the WalledTemplate config.
  * @param {Document} document                       The existing Document which was updated
  * @param {object} change                           Differential data that was used to update the document
  * @param {DocumentModificationContext} options     Additional options which modified the update request
