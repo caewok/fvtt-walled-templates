@@ -45,7 +45,8 @@ export function autotargetToken({ only_visible = false } = {}) {
   log("autotargetToken", this);
 
   const targets = canvas.tokens.placeables.filter(token => {
-    if ( only_visible && !token.visible ) { return false; }
+    if ( only_visible && !token.visible ) return false;
+    if ( !token.hitArea ) return false; // Token not yet drawn. See Token.prototype._draw.
 
     // Midi-qol; Walled Templates issue #28.
     if ( getProperty(token, "actor.system.details.type.custom")?.includes("NoTarget") ) return false;
