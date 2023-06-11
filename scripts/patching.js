@@ -1,9 +1,7 @@
 /* globals
-libWrapper,
+CONFIG,
 game,
-MeasuredTemplate,
-MeasuredTemplateDocument,
-canvas
+libWrapper
 */
 
 "use strict";
@@ -11,15 +9,12 @@ canvas
 import { MODULE_ID } from "./const.js";
 import { defaultOptionsMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
 import {
-  walledTemplateGetCircleShape,
-  walledTemplateGetConeShape,
-  walledTemplateGetRectShape,
-  walledTemplateGetRayShape,
-  _getConeShapeSwadeMeasuredTemplate,
-  getBoundaryShapes,
-  computeSweepPolygon } from "./getShape.js";
+  getCircleShape,
+  getConeShape,
+  getRayShape,
+  getRectShape,
+  _computeShapeMeasuredTemplate } from "./getShape.js";
 import {
-  walledTemplatesMeasuredTemplateRefresh,
   boundsOverlap,
   autotargetToken } from "./targeting.js";
 import { getGridHighlightPositionsMeasuredTemplate } from "./highlighting/Foundry_highlighting.js";
@@ -28,18 +23,41 @@ import { getGridHighlightPositionsMeasuredTemplate } from "./highlighting/Foundr
 // import { WalledTemplatesPF1eGetHighlightedSquares } from "./highlighting/PF1e_highlighting.js";
 // import { WalledTemplatesPF2eHighlightGrid } from "./highlighting/PF2e_highlighting.js";
 
+/**
+ * Helper to wrap methods.
+ * @param {string} method       Method to wrap
+ * @param {function} fn         Function to use for the wrap
+ * @param {object} [options]    Options passed to libWrapper.register. E.g., { perf_mode: libWrapper.PERF_FAST}
+ */
+function wrap(method, fn, options = {}) { libWrapper.register(MODULE_ID, method, fn, libWrapper.WRAPPER, options); }
+
+/**
+ * Helper to add a method to a class.
+ * @param {class} cl      Either Class.prototype or Class
+ * @param {string} name   Name of the method
+ * @param {function} fn   Function to use for the method
+ */
+function addClassMethod(cl, name, fn) {
+  Object.defineProperty(cl, name, {
+    value: fn,
+    writable: true,
+    configurable: true
+  });
+}
+
 export function registerWalledTemplates() {
-  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getCircleShape", walledTemplateGetCircleShape, libWrapper.WRAPPER);
-  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getConeShape", walledTemplateGetConeShape, libWrapper.WRAPPER);
-  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getRectShape", walledTemplateGetRectShape, libWrapper.WRAPPER);
-  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getRayShape", walledTemplateGetRayShape, libWrapper.WRAPPER);
-  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype._getGridHighlightPositions", getGridHighlightPositionsMeasuredTemplate, libWrapper.WRAPPER);
+  // ----- MeasuredTemplate ----- //
+  wrap("CONFIG.MeasuredTemplate.objectClass.prototype._computeShape", _computeShapeMeasuredTemplate);
+  wrap("CONFIG.MeasuredTemplate.objectClass.prototype._getGridHighlightPositions", getGridHighlightPositionsMeasuredTemplate);
 
-  libWrapper.register(MODULE_ID, "MeasuredTemplateConfig.defaultOptions", defaultOptionsMeasuredTemplateConfig, libWrapper.WRAPPER);
+  // ----- MeasuredTemplateConfig ----- //
+  wrap("MeasuredTemplateConfig.defaultOptions", defaultOptionsMeasuredTemplateConfig);
 
-  if ( game.system.id === "swade" ) {
-    libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype._getConeShape", _getConeShapeSwadeMeasuredTemplate, libWrapper.WRAPPER);
-  }
+
+  // TODO: Reenable swade fix
+//   if ( game.system.id === "swade" ) {
+//     libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype._getConeShape", _getConeShapeSwadeMeasuredTemplate, libWrapper.WRAPPER);
+//   }
 
   // Disable for now until PF2 and PF1 are updated for v10; may not need these
   //   if ( game.system.id === "pf2e" ) {
@@ -53,46 +71,19 @@ export function registerWalledTemplates() {
   // WalledTemplatesPF1eGetHighlightedSquares, libWrapper.WRAPPER);
   //   }
 
-  libWrapper.register(MODULE_ID, "MeasuredTemplate.prototype.refresh", walledTemplatesMeasuredTemplateRefresh, libWrapper.MIXED);
-
   // For debugging
   if ( game.modules.get("_dev-mode")?.api?.getPackageDebugValue(MODULE_ID) ) {
-    libWrapper.register(MODULE_ID, "ClockwiseSweepPolygon.prototype._executeSweep", executeSweepClockwiseSweepPolygon, libWrapper.WRAPPER, { perf_mode: libWrapper.PERF_FAST});
+    wrap("ClockwiseSweepPolygon.prototype._executeSweep", executeSweepClockwiseSweepPolygon, { perf_mode: libWrapper.PERF_FAST});
   }
 
   // ----- New methods ----- //
+  addClassMethod(CONFIG.MeasuredTemplate.objectClass, "getCircleShape", getCircleShape);
+  addClassMethod(CONFIG.MeasuredTemplate.objectClass, "getConeShape", getConeShape);
+  addClassMethod(CONFIG.MeasuredTemplate.objectClass, "getRectShape", getRectShape);
+  addClassMethod(CONFIG.MeasuredTemplate.objectClass, "getRayShape", getRayShape);
 
-  Object.defineProperty(MeasuredTemplate.prototype, "getBoundaryShapes", {
-    value: getBoundaryShapes,
-    writable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(MeasuredTemplate.prototype, "computeSweepPolygon", {
-    value: computeSweepPolygon,
-    writable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(MeasuredTemplate.prototype, "autotargetToken", {
-    value: autotargetToken,
-    writable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(MeasuredTemplate.prototype, "boundsOverlap", {
-    value: boundsOverlap,
-    writable: true,
-    configurable: true
-  });
-
-  if ( !Object.hasOwn(MeasuredTemplateDocument.prototype, "elevation") ) {
-    Object.defineProperty(MeasuredTemplateDocument.prototype, "elevation", {
-      get: function() {
-        return this.flags?.levels?.elevation ?? canvas.primary.background.elevation;
-      }
-    });
-  }
+  addClassMethod(CONFIG.MeasuredTemplate.objectClass.prototype, "autotargetToken", autotargetToken);
+  addClassMethod(CONFIG.MeasuredTemplate.objectClass.prototype, "boundsOverlap", boundsOverlap);
 }
 
 // For debugging

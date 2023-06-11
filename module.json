@@ -1,14 +1,14 @@
 {
   "name": "walledtemplates",
-  "minimumCoreVersion": "10",
+  "minimumCoreVersion": "11",
   "id": "walledtemplates",
   "title": "Walled Templates",
   "version": "This is auto replaced",
   "library": false,
   "manifestPlusVersion": "1.0.0",
   "compatibility": {
-    "minimum": "10.277",
-    "verified": "10.291"
+    "minimum": "11.299",
+    "verified": "11.300"
   },
   "authors": [
     {
