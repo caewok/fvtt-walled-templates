@@ -12,47 +12,41 @@ import { Hexagon } from "./geometry/RegularPolygon/Hexagon.js";
 import { Square } from "./geometry/RegularPolygon/Square.js";
 
 /**
- * Wrap MeasuredTemplate.prototype.draw to target tokens after drawing.
+ * Hook template refresh to address the retarget renderFlag.
+ * Target tokens after drawing/refreshing the template.
+ * See MeasuredTemplate.prototype._applyRenderFlags.
+ * @param {PlaceableObject} object    The object instance being refreshed
+ * @param {RenderFlags} flags
  */
-export function walledTemplatesMeasuredTemplateRefresh(wrapped, { redraw = false, retarget = false } = {}) {
+export function refreshMeasuredTemplateHook(template, flags) {
+  if ( flags.retarget ) template.autotargetToken();
+}
 
-  retarget ||= redraw; // Re-drawing requires re-targeting.
+/**
+ * Hook controlToken to track per-user control.
+ * Each token is deselected prior to the layer deactivating.
+ *
+ * A hook event that fires when any PlaceableObject is selected or
+ * deselected. Substitute the PlaceableObject name in the hook event to
+ * target a specific PlaceableObject type, for example "controlToken".
+ * @function controlPlaceableObject
+ * @memberof hookEvents
+ * @param {PlaceableObject} object The PlaceableObject
+ * @param {boolean} controlled     Whether the PlaceableObject is selected or not
+ */
+export function controlTokenHook(object, controlled) {
+  const user = game.user;
 
-  log(`walledTemplatesMeasuredTemplateRefresh ${this.id} redraw ${redraw} retarget ${retarget}`);
-  const new_cache = this.document.toJSON();
-  const use_cache = this._template_props_cache && this._template_props_cache === new_cache;
-
-  if ( redraw || !use_cache ) {
-    log("redrawing template");
-    wrapped();
-
-    // Necessary when the borders change
-    Object.hasOwn(canvas.grid.highlightLayers, `Template.${this.id}`) && this.highlightGrid(); // eslint-disable-line no-unused-expressions
-
-    retarget = true;
-
-  } else {
-    log("Using cached template data.");
-    // Skipping due to cache:
-    // this._refreshTemplate();
-    // this.highlightGrid();
-
-    // Update the HUD
-    this._refreshControlIcon();
-    this._refreshRulerText();
-  }
-
-  retarget && getSetting(SETTINGS.AUTOTARGET.ENABLED) && this.autotargetToken(); // eslint-disable-line no-unused-expressions
-  this._template_props_cache = this.document.toJSON();
-
-  return this;
+  if ( controlled ) user._lastSelected = object;
+  else if ( user.lastSelected === object ) user._lastDeselected = object;
 }
 
 export function autotargetToken({ only_visible = false } = {}) {
   log("autotargetToken", this);
 
   const targets = canvas.tokens.placeables.filter(token => {
-    if ( only_visible && !token.visible ) { return false; }
+    if ( only_visible && !token.visible ) return false;
+    if ( !token.hitArea ) return false; // Token not yet drawn. See Token.prototype._draw.
 
     // Midi-qol; Walled Templates issue #28.
     if ( getProperty(token, "actor.system.details.type.custom")?.includes("NoTarget") ) return false;

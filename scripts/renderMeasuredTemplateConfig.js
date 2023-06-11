@@ -1,11 +1,26 @@
 /* globals
+foundry,
+game,
 renderTemplate
 */
 
 "use strict";
 
 import { log } from "./util.js";
-import { MODULE_ID, FLAGS } from "./const.js";
+import { MODULE_ID, FLAGS, LABELS } from "./const.js";
+
+
+export function renderMeasuredTemplateConfigHook(app, html, data) {
+  renderMeasuredTemplateConfig(app, html, data);
+
+  const renderData = {};
+  renderData.walledtemplates = {
+    blockoptions: LABELS.WALLS_BLOCK,
+    walloptions: LABELS.WALL_RESTRICTION
+  };
+
+  foundry.utils.mergeObject(data, renderData, { inplace: true });
+}
 
 /**
  * Inject html to add controls to the measured template configuration:
@@ -13,7 +28,7 @@ import { MODULE_ID, FLAGS } from "./const.js";
  *
  * templates/scene/template-config.html
  */
-export async function walledTemplatesRenderMeasuredTemplateConfig(app, html, data) {
+async function renderMeasuredTemplateConfig(app, html, data) {
   log("walledTemplatesRenderMeasuredTemplateConfig data", data);
   log(`enabled flag is ${data.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)}`);
   log("walledTemplatesRenderMeasuredTemplateConfig data after", data);
@@ -23,21 +38,6 @@ export async function walledTemplatesRenderMeasuredTemplateConfig(app, html, dat
   const myHTML = await renderTemplate(template, data);
   log("config rendered HTML", myHTML);
   html.find(".form-group").last().after(myHTML);
-
-  app.setPosition(app.position);
-}
-
-
-/**
- * Inject a setting for elevation
- */
-export async function walledTemplatesRenderMeasuredTemplateElevationConfig(app, html, data) {
-  const template = `modules/${MODULE_ID}/templates/walled-templates-measured-template-elevation-config.html`;
-
-  const myHTML = await renderTemplate(template, data);
-  log("elevation config rendered HTML", myHTML);
-  const dataInject = 'input[name="width"]';
-  html.find(dataInject).first().closest(".form-group").after(myHTML);
 
   app.setPosition(app.position);
 }

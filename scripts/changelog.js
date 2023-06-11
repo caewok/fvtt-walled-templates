@@ -59,6 +59,21 @@ Hooks.once("ready", () => {
             the choice will default to "Use global default" for wall blocking and wall restriction type.
             (This will not affect existing spell items.)`
     })
+
+    .addEntry({
+      version: "0.6.0",
+      title: "Foundry v11",
+      body: `\
+          - **Updated for v11:** Walled Templates is now updated for Foundry v11. If you need to
+            regress back to v10, you should be able to use the version 0.5 series of this module in v10.
+            Quite a bit of code changed for the update to v11; as always, please report any bugs to my Github.
+
+          - **Revamped Rectangle Template Spread:** Using "spread" with rectangular templates now
+            operates a bit differently than before and should be more useful. At each corner within the
+            rectangle, a new smaller rectangle is drawn in the four cardinal directions. The resulting
+            template is better able to move around walls but does not exceed the original template shape.`
+    })
+
     .build()
     ?.render(true);
 });
