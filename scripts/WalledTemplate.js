@@ -301,7 +301,7 @@ export class WalledTemplateCircle extends WalledTemplate {
    * Get the original version of this shape.
    * @returns {PIXI.Circle}
    */
-  getOriginalShape() { return MeasuredTemplate.getCircleShape(this.distance); }
+  getOriginalShape() { return CONFIG.MeasuredTemplate.objectClass.getCircleShape(this.distance); }
 
   /**
    * Get boundary shape for this sized circle set to the origin.
@@ -310,7 +310,7 @@ export class WalledTemplateCircle extends WalledTemplate {
   getBoundaryShape() {
     // Pad the circle by one pixel so it better covers expected grid spaces.
     // (Rounding tends to drop spaces on the edge.)
-    return MeasuredTemplate.getCircleShape(this.distance + 1);
+    return CONFIG.MeasuredTemplate.objectClass.getCircleShape(this.distance + 1);
   }
 
   /**
@@ -390,7 +390,7 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
    * Get the original version of this rectangle shape.
    * @returns {PIXI.Circle}
    */
-  getOriginalShape() { return MeasuredTemplate.getRectShape(this.direction, this.distance); }
+  getOriginalShape() { return CONFIG.MeasuredTemplate.objectClass.getRectShape(this.direction, this.distance); }
 
   /**
    * Get boundary shape for this rectangle set to the origin.
@@ -504,7 +504,9 @@ export class WalledTemplateRay extends WalledTemplate {
    * Get the original version of this shape.
    * @returns {PIXI.Polygon}
    */
-  getOriginalShape() { return MeasuredTemplate.getRayShape(this.direction, this.distance, this.width); }
+  getOriginalShape() {
+    return CONFIG.MeasuredTemplate.objectClass.getRayShape(this.direction, this.distance, this.width);
+  }
 
   /**
    * Generate a new WalledTemplateRay based on reflecting off the first wall encountered
@@ -601,7 +603,9 @@ export class WalledTemplateCone extends WalledTemplateRay {
    * Get the original version of this shape.
    * @returns {PIXI.Polygon}
    */
-  getOriginalShape() { return MeasuredTemplate.getConeShape(this.direction, this.width, this.distance); }
+  getOriginalShape() {
+    return CONFIG.MeasuredTemplate.objectClass.getConeShape(this.direction, this.width, this.distance);
+  }
 
   /**
    * Locate wall segments that the cone hits.
@@ -749,11 +753,6 @@ export class WalledTemplateCone extends WalledTemplateRay {
 
       const shadowConeV = Rr.normalize().multiplyScalar(reflectionDist);
       const shadowConeOrigin = reflectionPoint.subtract(shadowConeV);
-
-//       if ( Number.isNaN(shadowConeOrigin.x) || Number.isNaN(shadowConeOrigin.x) ) {
-//         console.error("shadowConeOrigin fail!", this);
-//       }
-
 
       // Shallow copy the options for the new template.
       const opts = { ...this.options };
