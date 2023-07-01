@@ -1,3 +1,7 @@
+## 0.6.2
+Update geometry lib to v0.2.1.
+Use `MeasuredTemplate.getCircleShape`, etc. static methods introduced in v11.302.
+
 ## 0.6.1
 Update geometry lib to v0.2.1.
 
