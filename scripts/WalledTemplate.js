@@ -90,17 +90,19 @@ export class WalledTemplate {
       lightWall: this.options.lastReflectedEdge // Only used for cones
     };
 
-    // Add in elevation for Wall Height to use
-    const origin = this.origin;
-    origin.b = this.origin.z;
-    origin.t = this.origin.z;
-    origin.object = {};
-
     let sweepClass = this.sweepClass;
     if ( sweepClass === LightWallSweep && !this.options.lastReflectedEdge) sweepClass = ClockwiseSweepShape;
 
     const sweep = new sweepClass();
-    sweep.initialize(origin, cfg);
+    sweep.initialize(this.origin, cfg);
+
+    // Add in elevation for Wall Height to use
+    // Default to treating template as infinite in vertical directions
+    // Do this after initialization b/c something is flipping them around. Likely Wall Height.
+    cfg.source.object ??= {};
+    cfg.source.object.b ??= Number.POSITIVE_INFINITY;
+    cfg.source.object.t ??= Number.NEGATIVE_INFINITY;
+
     sweep.compute();
     return sweep;
   }
