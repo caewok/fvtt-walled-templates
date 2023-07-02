@@ -8,12 +8,7 @@ libWrapper
 
 import { MODULE_ID } from "./const.js";
 import { defaultOptionsMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
-import {
-  getCircleShape,
-  getConeShape,
-  getRayShape,
-  getRectShape,
-  _computeShapeMeasuredTemplate } from "./getShape.js";
+import { _computeShapeMeasuredTemplate } from "./getShape.js";
 import {
   boundsOverlap,
   autotargetToken } from "./targeting.js";
@@ -77,11 +72,6 @@ export function registerWalledTemplates() {
   }
 
   // ----- New methods ----- //
-  addClassMethod(CONFIG.MeasuredTemplate.objectClass, "getCircleShape", getCircleShape);
-  addClassMethod(CONFIG.MeasuredTemplate.objectClass, "getConeShape", getConeShape);
-  addClassMethod(CONFIG.MeasuredTemplate.objectClass, "getRectShape", getRectShape);
-  addClassMethod(CONFIG.MeasuredTemplate.objectClass, "getRayShape", getRayShape);
-
   addClassMethod(CONFIG.MeasuredTemplate.objectClass.prototype, "autotargetToken", autotargetToken);
   addClassMethod(CONFIG.MeasuredTemplate.objectClass.prototype, "boundsOverlap", boundsOverlap);
 }

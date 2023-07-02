@@ -1,3 +1,8 @@
+## 0.6.2
+Update geometry lib to v0.2.2.
+Use `MeasuredTemplate.getCircleShape`, etc. static methods introduced in v11.302.
+Fix for Wall Height issue with templates ignoring limited height walls. Closes issue #30.
+
 ## 0.6.1
 Update geometry lib to v0.2.1.
 
