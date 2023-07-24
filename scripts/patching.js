@@ -7,12 +7,11 @@ libWrapper
 "use strict";
 
 import { MODULE_ID } from "./const.js";
-import { defaultOptionsMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
-import { _computeShapeMeasuredTemplate } from "./getShape.js";
+import { defaultOptionsMeasuredTemplateConfig } from "./MeasuredTemplateConfig.js";
 import {
-  boundsOverlap,
-  autotargetToken } from "./targeting.js";
-import { getGridHighlightPositionsMeasuredTemplate } from "./highlighting/Foundry_highlighting.js";
+  _computeShapeMeasuredTemplate,
+  getGridHighlightPositionsMeasuredTemplate } from "./MeasuredTemplate.js";
+import { autotargetToken, boundsOverlap } from "./Token.js";
 
 // Disable for now until PF2 and PF1 are updated for v10; may not need these
 // import { WalledTemplatesPF1eGetHighlightedSquares } from "./highlighting/PF1e_highlighting.js";

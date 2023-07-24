@@ -33,11 +33,14 @@ import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
 import * as WalledTemplateClasses from "./WalledTemplate.js";
 
 // Hooks
-import { createWallHook, preUpdateWallHook, updateWallHook, deleteWallHook } from "./walls.js";
+import { createWallHook, preUpdateWallHook, updateWallHook, deleteWallHook } from "./Wall.js";
 import { dnd5eUseItemHook, renderItemSheet5eHook } from "./dnd5e.js";
-import { renderMeasuredTemplateConfigHook } from "./renderMeasuredTemplateConfig.js";
-import { refreshMeasuredTemplateHook, controlTokenHook } from "./targeting.js";
-import { preCreateMeasuredTemplateHook, updateMeasuredTemplateHook } from "./templates.js";
+import { renderMeasuredTemplateConfigHook } from "./MeasuredTemplateConfig.js";
+import {
+  refreshMeasuredTemplateHook,
+  preCreateMeasuredTemplateHook,
+  updateMeasuredTemplateHook } from "./MeasuredTemplate.js";
+import { controlTokenHook } from "./Token.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
