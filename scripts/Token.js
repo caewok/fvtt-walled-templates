@@ -1,8 +1,9 @@
 /* globals
 canvas,
-PIXI,
+CONST,
 game,
-CONST
+getProperty,
+PIXI
 */
 "use strict";
 
@@ -10,17 +11,6 @@ import { getSetting, SETTINGS } from "./settings.js";
 import { log } from "./util.js";
 import { Hexagon } from "./geometry/RegularPolygon/Hexagon.js";
 import { Square } from "./geometry/RegularPolygon/Square.js";
-
-/**
- * Hook template refresh to address the retarget renderFlag.
- * Target tokens after drawing/refreshing the template.
- * See MeasuredTemplate.prototype._applyRenderFlags.
- * @param {PlaceableObject} object    The object instance being refreshed
- * @param {RenderFlags} flags
- */
-export function refreshMeasuredTemplateHook(template, flags) {
-  if ( flags.retarget ) template.autotargetToken();
-}
 
 /**
  * Hook controlToken to track per-user control.
