@@ -33,6 +33,7 @@ import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
 import * as WalledTemplateClasses from "./walled_templates/WalledTemplate.js";
 import { WalledTemplateCircle } from "./walled_templates/WalledTemplateCircle.js";
 import { WalledTemplateRectangle } from "./walled_templates/WalledTemplateRectangle.js";
+import { WalledTemplateCone } from "./walled_templates/WalledTemplateCone.js";
 import { WalledTemplateRay } from "./walled_templates/WalledTemplateRay.js";
 
 // Self-executing scripts for hooks
@@ -82,6 +83,7 @@ Hooks.once("init", function() {
     WalledTemplateClasses,
     WalledTemplateCircle,
     WalledTemplateRectangle,
+    WalledTemplateCone,
     WalledTemplateRay,
 
     PATCHER
