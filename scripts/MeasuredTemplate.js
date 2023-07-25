@@ -154,22 +154,40 @@ PATCHES.BASIC.WRAPS = {
   _computeShape
 };
 
+// ----- NOTE: Methods ----- //
+
 /**
- * Determine if a sweep is needed for a template.
- * @param {MeasuredTemplate}
- * @returns {boolean}
+ * New method: MeasuredTemplate.prototype.boundsOverlap
+ * For a given bounds shape, determine if it overlaps the template according to
+ * provided settings. Will translate the bounds to template origin.
+ * @param {PIXI.Rectangle|Hexagon}  bounds    Boundary shape, with true position on grid.
+ * @return {Boolean}
  */
-function requiresSweep(template) {
-  const { wallsBlock } = templateFlagProperties(template);
-  return wallsBlock !== SETTINGS.DEFAULTS.CHOICES.UNWALLED;
+function boundsOverlap(bounds) {
+  const tBounds = bounds.translate(-this.x, -this.y);
+
+  if ( getSetting(SETTINGS.AUTOTARGET.METHOD) === SETTINGS.AUTOTARGET.METHODS.CENTER ) {
+    return this.shape.contains(tBounds.center.x, tBounds.center.y);
+  }
+
+  // Using SETTINGS.AUTOTARGET.METHODS.OVERLAP
+  if ( !tBounds.overlaps(this.shape) ) { return false; }
+
+  const area_percentage = getSetting(SETTINGS.AUTOTARGET.AREA);
+  if ( !area_percentage ) { return true; }
+
+  // Calculate the area of overlap by constructing the intersecting polygon between the
+  // bounds and the template shape.
+  const poly = boundsShapeIntersection(tBounds, this.shape);
+  if ( !poly || poly.points.length < 3 ) return false;
+  const b_area = bounds.area;
+  const p_area = poly.area;
+  const target_area = b_area * area_percentage;
+
+  return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%
 }
 
-function scaleDiagonalDistance(direction, distance) {
-  const dirRadians = Math.toRadians(direction);
-  const diagonalScale = Math.abs(Math.sin(dirRadians)) + Math.abs(Math.cos(dirRadians));
-  return diagonalScale * distance;
-}
-
+PATCHES.BASIC.METHODS = { boundsOverlap };
 
 // ----- NOTE: Autotargeting ----- //
 
@@ -211,38 +229,7 @@ function autotargetTokens({ only_visible = false } = {}) {
   releaseAndAcquireTargets(targets, this.document.user);
 }
 
-/**
- * New method: MeasuredTemplate.prototype.boundsOverlap
- * For a given bounds shape, determine if it overlaps the template according to
- * provided settings. Will translate the bounds to template origin.
- * @param {PIXI.Rectangle|Hexagon}  bounds    Boundary shape, with true position on grid.
- * @return {Boolean}
- */
-function boundsOverlap(bounds) {
-  const tBounds = bounds.translate(-this.x, -this.y);
-
-  if ( getSetting(SETTINGS.AUTOTARGET.METHOD) === SETTINGS.AUTOTARGET.METHODS.CENTER ) {
-    return this.shape.contains(tBounds.center.x, tBounds.center.y);
-  }
-
-  // Using SETTINGS.AUTOTARGET.METHODS.OVERLAP
-  if ( !tBounds.overlaps(this.shape) ) { return false; }
-
-  const area_percentage = getSetting(SETTINGS.AUTOTARGET.AREA);
-  if ( !area_percentage ) { return true; }
-
-  // Calculate the area of overlap by constructing the intersecting polygon between the
-  // bounds and the template shape.
-  const poly = boundsShapeIntersection(tBounds, this.shape);
-  if ( !poly || poly.points.length < 3 ) return false;
-  const b_area = bounds.area;
-  const p_area = poly.area;
-  const target_area = b_area * area_percentage;
-
-  return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%
-}
-
-PATCHES.AUTOTARGET.METHODS = { autotargetTokens, boundsOverlap };
+PATCHES.AUTOTARGET.METHODS = { autotargetTokens };
 
 // ----- NOTE: Helper functions ----- //
 
@@ -317,5 +304,21 @@ function tokenBounds(token) {
     return Square.fromToken(token);
   }
   return Hexagon.fromToken(token);
+}
+
+/**
+ * Determine if a sweep is needed for a template.
+ * @param {MeasuredTemplate}
+ * @returns {boolean}
+ */
+function requiresSweep(template) {
+  const { wallsBlock } = templateFlagProperties(template);
+  return wallsBlock !== SETTINGS.DEFAULTS.CHOICES.UNWALLED;
+}
+
+function scaleDiagonalDistance(direction, distance) {
+  const dirRadians = Math.toRadians(direction);
+  const diagonalScale = Math.abs(Math.sin(dirRadians)) + Math.abs(Math.cos(dirRadians));
+  return diagonalScale * distance;
 }
 
