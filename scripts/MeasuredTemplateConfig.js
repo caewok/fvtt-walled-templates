@@ -1,6 +1,5 @@
 /* globals
 foundry,
-game,
 renderTemplate
 */
 
@@ -9,8 +8,11 @@ renderTemplate
 import { log } from "./util.js";
 import { MODULE_ID, FLAGS, LABELS } from "./const.js";
 
+export const PATCHES = {};
+PATCHES.BASIC = {};
 
-export function renderMeasuredTemplateConfigHook(app, html, data) {
+// ----- Note: Hooks ----- //
+function renderMeasuredTemplateConfigHook(app, html, data) {
   renderMeasuredTemplateConfig(app, html, data);
 
   const renderData = {};
@@ -21,6 +23,28 @@ export function renderMeasuredTemplateConfigHook(app, html, data) {
 
   foundry.utils.mergeObject(data, renderData, { inplace: true });
 }
+
+PATCHES.BASIC.HOOKS = { renderMeasuredTemplateConfig: renderMeasuredTemplateConfigHook };
+
+// ----- Note: Wraps ----- //
+
+/**
+ * Wrapper for MeasuredTemplateConfig.defaultOptions
+ * Make the template config window resize height automatically, to accommodate
+ * different parameters.
+ * @param {Function} wrapper
+ * @return {Object} See MeasuredTemplateConfig.defaultOptions.
+ */
+export function defaultOptions(wrapper) {
+  const options = wrapper();
+  return foundry.utils.mergeObject(options, {
+    height: "auto"
+  });
+}
+
+PATCHES.BASIC.STATIC_WRAPS = { defaultOptions };
+
+// ----- Note: Helper functions ----- //
 
 /**
  * Inject html to add controls to the measured template configuration:
@@ -40,18 +64,4 @@ async function renderMeasuredTemplateConfig(app, html, data) {
   html.find(".form-group").last().after(myHTML);
 
   app.setPosition(app.position);
-}
-
-/**
- * Wrapper for MeasuredTemplateConfig.defaultOptions
- * Make the template config window resize height automatically, to accommodate
- * different parameters.
- * @param {Function} wrapper
- * @return {Object} See MeasuredTemplateConfig.defaultOptions.
- */
-export function defaultOptionsMeasuredTemplateConfig(wrapper) {
-  const options = wrapper();
-  return foundry.utils.mergeObject(options, {
-    height: "auto"
-  });
 }

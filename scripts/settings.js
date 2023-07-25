@@ -6,6 +6,7 @@ game
 
 import { log } from "./util.js";
 import { MODULE_ID } from "./const.js";
+import { registerAutotargeting } from "./patching.js";
 
 export const SETTINGS = {
   DEFAULTS: {
@@ -99,9 +100,12 @@ export function registerSettings() {
       [SETTINGS.AUTOTARGET.CHOICES.YES]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.MENU}.Choice.${CHOICES.YES}`)
     },
     default: SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF,
-    onChange: value => setSetting(SETTINGS.AUTOTARGET.ENABLED,
-      value === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON
-      || value === SETTINGS.AUTOTARGET.CHOICES.YES)
+    onChange: value => {
+      const enabled = value === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON
+      || value === SETTINGS.AUTOTARGET.CHOICES.YES;
+      setSetting(SETTINGS.AUTOTARGET.ENABLED, enabled);
+      registerAutotargeting();
+    }
   });
 
   const METHODS = SETTINGS.AUTOTARGET.METHODS;

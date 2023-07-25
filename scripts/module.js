@@ -24,23 +24,13 @@ import { SETTINGS, registerSettings, getSetting, toggleSetting } from "./setting
 import { MODULE_ID, FLAGS } from "./const.js";
 
 // Patches
-import { registerWalledTemplates } from "./patching.js";
+import { initializePatching, registerAutotargeting, PATCHER } from "./patching.js";
 import { registerGeometry } from "./geometry/registration.js";
 
 // API
 import { ClockwiseSweepShape } from "./ClockwiseSweepShape.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
 import * as WalledTemplateClasses from "./WalledTemplate.js";
-
-// Hooks
-import { createWallHook, preUpdateWallHook, updateWallHook, deleteWallHook } from "./Wall.js";
-import { dnd5eUseItemHook, renderItemSheet5eHook } from "./dnd5e.js";
-import { renderMeasuredTemplateConfigHook } from "./MeasuredTemplateConfig.js";
-import {
-  refreshMeasuredTemplateHook,
-  preCreateMeasuredTemplateHook,
-  updateMeasuredTemplateHook } from "./MeasuredTemplate.js";
-import { controlTokenHook } from "./Token.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -81,12 +71,14 @@ Hooks.once("init", function() {
   };
 
   registerGeometry();
-  registerWalledTemplates();
+  initializePatching();
 
   game.modules.get(MODULE_ID).api = {
     ClockwiseSweepShape,
     LightWallSweep,
-    WalledTemplateClasses
+    WalledTemplateClasses,
+
+    PATCHER
   };
 
   CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.retarget = {};
@@ -96,12 +88,13 @@ Hooks.once("init", function() {
 Hooks.once("setup", function() {
   log("Setup...");
   registerSettings();
+  registerAutotargeting();
 
-  // If using dnd5e, hook the actor item sheet to add config options for spells.
-  if (game.system.id === "dnd5e") {
-    Hooks.on("renderItemSheet5e", renderItemSheet5eHook);
-    Hooks.on("dnd5e.useItem", dnd5eUseItemHook);
-  }
+//   // If using dnd5e, hook the actor item sheet to add config options for spells.
+//   if (game.system.id === "dnd5e") {
+//     Hooks.on("renderItemSheet5e", renderItemSheet5eHook);
+//     Hooks.on("dnd5e.useItem", dnd5eUseItemHook);
+//   }
 });
 
 
@@ -167,21 +160,3 @@ Hooks.on("getSceneControlButtons", controls => {
     }
   });
 });
-
-// Note: Render hooks
-Hooks.on("renderMeasuredTemplateConfig", renderMeasuredTemplateConfigHook);
-Hooks.on("refreshMeasuredTemplate", refreshMeasuredTemplateHook);
-
-// Note: Wall hooks
-Hooks.on("createWall", createWallHook);
-Hooks.on("preUpdateWall", preUpdateWallHook);
-Hooks.on("updateWall", updateWallHook);
-Hooks.on("deleteWall", deleteWallHook);
-
-// Note: Template hooks
-Hooks.on("updateMeasuredTemplate", updateMeasuredTemplateHook);
-Hooks.on("preCreateMeasuredTemplate", preCreateMeasuredTemplateHook);
-
-// Note: Token hooks
-// Hook token control to track the current user for targeting.
-Hooks.on("controlToken", controlTokenHook);
