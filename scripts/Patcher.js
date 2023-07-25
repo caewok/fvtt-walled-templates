@@ -168,10 +168,7 @@ export class Patcher {
    * Deregister all hooks in this map.
    */
   #deregisterHooks(map) {
-    map.forEach((args, id) => {
-      const hookName = args[0];
-      Hooks.off(hookName, id);
-    });
+    map.forEach((hookName, id) => Hooks.off(hookName, id));
     map.clear();
   }
 
@@ -180,8 +177,7 @@ export class Patcher {
    */
   #deregisterMethods(map) {
     map.forEach((args, _id) => {
-      const cl = args[0];
-      const name = args[1];
+      const { cl, name } = args;
       delete cl[name];
     });
     map.clear();
@@ -195,7 +191,7 @@ export class Patcher {
    * @param {object} [opts] Optional parameters
    * @param {boolean} [opts.getter]     True if the property should be made a getter.
    * @param {boolean} [opts.optional]   True if the getter should not be set if it already exists.
-   * @returns {undefined|string} Either undefined if the getter already exists or the cl.prototype.name.
+   * @returns {undefined|object<id{string}} Either undefined if the getter already exists or the cl.prototype.name.
    */
   static addClassMethod(cl, name, fn, { getter = false, optional = false } = {}) {
     if ( optional && Object.hasOwn(cl, name) ) return undefined;
@@ -208,7 +204,8 @@ export class Patcher {
     Object.defineProperty(cl, name, descriptor);
 
     const prototypeName = cl.constructor?.name;
-    return `${prototypeName ?? cl.name }.${prototypeName ? "prototype." : ""}${name}`; // eslint-disable-line template-curly-spacing
+    const id = `${prototypeName ?? cl.name }.${prototypeName ? "prototype." : ""}${name}`; // eslint-disable-line template-curly-spacing
+    return { id, args: { cl, name } };
   }
 
   /**
@@ -252,25 +249,34 @@ export class Patcher {
  * @param {string} method       Method to wrap
  * @param {function} fn         Function to use for the wrap
  * @param {object} [options]    Options passed to libWrapper.register. E.g., { perf_mode: libWrapper.PERF_FAST}
- * @returns {number} libWrapper ID
+ * @returns {object<id{number}, args{string}} libWrapper ID and the method used
  */
 function wrap(method, fn, options = {}) {
-  return libWrapper.register(MODULE_ID, method, fn, libWrapper.WRAPPER, options);
+  const id = libWrapper.register(MODULE_ID, method, fn, libWrapper.WRAPPER, options);
+  return { id, args: method }
 }
 
 // Currently unused
 // function mixed(method, fn, options = {}) {
-//   return libWrapper.register(MODULE_ID, method, fn, libWrapper.MIXED, options);
+//   const id = libWrapper.register(MODULE_ID, method, fn, libWrapper.MIXED, options);
+//   return { id, args: method }
 // }
 
 function override(method, fn, options = {}) {
-  return libWrapper.register(MODULE_ID, method, fn, libWrapper.OVERRIDE, options);
+  const id = libWrapper.register(MODULE_ID, method, fn, libWrapper.OVERRIDE, options)
+  return { id, args: method }
 }
 
 /**
  * Wrapper to add a hook, b/c calling Hooks.on directly with a decorator does not work.
+ * @param {string} hookName     Name of the hook
+ * @param {function} fn         Function to use for the hook
+ * @returns {object<id{number}, args{string}} hook id and the hook name
  */
-function addHook(hookName, hookFn) { return Hooks.on(hookName, hookFn); }
+function addHook(hookName, hookFn) {
+  const id = Hooks.on(hookName, hookFn);
+  return { id, args: hookName };
+}
 
 /**
  * Decorator to register and record a patch, method, or hook.
@@ -280,8 +286,8 @@ function addHook(hookName, hookFn) { return Hooks.on(hookName, hookFn); }
  */
 function regDec(fn, map) {
   return function() {
-    const id = fn.apply(this, arguments);
-    map.set(id, arguments);
+    const { id, args } = fn.apply(this, arguments);
+    map.set(id, args);
     return id;
   };
 }
