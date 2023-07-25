@@ -816,7 +816,7 @@ WalledTemplateRectangle.prototype._spread = WalledTemplateRectangle.prototype._r
  * @param {Ray|Segment} edge    Segment with A and B endpoints
  * @returns {null|{ reflectionPoint: {PIXI.Point}, reflectionRay: {Ray}, Rr: {PIXI.Point} }}
  */
-function reflectRayOffEdge(ray, edge, reflectionPoint) {
+export function reflectRayOffEdge(ray, edge, reflectionPoint) {
   if ( !reflectionPoint ) {
     const ix = foundry.utils.lineLineIntersection(ray.A, ray.B, edge.A, edge.B);
     if ( !ix ) return null;
