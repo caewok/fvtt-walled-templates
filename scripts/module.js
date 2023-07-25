@@ -30,7 +30,7 @@ import { registerGeometry } from "./geometry/registration.js";
 // API
 import { ClockwiseSweepShape } from "./ClockwiseSweepShape.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
-import * as WalledTemplateClasses from "./walled_templates/WalledTemplate.js";
+import { WalledTemplate } from "./walled_templates/WalledTemplate.js";
 import { WalledTemplateCircle } from "./walled_templates/WalledTemplateCircle.js";
 import { WalledTemplateRectangle } from "./walled_templates/WalledTemplateRectangle.js";
 import { WalledTemplateCone } from "./walled_templates/WalledTemplateCone.js";
@@ -81,7 +81,7 @@ Hooks.once("init", function() {
   game.modules.get(MODULE_ID).api = {
     ClockwiseSweepShape,
     LightWallSweep,
-    WalledTemplateClasses,
+    WalledTemplate,
     WalledTemplateCircle,
     WalledTemplateRectangle,
     WalledTemplateCone,
