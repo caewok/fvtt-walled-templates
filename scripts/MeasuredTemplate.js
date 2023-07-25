@@ -226,7 +226,8 @@ function autotargetTokens({ only_visible = false } = {}) {
   });
 
   log(`autotargetTokens|${targets.length} targets.`);
-  releaseAndAcquireTargets(targets, this.document.user);
+  if ( getSetting(SETTINGS.AUTOTARGET.ENABLED) ) releaseAndAcquireTargets(targets, this.document.user);
+  else releaseTargets(targets, this.document.user);
 }
 
 PATCHES.AUTOTARGET.METHODS = { autotargetTokens };
@@ -288,6 +289,29 @@ function releaseAndAcquireTargets(targets, user = game.user) {
       }
     }
   });
+
+  // Broadcast the target change
+  user.broadcastActivity({ targets: user.targets.ids });
+}
+
+/**
+ * Given an array of target tokens, release those for the user.
+ * @param {Token[]} targets
+ */
+function releaseTargets(targets, user = game.user) {
+  // Release other targets
+  for ( let t of user.targets ) {
+    if ( targets.includes(t) ) {
+      log(`Un-targeting token ${t.id}`, t);
+      // When switching to a new scene, Foundry will sometimes try to setTarget using
+      // token.position, but token.position throws an error. Maybe canvas not loaded?
+      try {
+        t.setTarget(false, { releaseOthers: false, groupSelection: true });
+      } catch(error) {
+        log(error); // Just log it b/c probably not (easily) fixable
+      }
+    }
+  }
 
   // Broadcast the target change
   user.broadcastActivity({ targets: user.targets.ids });

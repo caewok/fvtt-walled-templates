@@ -154,9 +154,7 @@ Hooks.on("getSceneControlButtons", controls => {
     active: getSetting(SETTINGS.AUTOTARGET.ENABLED),
     onClick: toggle => { // eslint-disable-line no-unused-vars
       toggleSetting(SETTINGS.AUTOTARGET.ENABLED);
-      if ( getSetting(SETTINGS.AUTOTARGET.ENABLED) ) {
-        canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
-      }
+      canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
     }
   });
 });

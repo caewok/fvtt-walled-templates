@@ -35,6 +35,11 @@ export class Patcher {
     this.#initializeRegistrationTracker();
   }
 
+  groupIsRegistered(groupName) {
+    const regObj = this.regTracker[groupName];
+    return regObj.PATCHES.size || regObj.METHODS.size || regObj.HOOKS.size;
+  }
+
   /**
    * Run through the patches and construct mappings for each group in the RegTracker.
    */
