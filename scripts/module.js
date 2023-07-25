@@ -24,7 +24,7 @@ import { SETTINGS, registerSettings, getSetting, toggleSetting } from "./setting
 import { MODULE_ID, FLAGS } from "./const.js";
 
 // Patches
-import { initializePatching, registerAutotargeting, PATCHES, REG_TRACKER } from "./patching.js";
+import { initializePatching, registerAutotargeting, PATCHER } from "./patching.js";
 import { registerGeometry } from "./geometry/registration.js";
 
 // API
@@ -78,8 +78,7 @@ Hooks.once("init", function() {
     LightWallSweep,
     WalledTemplateClasses,
 
-    PATCHES,
-    REG_TRACKER
+    PATCHER
   };
 
   CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.retarget = {};
