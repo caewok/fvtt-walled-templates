@@ -42,13 +42,13 @@
     "walledtemplates.settings.autotarget-menu.Choice.toggle-on": "Display toggle button; default on",
     "walledtemplates.settings.autotarget-menu.Choice.yes": "Always autotarget",
 
-    "walledtemplates.settings.autotarget-method.Name": "Autotargeting and highlighting",
-    "walledtemplates.settings.autotarget-method.Hint": "Method to auto-target tokens with templates. Also controls how grid highlighting works for templates.",
+    "walledtemplates.settings.autotarget-method.Name": "Highlight/Autotarget method",
+    "walledtemplates.settings.autotarget-method.Hint": "How to highlight grid squares and autotarget tokens under templates.",
     "walledtemplates.settings.autotarget-method.Method.center": "Token center inside template",
     "walledtemplates.settings.autotarget-method.Method.overlap": "Token area overlaps template",
 
-    "walledtemplates.settings.autotarget-area.Name": "Autotargeting and highlighting area",
-    "walledtemplates.settings.autotarget-area.Hint": "For overlap method only. The percent of the token bounds or grid area that must overlap the template to count. 0 means any overlap counts. (Hint: use the arrow keys after clicking the square to increment by steps of 0.01.)",
+    "walledtemplates.settings.autotarget-area.Name": "Highlight/Autotarget percentage",
+    "walledtemplates.settings.autotarget-area.Hint": "For overlap highlight/autotarget method only. Percent token bounds or grid area that must overlap the template to count. 0 means any overlap counts. (Hint: use the arrow keys after clicking the square to increment by steps of 0.01.)",
 
     "walledtemplates.settings.diagonal-scaling-ray.Name": "Scale diagonal rays",
     "walledtemplates.settings.diagonal-scaling-ray.Hint": "Scale ray templates to conform with the 5-5-5 diagonal rule.",
