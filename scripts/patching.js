@@ -26,18 +26,17 @@ export const PATCHES = {
 export function initializePatching() {
   initializeRegistrationTracker();
   registerGroup("BASIC");
-  // registerPatchesForSystem();
+  registerGroup(game.system.id);
 }
 
 /**
- * Register the autotargeting wraps and methods. Must be done after settings are enabled.
+ * Register the autotargeting patches. Must be done after settings are enabled.
  */
 export function registerAutotargeting() {
   deregisterGroup("AUTOTARGET");
   const autotarget = getSetting(SETTINGS.AUTOTARGET.MENU) !== SETTINGS.AUTOTARGET.CHOICES.NO;
   if ( autotarget ) registerGroup("AUTOTARGET");
 }
-
 
 // ----- NOTE: Patching helper functions ----- //
 export const REG_TRACKER = {};
