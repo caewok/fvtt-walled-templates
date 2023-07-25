@@ -35,7 +35,13 @@ export function initializePatching() {
  * Register the autotargeting patches. Must be done after settings are enabled.
  */
 export function registerAutotargeting() {
-  PATCHER.deregisterGroup("AUTOTARGET");
   const autotarget = getSetting(SETTINGS.AUTOTARGET.MENU) !== SETTINGS.AUTOTARGET.CHOICES.NO;
+
+  // Disable existing targeting before completely removing autotarget patches
+  if ( PATCHER.groupIsRegistered("AUTOTARGET") && !autotarget ) {
+    canvas.templates.placeables.forEach(t => t.autotargetTokens());
+  }
+
+  PATCHER.deregisterGroup("AUTOTARGET");
   if ( autotarget ) PATCHER.registerGroup("AUTOTARGET");
 }
