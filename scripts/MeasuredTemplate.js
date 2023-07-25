@@ -10,7 +10,7 @@ PIXI
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { WalledTemplate, templateFlagProperties } from "./WalledTemplate.js";
+import { WalledTemplate, templateFlagProperties } from "./walled_templates/WalledTemplate.js";
 import { log, gridShapeForTopLeft } from "./util.js";
 import { MODULE_ID, FLAGS } from "./const.js";
 import { getSetting, SETTINGS } from "./settings.js";

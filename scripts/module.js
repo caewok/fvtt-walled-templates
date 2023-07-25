@@ -30,7 +30,7 @@ import { registerGeometry } from "./geometry/registration.js";
 // API
 import { ClockwiseSweepShape } from "./ClockwiseSweepShape.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
-import * as WalledTemplateClasses from "./WalledTemplate.js";
+import * as WalledTemplateClasses from "./walled_templates/WalledTemplate.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";

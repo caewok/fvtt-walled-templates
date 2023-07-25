@@ -11,15 +11,15 @@ Ray
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { MODULE_ID, FLAGS, LABELS } from "./const.js";
-import { Point3d } from "./geometry/3d/Point3d.js";
-import { ClipperPaths } from "./geometry/ClipperPaths.js";
-import { SETTINGS, getSetting, debugPolygons } from "./settings.js";
-import { ClockwiseSweepShape, pointFromKey } from "./ClockwiseSweepShape.js";
-import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
+import { MODULE_ID, FLAGS, LABELS } from "../const.js";
+import { Point3d } from "../geometry/3d/Point3d.js";
+import { ClipperPaths } from "../geometry/ClipperPaths.js";
+import { SETTINGS, getSetting, debugPolygons } from "../settings.js";
+import { ClockwiseSweepShape, pointFromKey } from "../ClockwiseSweepShape.js";
+import { LightWallSweep } from "../ClockwiseSweepLightWall.js";
 
 // Debugging
-import { Draw } from "./geometry/Draw.js";
+import { Draw } from "../geometry/Draw.js";
 
 const MIN_PARALLEL_EPSILON = 1e-04;
 const MIN_DIST_EPSILON = 1 + MIN_PARALLEL_EPSILON;
