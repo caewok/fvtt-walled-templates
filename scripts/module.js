@@ -35,6 +35,7 @@ import { WalledTemplateCircle } from "./walled_templates/WalledTemplateCircle.js
 import { WalledTemplateRectangle } from "./walled_templates/WalledTemplateRectangle.js";
 import { WalledTemplateCone } from "./walled_templates/WalledTemplateCone.js";
 import { WalledTemplateRay } from "./walled_templates/WalledTemplateRay.js";
+import { WalledTemplateRoundedCone } from "./walled_templates/WalledTemplateRoundedCone.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -85,6 +86,7 @@ Hooks.once("init", function() {
     WalledTemplateRectangle,
     WalledTemplateCone,
     WalledTemplateRay,
+    WalledTemplateRoundedCone,
 
     PATCHER
   };
