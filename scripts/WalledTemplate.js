@@ -103,8 +103,6 @@ export class WalledTemplate {
     const sweep = new sweepClass();
     sweep.initialize(this.origin, cfg);
 
-
-
     sweep.compute();
     return sweep;
   }

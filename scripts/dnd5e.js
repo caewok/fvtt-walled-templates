@@ -8,16 +8,48 @@ import { log } from "./util.js";
 import { MODULE_ID, FLAGS, LABELS } from "./const.js";
 import { getSetting, SETTINGS } from "./settings.js";
 
+export const PATCHES = {};
+PATCHES.dnd5e = {};
+
+// ----- NOTE: Hooks ----- //
+
 /**
  * Hook renderItemSheet5e to add template configuration options for spells.
  * @param {ItemSheet5e} sheet
  * @param {Object} html
  * @param {Object} data
  */
-export function renderItemSheet5eHook(app, html, data) {
+function renderItemSheet5eHook(app, html, data) {
   if (data.itemType !== "Spell") return;
   render5eSpellTemplateConfig(app, html, data);
 }
+
+/**
+ * Hook dnd template creation from item, so item flags regarding the template can be added.
+ */
+function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-line no-unused-vars
+  log("dnd5e.useItem hook", item);
+  if ( !templates || !item ) return;
+
+  // Add item flags to the template(s)
+  for ( const template of templates ) {
+    const shape = template.t;
+    let wallsBlock = item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK);
+    let wallRestriction = item.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION);
+    if ( !wallsBlock || wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULTS[shape]);
+    if ( !wallRestriction || wallRestriction === LABELS.GLOBAL_DEFAULT ) {
+      wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape]);
+    }
+
+    template.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsBlock);
+    template.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, wallRestriction);
+  }
+}
+
+PATCHES.dnd5e.HOOKS = {
+  renderItemSheet5e: renderItemSheet5eHook,
+  dnd5eUseItem: dnd5eUseItemHook
+};
 
 /**
  * Inject html to add controls to the measured template configuration:
@@ -49,24 +81,3 @@ async function render5eSpellTemplateConfig(app, html, data) {
   html.find(".input-select-select").first().after(myHTML);
 }
 
-/**
- * Hook dnd template creation from item, so item flags regarding the template can be added.
- */
-export function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-line no-unused-vars
-  log("dnd5e.useItem hook", item);
-  if ( !templates || !item ) return;
-
-  // Add item flags to the template(s)
-  for ( const template of templates ) {
-    const shape = template.t;
-    let wallsBlock = item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK);
-    let wallRestriction = item.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION);
-    if ( !wallsBlock || wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULTS[shape]);
-    if ( !wallRestriction || wallRestriction === LABELS.GLOBAL_DEFAULT ) {
-      wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape]);
-    }
-
-    template.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsBlock);
-    template.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, wallRestriction);
-  }
-}
