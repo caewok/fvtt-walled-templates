@@ -1,4 +1,5 @@
 /* globals
+duplicate
 */
 
 "use strict";
@@ -34,3 +35,6 @@ LABELS.SPELL_TEMPLATE.WALLS_BLOCK = duplicate(LABELS.WALLS_BLOCK);
 LABELS.SPELL_TEMPLATE.WALL_RESTRICTION = duplicate(LABELS.WALL_RESTRICTION);
 LABELS.SPELL_TEMPLATE.WALLS_BLOCK.globalDefault = "walledtemplates.MeasuredTemplateConfiguration.globalDefault";
 LABELS.SPELL_TEMPLATE.WALL_RESTRICTION.globalDefault = "walledtemplates.MeasuredTemplateConfiguration.globalDefault";
+
+export const MIN_PARALLEL_EPSILON = 1e-04;
+export const MIN_DIST_EPSILON = 1 + MIN_PARALLEL_EPSILON;
