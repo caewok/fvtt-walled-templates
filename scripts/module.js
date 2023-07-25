@@ -31,8 +31,8 @@ import { registerGeometry } from "./geometry/registration.js";
 import { ClockwiseSweepShape } from "./ClockwiseSweepShape.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
 import * as WalledTemplateClasses from "./walled_templates/WalledTemplate.js";
-
 import { WalledTemplateCircle } from "./walled_templates/WalledTemplateCircle.js";
+import { WalledTemplateRectangle } from "./walled_templates/WalledTemplateRectangle.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -80,6 +80,7 @@ Hooks.once("init", function() {
     LightWallSweep,
     WalledTemplateClasses,
     WalledTemplateCircle,
+    WalledTemplateRectangle,
 
     PATCHER
   };
