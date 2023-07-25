@@ -1,6 +1,5 @@
 /* globals
 canvas,
-CONFIG,
 MeasuredTemplate,
 PIXI
 */
@@ -12,9 +11,6 @@ import { ClockwiseSweepShape, pointFromKey } from "../ClockwiseSweepShape.js";
 import { WalledTemplateCircle } from "./WalledTemplateCircle.js";
 
 export class WalledTemplateRectangle extends WalledTemplateCircle {
-  /** @type {"circle"|"cone"|"rect"|"ray"} */
-  t = "rect";
-
   /** @type {ClockwiseSweepShape|LightWallSweep} */
   sweepClass = ClockwiseSweepShape;
 
@@ -22,28 +18,14 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
   direction = 0;
 
   /**
-   * @param {Point3d} origin    Center point of the template
-   * @param {number} distance   Distance, in pixel units
-   * @param {object} [opts]     Options
-   * @param {number} [opts.direction=0]  Direction, in grid units
-   * @param {WalledTemplateOptions} [options]
+   * @param {MeasuredTemplate} template   The underlying measured template
+   * @param {WalledTemplateOptions} [opts]
+   * @param {number} [opt.direction]
    */
-  constructor(origin, distance, opts = {}) {
-    super(origin, distance, opts);
-    this.direction = opts.direction ?? 0;
+  constructor(template, opts = {}) {
+    super(template, opts);
+    this.direction = opts.direction ?? this.template.document.direction;
   }
-
-  /**
-   * Get the original version of this rectangle shape.
-   * @returns {PIXI.Circle}
-   */
-  getOriginalShape() { return CONFIG.MeasuredTemplate.objectClass.getRectShape(this.direction, this.distance); }
-
-  /**
-   * Get boundary shape for this rectangle set to the origin.
-   * @returns {PIXI.Circle}
-   */
-  getBoundaryShape() { return this.getOriginalShape(); }
 
   /**
    * Generate a new RectangleTemplate based on spreading from a designated corner.
@@ -109,10 +91,8 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
     const opts = { ...this.options };
     const delta = oppositeCorner.subtract(origin2d);
     opts.direction = Math.atan2(delta.y, delta.x);
-    return new this.constructor(
-      this.origin,
-      PIXI.Point.distanceBetween(origin2d, oppositeCorner),
-      opts
-    );
+    opts.distance = PIXI.Point.distanceBetween(origin2d, oppositeCorner);
+    opts.origin = this.origin.clone();
+    return new this.constructor(this.template, opts);
   }
 }

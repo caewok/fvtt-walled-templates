@@ -13,8 +13,8 @@ export class WalledTemplateRoundedCone extends WalledTemplateCone {
    * Use a circle + limited radius for the bounding shapes.
    * @returns {[PIXI.Circle|PIXI.Rectangle|PIXI.Polygon]}
    */
-  getTranslatedBoundaryShapes() {
-    const shape = super.getTranslatedBoundaryShapes()[0];
+  get translatedBoundaryShapes() {
+    const shape = super.translatedBoundaryShapes[0];
     const origin = this.origin.to2d();
     const { angle, direction } = this; // Angle is in degrees; direction is in radians.
 

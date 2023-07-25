@@ -30,12 +30,12 @@ import { registerGeometry } from "./geometry/registration.js";
 // API
 import { ClockwiseSweepShape } from "./ClockwiseSweepShape.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
-import { WalledTemplate } from "./walled_templates/WalledTemplate.js";
-import { WalledTemplateCircle } from "./walled_templates/WalledTemplateCircle.js";
-import { WalledTemplateRectangle } from "./walled_templates/WalledTemplateRectangle.js";
-import { WalledTemplateCone } from "./walled_templates/WalledTemplateCone.js";
-import { WalledTemplateRay } from "./walled_templates/WalledTemplateRay.js";
-import { WalledTemplateRoundedCone } from "./walled_templates/WalledTemplateRoundedCone.js";
+import { WalledTemplateShape } from "./template_shapes/WalledTemplateShape.js";
+import { WalledTemplateCircle } from "./template_shapes/WalledTemplateCircle.js";
+import { WalledTemplateRectangle } from "./template_shapes/WalledTemplateRectangle.js";
+import { WalledTemplateCone } from "./template_shapes/WalledTemplateCone.js";
+import { WalledTemplateRay } from "./template_shapes/WalledTemplateRay.js";
+import { WalledTemplateRoundedCone } from "./template_shapes/WalledTemplateRoundedCone.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -52,6 +52,9 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 
 Hooks.once("init", function() {
   log("Initializing...");
+
+  initializeWalledTemplates(game.system.id);
+
 
   // Set CONFIGS used by this module.
   CONFIG[MODULE_ID] = {
@@ -76,12 +79,13 @@ Hooks.once("init", function() {
   };
 
   registerGeometry();
+  initializeWalledTemplates(game.system.id);
   initializePatching();
 
   game.modules.get(MODULE_ID).api = {
     ClockwiseSweepShape,
     LightWallSweep,
-    WalledTemplate,
+    WalledTemplateShape,
     WalledTemplateCircle,
     WalledTemplateRectangle,
     WalledTemplateCone,
@@ -93,18 +97,30 @@ Hooks.once("init", function() {
 
   CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.retarget = {};
   CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate.push("retarget");
+
+  // Tell modules that the module is set up
+  Hooks.callAll(`${MODULE_ID}Ready`);
 });
+
+function initializeWalledTemplates(systemId) {
+  const reg = WalledTemplateShape.shapeCodeRegister;
+
+  // Set the defaults.
+  reg.set("cir", WalledTemplateCircle);
+  reg.set("rect", WalledTemplateRectangle);
+  reg.set("cone", WalledTemplateCone);
+  reg.set("ray", WalledTemplateRay);
+
+  switch ( systemId ) {
+    case "swade": reg.set("cone", WalledTemplateRoundedCone); break;
+  }
+
+}
 
 Hooks.once("setup", function() {
   log("Setup...");
   registerSettings();
   registerAutotargeting();
-
-//   // If using dnd5e, hook the actor item sheet to add config options for spells.
-//   if (game.system.id === "dnd5e") {
-//     Hooks.on("renderItemSheet5e", renderItemSheet5eHook);
-//     Hooks.on("dnd5e.useItem", dnd5eUseItemHook);
-//   }
 });
 
 

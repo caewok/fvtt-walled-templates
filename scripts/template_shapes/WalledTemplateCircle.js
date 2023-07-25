@@ -9,9 +9,9 @@ PIXI
 import { MODULE_ID } from "../const.js";
 import { Point3d } from "../geometry/3d/Point3d.js";
 import { ClockwiseSweepShape, pointFromKey } from "../ClockwiseSweepShape.js";
-import { WalledTemplate } from "./WalledTemplate.js";
+import { WalledTemplateShape } from "./WalledTemplateShape.js";
 
-export class WalledTemplateCircle extends WalledTemplate {
+export class WalledTemplateCircle extends WalledTemplateShape {
   /** @type {"circle"|"cone"|"rect"|"ray"} */
   t = "circle";
 
@@ -19,32 +19,25 @@ export class WalledTemplateCircle extends WalledTemplate {
   sweepClass = ClockwiseSweepShape;
 
   /**
-   * @param {Point3d} origin    Center point of the template
-   * @param {number} distance   Radius of the circle, in pixel units
-   * @param {WalledTemplateOptions} [options]
+   * @param {MeasuredTemplate} template   The underlying measured template
+   * @param {WalledTemplateOptions} [opts]
+   * @param {PIXI.Point} [opt.corner]
    */
-  constructor(origin, distance, opts = {}) {
-    super(origin, distance, opts);
+  constructor(template, opts = {}) {
+    super(template, opts);
     this.options.corner = opts.corner;
   }
-
-  /** @type {boolean} */
-  get doRecursion() { return super.doRecursion && this.options.level < CONFIG[MODULE_ID].recursions[this.t]; }
-
-  /**
-   * Get the original version of this shape.
-   * @returns {PIXI.Circle}
-   */
-  getOriginalShape() { return CONFIG.MeasuredTemplate.objectClass.getCircleShape(this.distance); }
 
   /**
    * Get boundary shape for this sized circle set to the origin.
    * @returns {PIXI.Circle}
    */
-  getBoundaryShape() {
+  get boundaryShape() {
     // Pad the circle by one pixel so it better covers expected grid spaces.
     // (Rounding tends to drop spaces on the edge.)
-    return CONFIG.MeasuredTemplate.objectClass.getCircleShape(this.distance + 1);
+    const cir = this.originalShape;
+    if ( this.originalShape instanceof PIXI.Circle ) cir.radius += 1;
+    return cir;
   }
 
   /**
@@ -89,12 +82,10 @@ export class WalledTemplateCircle extends WalledTemplate {
     const opts = { ...this.options };
     opts.level += 1;
     opts.corner = corner;
+    opts.distance = distance;
+    opts.origin = new Point3d(extendedCorner.x, extendedCorner.y, this.origin.z);
 
-    return [new this.constructor(
-      new Point3d(extendedCorner.x, extendedCorner.y, this.origin.z),
-      distance,
-      opts
-    )];
+    return [new this.constructor(this.template, opts)];
   }
 }
 

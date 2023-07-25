@@ -1,5 +1,4 @@
 /* globals
-CONFIG,
 foundry,
 PIXI,
 Ray
@@ -9,46 +8,27 @@ Ray
 
 import { Point3d } from "../geometry/3d/Point3d.js";
 import { LightWallSweep } from "../ClockwiseSweepLightWall.js";
-import { MIN_DIST_EPSILON } from "../const.js";
 import { WalledTemplateRay } from "./WalledTemplateRay.js";
-import { reflectRayOffEdge } from "./WalledTemplate.js";
+
+export const MIN_PARALLEL_EPSILON = 1e-04;
+export const MIN_DIST_EPSILON = 1 + MIN_PARALLEL_EPSILON;
 
 export class WalledTemplateCone extends WalledTemplateRay {
-
-  /** @type {"circle"|"cone"|"rect"|"ray"} */
-  t = "cone";
-
   /** @type {ClockwiseSweepShape|LightWallSweep} */
   sweepClass = LightWallSweep;
 
   /**
-   * @param {Point3d} origin    Center point of the template
-   * @param {number} distance   Distance of the ray, in pixel units
-   * @param {object} [opts]
+   * @param {MeasuredTemplate} template   The underlying measured template
+   * @param {WalledTemplateOptions} [opts]
+   * @param {PIXI.Point} [opt.corner]
    * @param {number} [opts.direction]   Direction of the ray, in radians
    * @param {number} [opts.angle]       Angle of the triangle formed by the cone, in degrees
-   * @param {number} [opts.width]       Can be used in lieu of angle
    * @param {WalledTemplateOptions} [options]
    */
-  constructor(origin, distance, opts = {}) {
-    super(origin, distance, opts);
-    if ( Object.hasOwn(opts, "angle") ) this.angle = opts.angle;
+  constructor(template, opts = {}) {
+    super(template, opts);
+    this.angle = opts.angle ?? this.template.document.angle;
     this.options.lastReflectedEdge = opts.lastReflectedEdge;
-  }
-
-  /**
-   * For the cone, the angle property is substituted for the width property.
-   */
-  get angle() { return this.width; }
-
-  set angle(value) { this.width = value; }
-
-  /**
-   * Get the original version of this shape.
-   * @returns {PIXI.Polygon}
-   */
-  getOriginalShape() {
-    return CONFIG.MeasuredTemplate.objectClass.getConeShape(this.direction, this.width, this.distance);
   }
 
   /**
@@ -184,7 +164,7 @@ export class WalledTemplateCone extends WalledTemplateRay {
     // Set origin to just inside the edge, in the middle.
     const coneTemplates = [];
     for ( const reflectingEdge of reflectingEdges ) {
-      const reflection = reflectRayOffEdge(dirRay, reflectingEdge);
+      const reflection = this.constructor.reflectRayOffEdge(dirRay, reflectingEdge);
       if ( !reflection ) continue;
       const { reflectionPoint, reflectionRay, Rr } = reflection;
 
@@ -207,12 +187,10 @@ export class WalledTemplateCone extends WalledTemplateRay {
       opts.lastReflectedEdge = reflectingEdge;
       opts.angle = this.angle;
       opts.direction = reflectionRay.angle;
+      opts.origin = new Point3d(shadowConeOrigin.x, shadowConeOrigin.y, this.origin.z);
+      opts.distance = this.distance - reflectionDist;
 
-      coneTemplates.push(new this.constructor(
-        new Point3d(shadowConeOrigin.x, shadowConeOrigin.y, this.origin.z),
-        this.distance - reflectionDist,
-        opts
-      ));
+      coneTemplates.push(new this.constructor(this.template, this.opts));
     }
 
     return coneTemplates;
