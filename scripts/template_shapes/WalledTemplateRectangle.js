@@ -11,6 +11,11 @@ import { ClockwiseSweepShape, pointFromKey } from "../ClockwiseSweepShape.js";
 import { WalledTemplateCircle } from "./WalledTemplateCircle.js";
 
 export class WalledTemplateRectangle extends WalledTemplateCircle {
+  /** @type {PIXI.Rectangle} */
+  get originalShape() {
+    return CONFIG.MeasuredTemplate.objectClass.getRectShape(this.direction, this.distance);
+  }
+
   /**
    * Generate a new RectangleTemplate based on spreading from a designated corner.
    * @param {PIXI.Point} corner

@@ -26,6 +26,11 @@ export class WalledTemplateRay extends WalledTemplateShape {
     this.options.Rr = opts.Rr;
   }
 
+  /** @type {PIXI.Polygon} */
+  get originalShape() {
+    return CONFIG.MeasuredTemplate.objectClass.getRayShape(this.direction, this.distance, this.width);
+  }
+
   /**
    * Generate a new WalledTemplateRay based on reflecting off the first wall encountered
    * from this WalledTemplateRay.

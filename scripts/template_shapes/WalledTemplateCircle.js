@@ -22,6 +22,11 @@ export class WalledTemplateCircle extends WalledTemplateShape {
     this.options.corner = opts.corner;
   }
 
+  /** @type {PIXI.Circle} */
+  get originalShape() {
+    return CONFIG.MeasuredTemplate.objectClass.getCircleShape(this.distance);
+  }
+
   /**
    * Get boundary shape for this sized circle set to the origin.
    * @returns {PIXI.Circle}

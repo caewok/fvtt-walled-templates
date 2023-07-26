@@ -30,6 +30,11 @@ export class WalledTemplateCone extends WalledTemplateRay {
     this.options.lastReflectedEdge = opts.lastReflectedEdge;
   }
 
+  /** @type {PIXI.Polygon} */
+  get originalShape() {
+    return CONFIG.MeasuredTemplate.objectClass.getConeShape(this.direction, this.width, this.distance);
+  }
+
   /**
    * Locate wall segments that the cone hits.
    * For each segment, calculate the reflection ray based on normal of that edge.
