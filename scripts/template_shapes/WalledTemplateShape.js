@@ -98,10 +98,7 @@ export class WalledTemplateShape {
     return undefined;
   }
 
-  /**
-   * Original shape centered at 0,0, with any modifications required.
-   */
-  get boundaryShape() { return this.originalShape; }
+  get translatedShape() { return this.originalShape.translate(this.origin.x, this.origin.y); }
 
   /**
    * Translate the boundary shape to the correct origin.
@@ -110,8 +107,7 @@ export class WalledTemplateShape {
    * @returns {[PIXI.Circle|PIXI.Rectangle|PIXI.Polygon]}
    */
   get translatedBoundaryShapes() {
-    const shape = this.boundaryShape;
-    return [shape.translate(this.origin.x, this.origin.y)];
+    return [this.translatedShape];
   }
 
   /** @type {SETTINGS.DEFAULTS.CHOICES} */

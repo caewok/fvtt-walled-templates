@@ -5,26 +5,16 @@ PIXI
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
+import { MODULE_ID } from "../const.js";
 import { WalledTemplateCone } from "./WalledTemplateCone.js";
 
 export class WalledTemplateRoundedCone extends WalledTemplateCone {
   /**
-   * Translate the boundary shape to the correct origin.
-   * Use a circle + limited radius for the bounding shapes.
-   * @returns {[PIXI.Circle|PIXI.Rectangle|PIXI.Polygon]}
+   * Original cone SWADE shape
+   * https://gitlab.com/peginc/swade/-/blob/develop/src/module/canvas/SwadeMeasuredTemplate.ts
    */
-  get translatedBoundaryShapes() {
-    const shape = super.translatedBoundaryShapes[0];
-    const origin = this.origin.to2d();
-    const { angle, direction } = this; // Angle is in degrees; direction is in radians.
-
-    // Use a circle + limited radius for the bounding shapes
-    const pts = shape.points;
-    const radius = Math.hypot(pts[2] - pts[0], pts[3] - pts[1]);
-    const rotation = Math.toDegrees(direction) - 90;
-
-    const circle = new PIXI.Circle(origin.x, origin.y, radius);
-    const la = new LimitedAnglePolygon(origin, {radius, angle, rotation});
-    return [circle, la];
+  get originalShape() {
+    if ( !this.template._getConeShape ) return super.originalShape; // In case SWADE is not present.
+    return this.template._getConeShape(this.direction, this.angle, this.distance);
   }
 }
