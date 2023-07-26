@@ -1,4 +1,5 @@
 /* globals
+duplicate
 */
 
 "use strict";

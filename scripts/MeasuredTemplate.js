@@ -10,7 +10,7 @@ PIXI
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { WalledTemplate, templateFlagProperties } from "./WalledTemplate.js";
+import { WalledTemplateShape } from "./template_shapes/WalledTemplateShape.js";
 import { log, gridShapeForTopLeft } from "./util.js";
 import { MODULE_ID, FLAGS } from "./const.js";
 import { getSetting, SETTINGS } from "./settings.js";
@@ -132,21 +132,14 @@ function _getGridHighlightPositions(wrapper) {
  */
 function _computeShape(wrapped) {
   // Store the original shape.
-  this.originalShape = wrapped();
-  if ( !requiresSweep(this) ) return this.originalShape;
+  const wt = this[MODULE_ID] ??= {};
+  wt.originalShape = wrapped();
 
-  const walledTemplate = WalledTemplate.fromMeasuredTemplate(this);
-  const poly = walledTemplate.computeSweepPolygon();
+  const walledClass = WalledTemplateShape.shapeCodeRegister.get(this.document.t);
+  if ( !walledClass ) return wt.originalShape;
 
-  poly.x = this.originalShape.x;
-  poly.y = this.originalShape.y;
-  poly.radius = this.originalShape.radius;
-
-  if ( !poly || isNaN(poly.points[0]) ) {
-    console.error("_computeShapeMeasuredTemplate poly is broken.");
-    return this.originalShape;
-  }
-  return poly;
+  wt.walledTemplate = new walledClass(this);
+  return wt.walledTemplate.computeShape();
 }
 
 PATCHES.BASIC.WRAPS = {
@@ -328,16 +321,6 @@ function tokenBounds(token) {
     return Square.fromToken(token);
   }
   return Hexagon.fromToken(token);
-}
-
-/**
- * Determine if a sweep is needed for a template.
- * @param {MeasuredTemplate}
- * @returns {boolean}
- */
-function requiresSweep(template) {
-  const { wallsBlock } = templateFlagProperties(template);
-  return wallsBlock !== SETTINGS.DEFAULTS.CHOICES.UNWALLED;
 }
 
 function scaleDiagonalDistance(direction, distance) {
