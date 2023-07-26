@@ -12,12 +12,6 @@ import { ClockwiseSweepShape, pointFromKey } from "../ClockwiseSweepShape.js";
 import { WalledTemplateShape } from "./WalledTemplateShape.js";
 
 export class WalledTemplateCircle extends WalledTemplateShape {
-  /** @type {"circle"|"cone"|"rect"|"ray"} */
-  t = "circle";
-
-  /** @type {ClockwiseSweepShape|LightWallSweep} */
-  sweepClass = ClockwiseSweepShape;
-
   /**
    * @param {MeasuredTemplate} template   The underlying measured template
    * @param {WalledTemplateOptions} [opts]

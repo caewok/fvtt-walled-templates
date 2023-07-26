@@ -27,7 +27,6 @@ export class WalledTemplateCone extends WalledTemplateRay {
    */
   constructor(template, opts = {}) {
     super(template, opts);
-    this.angle = opts.angle ?? this.template.document.angle;
     this.options.lastReflectedEdge = opts.lastReflectedEdge;
   }
 
@@ -185,7 +184,6 @@ export class WalledTemplateCone extends WalledTemplateRay {
       opts.reflectionRay = reflectionRay;
       opts.Rr = Rr;
       opts.lastReflectedEdge = reflectingEdge;
-      opts.angle = this.angle;
       opts.direction = reflectionRay.angle;
       opts.origin = new Point3d(shadowConeOrigin.x, shadowConeOrigin.y, this.origin.z);
       opts.distance = this.distance - reflectionDist;

@@ -34,11 +34,18 @@ export class WalledTemplateShape {
   /** @type {Point3d} */
   origin = new Point3d(0, 0, 0);
 
+  /** @type {number} */
+  distance = 0;
+
+  /** @type {number} */
+  direction = 0;
+
   /**
    * Options used primarily by recursion for reflect and spread algorithms
    * @typedef {object} WalledTemplateOptions
-   * @property {Point3d} origin     Assumed center point of the template
-   * @property {number} distance    Assumed distance moved from the template, in pixel units
+   * @property {Point3d} origin     Center point of the template or sub-template
+   * @property {number} distance    Length of the template or sub-template, in pixel units
+   * @property {number} direction   Ray direction of the template or sub-template, in radians
    * @property {number} level       What level of recursion we are on
    */
 
@@ -55,18 +62,25 @@ export class WalledTemplateShape {
    * @param {MeasuredTemplate} template   The underlying measured template
    * @param {WalledTemplateOptions} [opts]
    */
-  constructor(template, { origin, distance, level } = {}) {
+  constructor(template, { origin, distance, direction, level } = {}) {
     this.template = template;
-
     this.origin.copyFrom(origin ?? { x: template.x, y: template.y, z: template.elevationZ });
     this.origin.roundDecimals(); // Avoid annoying issues with precision.
-    this.distance = distance ?? 0;
+    this.distance = distance ?? this.template.ray.distance;
+    this.direction = direction ?? this.template.ray.angle;
     this.options.level = level ?? 0; // For recursion, what level of recursion are we at?
     this._boundaryWalls = new Set([...canvas.walls.outerBounds, ...canvas.walls.innerBounds]);
   }
 
   /** @type {string} */
   get t() { return this.template.document.t; }
+
+  /** @type {number} */
+  get angle() { return this.template.document.angle; }
+
+  /** @type {number} */
+  get width() { return this.template.document.width * canvas.dimensions.distancePixels; }
+
 
   /** @type {PIXI.Circle|PIXI.Rectangle|PIXI.Polygon} */
   get originalShape() {

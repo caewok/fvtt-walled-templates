@@ -11,15 +11,6 @@ import { WalledTemplateShape } from "./WalledTemplateShape.js";
 
 export class WalledTemplateRay extends WalledTemplateShape {
   /**
-   * Angle of the ray, in radians.
-   * @type {number}
-   */
-  direction = 0;
-
-  /** @type {number} */
-  width = 0;
-
-  /**
    * @param {MeasuredTemplate} template   The underlying measured template
    * @param {WalledTemplateOptions} [opts]
    * @param {number} [opts.direction]   Direction of the ray, in radians
@@ -30,8 +21,6 @@ export class WalledTemplateRay extends WalledTemplateShape {
    */
   constructor(template, opts = {}) {
     super(template, opts);
-    this.direction = opts.direction ?? this.template.document.direction;
-    this.width = opts.width ?? this.template.document.width;
     this.options.reflectedWall = opts.reflectedWall;
     this.options.reflectionRay = opts.reflectionRay;
     this.options.Rr = opts.Rr;
@@ -88,7 +77,6 @@ export class WalledTemplateRay extends WalledTemplateShape {
     opts.reflectionRay = reflectionRay;
     opts.Rr = Rr;
     opts.direction = reflectionRay.angle;
-    opts.width = this.width;
 
     const rayTemplate = new this.constructor(
       new Point3d(reflectedOrigin.x, reflectedOrigin.y, this.origin.z),
