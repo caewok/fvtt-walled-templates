@@ -15,6 +15,7 @@
     "walledtemplates.MeasuredTemplateConfiguration.attach-token.Hint": "Connect this template so it moves along with the token.",
     "walledtemplates.MeasuredTemplateConfiguration.attach-token.useSelectedToken": "Attach last selected token",
     "walledtemplates.MeasuredTemplateConfiguration.attach-token.useTargetedToken": "Attach last targeted token",
+    "walledtemplates.MeasuredTemplateConfiguration.attach-token.removeToken": "Remove attached token",
 
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevation",
 

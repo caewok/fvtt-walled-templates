@@ -22,7 +22,8 @@ function renderMeasuredTemplateConfigHook(app, html, data) {
   renderData[MODULE_ID] = {
     blockoptions: LABELS.WALLS_BLOCK,
     walloptions: LABELS.WALL_RESTRICTION,
-    attachedTokenName: "None"
+    attachedTokenName: game.i18n.localize("None"),
+    noAttachedToken: true
   };
 
   foundry.utils.mergeObject(data, renderData, { inplace: true });
@@ -75,13 +76,14 @@ async function renderMeasuredTemplateConfig(app, html, data) {
 function activateListeners(app, html) {
   html.on("click", "#walledtemplates-useSelectedToken", onSelectedTokenButton.bind(app));
   html.on("click", "#walledtemplates-useTargetedToken", onTargetedTokenButton.bind(app));
+  html.on("click", "#walledtemplates-removeAttachedToken", onRemoveTokenButton.bind(app));
 }
 
 /**
  * Handle when user clicks the "Attach last selected token" button.
  * @param {Event} event
  */
-function onSelectedTokenButton(event) {
+function onSelectedTokenButton(_event) {
   const token = game.user._lastSelected;
   if ( !token ) {
     ui.notifications.notify(game.i18n.localize(NOTIFICATIONS.NOTIFY.ATTACH_TOKEN_NOT_SELECTED));
@@ -94,7 +96,7 @@ function onSelectedTokenButton(event) {
  * Handle when user clicks the "Attach last targeted token" button.
  * @param {Event} event
  */
-function onTargetedTokenButton() {
+function onTargetedTokenButton(_event) {
   const tokenId = game.user.targets.ids.at(-1);
   if ( !tokenId ) {
     ui.notifications.notify(game.i18n.localize(NOTIFICATIONS.NOTIFY.ATTACH_TOKEN_NOT_TARGETED));
@@ -107,6 +109,14 @@ function onTargetedTokenButton() {
     return;
   }
   ui.notifications.notify(`${token.name} attached!`);
+}
+
+/**
+ * Handle when user clicks "Remove attached token" button
+ * @param {Event} event
+ */
+function onRemoveTokenButton(_event) {
+  ui.notifications.notify(`Remove attached clicked!`);
 }
 
 
