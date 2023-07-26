@@ -6,7 +6,7 @@ renderTemplate
 "use strict";
 
 import { log } from "./util.js";
-import { MODULE_ID, FLAGS, LABELS } from "./const.js";
+import { MODULE_ID, FLAGS, LABELS, NOTIFICATIONS } from "./const.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
@@ -14,6 +14,7 @@ PATCHES.BASIC = {};
 // ----- Note: Hooks ----- //
 function renderMeasuredTemplateConfigHook(app, html, data) {
   renderMeasuredTemplateConfig(app, html, data);
+  activateListeners(app, html);
 
   //   const attachedTokenId = data.object.flags[MODULE_ID]?.[FLAGS.ATTACHED_TOKEN]
 
@@ -67,3 +68,45 @@ async function renderMeasuredTemplateConfig(app, html, data) {
 
   app.setPosition(app.position);
 }
+
+/**
+ * Catch when the user clicks a button to attach a token.
+ */
+function activateListeners(app, html) {
+  html.on("click", "#walledtemplates-useSelectedToken", onSelectedTokenButton.bind(app));
+  html.on("click", "#walledtemplates-useTargetedToken", onTargetedTokenButton.bind(app));
+}
+
+/**
+ * Handle when user clicks the "Attach last selected token" button.
+ * @param {Event} event
+ */
+function onSelectedTokenButton(event) {
+  const token = game.user._lastSelected;
+  if ( !token ) {
+    ui.notifications.notify(game.i18n.localize(NOTIFICATIONS.NOTIFY.ATTACH_TOKEN_NOT_SELECTED));
+    return;
+  }
+  ui.notifications.notify(`${token.name} attached!`);
+}
+
+/**
+ * Handle when user clicks the "Attach last targeted token" button.
+ * @param {Event} event
+ */
+function onTargetedTokenButton() {
+  const tokenId = game.user.targets.ids.at(-1);
+  if ( !tokenId ) {
+    ui.notifications.notify(game.i18n.localize(NOTIFICATIONS.NOTIFY.ATTACH_TOKEN_NOT_TARGETED));
+    return;
+  }
+  const token = canvas.tokens.placeables.find(t => t.id === tokenId);
+  if ( !token ) {
+    ui.notifications.error(`Targeted token for id ${tokenId} not found.`);
+    console.error(`Targeted token for id ${tokenId} not found.`);
+    return;
+  }
+  ui.notifications.notify(`${token.name} attached!`);
+}
+
+
