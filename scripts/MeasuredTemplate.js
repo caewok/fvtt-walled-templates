@@ -132,13 +132,14 @@ function _getGridHighlightPositions(wrapper) {
  */
 function _computeShape(wrapped) {
   // Store the original shape.
-  this.originalShape = wrapped();
+  const wt = this[MODULE_ID] ??= {};
+  wt.originalShape = wrapped();
 
   const walledClass = WalledTemplateShape.shapeCodeRegister.get(this.document.t);
-  if ( !walledClass ) return this.originalShape;
+  if ( !walledClass ) return wt.originalShape;
 
-  const walledTemplate = new walledClass(this);
-  return walledTemplate.computeShape();
+  wt.walledTemplate = new walledClass(this);
+  return wt.walledTemplate.computeShape();
 }
 
 PATCHES.BASIC.WRAPS = {

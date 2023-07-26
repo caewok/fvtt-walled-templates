@@ -51,12 +51,6 @@ export class WalledTemplateShape {
   /** @type {Set<Wall>} */
   _boundaryWalls = new Set();
 
-  /** @type {boolean} */
-  wallsBlock = SETTINGS.DEFAULTS.CHOICES.UNWALLED;
-
-  /** @type {boolean} */
-  wallRestriction = SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE;
-
   /**
    * @param {MeasuredTemplate} template   The underlying measured template
    * @param {WalledTemplateOptions} [opts]
@@ -67,10 +61,6 @@ export class WalledTemplateShape {
     this.origin.copyFrom(origin ?? { x: template.x, y: template.y, z: template.elevationZ });
     this.origin.roundDecimals(); // Avoid annoying issues with precision.
     this.distance = distance ?? 0;
-
-    const { wallsBlock, wallRestriction } = this.constructor.templateFlagProperties(template);
-    this.options.wallsBlock = wallsBlock;
-    this.options.wallRestriction = wallRestriction;
     this.options.level = level ?? 0; // For recursion, what level of recursion are we at?
     this._boundaryWalls = new Set([...canvas.walls.outerBounds, ...canvas.walls.innerBounds]);
   }
@@ -78,21 +68,13 @@ export class WalledTemplateShape {
   /** @type {string} */
   get t() { return this.template.document.t; }
 
-  /**
-   * Should recursion be used, given these settings?
-   * @type {booleans}
-   */
-  get doRecursion() {
-    const numRecursions = CONFIG[MODULE_ID].recursions[this.t] ?? 0;
-    return this.options.wallsBlock === SETTINGS.DEFAULTS.CHOICES.RECURSE
-      && this.options.level < numRecursions;
-  }
-
   /** @type {PIXI.Circle|PIXI.Rectangle|PIXI.Polygon} */
   get originalShape() {
-    if ( this.template.originalShape ) return this.template.originalShape;
+    const wt = this.template[MODULE_ID];
+    if ( wt?.originalShape ) return wt.originalShape;
 
     // Should not reach this, but...
+    console.debug("WalledTemplateShape no original shape defined.");
     const doc = this.template.document;
     const distance = this.distance ?? doc.distance;
     const direction = this.direction ?? doc.direction;
@@ -123,6 +105,59 @@ export class WalledTemplateShape {
     return [shape.translate(this.origin.x, this.origin.y)];
   }
 
+  /** @type {SETTINGS.DEFAULTS.CHOICES} */
+  get wallsBlockCode() {
+    let wallsBlock = this.item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
+      ?? this.template.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
+      ?? getSetting(SETTINGS.DEFAULTS[this.t])
+      ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
+
+    if ( wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULTS[this.t]);
+    return wallsBlock;
+  }
+
+  /** @type {boolean} */
+  get doWallsBlock() { return this.wallsBlockCode !== SETTINGS.DEFAULTS.CHOICES.UNWALLED; }
+
+  /** @type {SETTINGS.DEFAULT_WALL_RESTRICTIONS} */
+  get wallRestriction() {
+    let wallRestriction = this.item?.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
+      ?? this.template.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
+      ?? getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[this.t])
+      ?? SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE;
+
+    if ( wallRestriction === LABELS.GLOBAL_DEFAULT ) {
+      wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[this.t]);
+    }
+
+    return wallRestriction;
+  }
+
+  /**
+   * Fetch the item for a given template, which may be system-dependent.
+   * @type {object|undefined}
+   */
+  get item() {
+    let item = this.template.item;
+    if ( game.system.id === "dnd5e" && !item ) {
+      const uuid = this.template.document.getFlag("dnd5e", "origin");
+      if ( origin ) {
+        const leaves = game.documentIndex.uuids[uuid]?.leaves;
+        if ( leaves ) item = leaves.find(leaf => leaf.uuid === uuid)?.entry;
+      }
+    }
+    return item;
+  }
+
+  /**
+   * Should recursion be used, given these settings?
+   * @type {booleans}
+   */
+  get doRecursion() {
+    const numRecursions = CONFIG[MODULE_ID].recursions[this.t] ?? 0;
+    return this.wallsBlockCode === SETTINGS.DEFAULTS.CHOICES.RECURSE
+      && this.options.level < numRecursions;
+  }
 
   /**
    * Compute the shape to be used for this template.
@@ -130,7 +165,7 @@ export class WalledTemplateShape {
    * @returns {PIXI.Polygon|PIXI.Circle|PIXI.Rectangle}
    */
   computeShape() {
-    if ( !this.options.wallsBlock ) return this.originalShape;
+    if ( !this.doWallsBlock ) return this.originalShape;
     const poly = this.computeSweepPolygon();
 
     if ( !poly || isNaN(poly.points[0]) ) {
@@ -188,7 +223,7 @@ export class WalledTemplateShape {
   computeSweep() {
     const cfg = {
       debug: debugPolygons(),
-      type: this.options.wallRestriction,
+      type: this.wallRestriction,
       source: this,
       boundaryShapes: this.translatedBoundaryShapes,
       lightWall: this.options.lastReflectedEdge // Only used for cones
@@ -266,7 +301,6 @@ export class WalledTemplateShape {
 
   // -------------------- //
 
-
   /**
    * Get the bounding box for this shape.
    * @returns {PIXI.Rectangle}
@@ -295,40 +329,5 @@ export class WalledTemplateShape {
     color ??= Draw.COLORS.yellow;
     const fill = fillAlpha ? color : false;
     this.translatedBoundaryShapes.forEach(s => Draw.shape(s, { color, fill, fillAlpha }));
-  }
-
-  /**
-   * Determine the flag properties for a given template.
-   * These might be derived from an associated item or from default settings.
-   * @param {Template} template
-   * @returns {object} { wallsBlock: string, wallRestriction: string }
-   */
-  static templateFlagProperties(template) {
-    const templateShape = template.document.t;
-    let item = template.item;
-    if ( game.system.id === "dnd5e" && !item ) {
-      const uuid = template.document.getFlag("dnd5e", "origin");
-      if ( origin ) {
-        const leaves = game.documentIndex.uuids[uuid]?.leaves;
-        if ( leaves ) item = leaves.find(leaf => leaf.uuid === uuid)?.entry;
-      }
-    }
-
-    let wallsBlock = item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-      ?? template.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-      ?? getSetting(SETTINGS.DEFAULTS[templateShape])
-      ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
-
-    let wallRestriction = item?.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
-      ?? template.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
-      ?? getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[templateShape])
-      ?? SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE;
-
-    if ( wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULTS[templateShape]);
-    if ( wallRestriction === LABELS.GLOBAL_DEFAULT ) {
-      wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[templateShape]);
-    }
-
-    return { wallsBlock, wallRestriction };
   }
 }

@@ -106,7 +106,7 @@ function initializeWalledTemplates(systemId) {
   const reg = WalledTemplateShape.shapeCodeRegister;
 
   // Set the defaults.
-  reg.set("cir", WalledTemplateCircle);
+  reg.set("circle", WalledTemplateCircle);
   reg.set("rect", WalledTemplateRectangle);
   reg.set("cone", WalledTemplateCone);
   reg.set("ray", WalledTemplateRay);
