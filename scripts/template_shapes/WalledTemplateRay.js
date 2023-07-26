@@ -79,7 +79,7 @@ export class WalledTemplateRay extends WalledTemplateShape {
     opts.direction = reflectionRay.angle;
     opts.origin = new Point3d(reflectedOrigin.x, reflectedOrigin.y, this.origin.z);
     opts.distance = this.distance - reflectedWall._reflectionDistance;
-    const rayTemplate = new this.constructor(template, opts);
+    const rayTemplate = new this.constructor(this.template, opts);
     return [rayTemplate];
   }
 
