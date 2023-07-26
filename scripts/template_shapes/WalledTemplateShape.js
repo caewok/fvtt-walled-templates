@@ -89,16 +89,11 @@ export class WalledTemplateShape {
 
     // Should not reach this, but...
     console.debug("WalledTemplateShape no original shape defined.");
-    const doc = this.template.document;
-    const distance = this.distance ?? doc.distance;
-    const direction = this.direction ?? doc.direction;
-    const width = this.width ?? doc.width;
-    const angle = this.angle ?? doc.angle;
     switch ( this.t ) {
-      case "cir": return CONFIG.MeasuredTemplate.objectClass.getCircleShape(distance);
-      case "rect": return CONFIG.MeasuredTemplate.objectClass.getRectShape(direction, distance);
-      case "cone": return CONFIG.MeasuredTemplate.objectClass.getConeShape(direction, angle, distance);
-      case "ray": return CONFIG.MeasuredTemplate.objectClass.getRayShape(direction, distance, width);
+      case "cir": return CONFIG.MeasuredTemplate.objectClass.getCircleShape(this.distance);
+      case "rect": return CONFIG.MeasuredTemplate.objectClass.getRectShape(this.direction, this.distance);
+      case "cone": return CONFIG.MeasuredTemplate.objectClass.getConeShape(this.direction, this.angle, this.distance);
+      case "ray": return CONFIG.MeasuredTemplate.objectClass.getRayShape(this.direction, this.distance, this.width);
     }
     return undefined;
   }
