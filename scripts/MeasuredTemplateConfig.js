@@ -15,10 +15,13 @@ PATCHES.BASIC = {};
 function renderMeasuredTemplateConfigHook(app, html, data) {
   renderMeasuredTemplateConfig(app, html, data);
 
+  //   const attachedTokenId = data.object.flags[MODULE_ID]?.[FLAGS.ATTACHED_TOKEN]
+
   const renderData = {};
-  renderData.walledtemplates = {
+  renderData[MODULE_ID] = {
     blockoptions: LABELS.WALLS_BLOCK,
-    walloptions: LABELS.WALL_RESTRICTION
+    walloptions: LABELS.WALL_RESTRICTION,
+    attachedTokenName: "None"
   };
 
   foundry.utils.mergeObject(data, renderData, { inplace: true });
@@ -58,7 +61,6 @@ async function renderMeasuredTemplateConfig(app, html, data) {
   log("walledTemplatesRenderMeasuredTemplateConfig data after", data);
 
   const template = `modules/${MODULE_ID}/templates/walled-templates-measured-template-config.html`;
-
   const myHTML = await renderTemplate(template, data);
   log("config rendered HTML", myHTML);
   html.find(".form-group").last().after(myHTML);

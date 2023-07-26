@@ -9,7 +9,8 @@ export const MODULE_ID = "walledtemplates";
 export const FLAGS = {
   WALLS_BLOCK: "wallsBlock",
   WALL_RESTRICTION: "wallRestriction",
-  RECURSE_DATA: "recurseData"
+  RECURSE_DATA: "recurseData",
+  ATTACHED_TOKEN_ID: "attachedTokenId"
 };
 
 export const LABELS = {

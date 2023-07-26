@@ -11,6 +11,11 @@
     "walledtemplates.MeasuredTemplateConfiguration.walled": "Block template",
     "walledtemplates.MeasuredTemplateConfiguration.recurse": "Reflect/Spread template",
 
+    "walledtemplates.MeasuredTemplateConfiguration.attach-token.Name": "Attached Token?",
+    "walledtemplates.MeasuredTemplateConfiguration.attach-token.Hint": "Connect this template so it moves along with the token.",
+    "walledtemplates.MeasuredTemplateConfiguration.attach-token.selectToken": "Select a token",
+    "walledtemplates.MeasuredTemplateConfiguration.attach-token.useCurrentToken": "Use the last selected token",
+
     "walledtemplates.settings.default_circle.Name": "Default Circle",
     "walledtemplates.settings.default_cone.Name": "Default Cone",
     "walledtemplates.settings.default_ray.Name": "Default Ray",
