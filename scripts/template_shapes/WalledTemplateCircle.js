@@ -24,18 +24,11 @@ export class WalledTemplateCircle extends WalledTemplateShape {
 
   /** @type {PIXI.Circle} */
   get originalShape() {
-    return CONFIG.MeasuredTemplate.objectClass.getCircleShape(this.distance);
-  }
+    const cir = CONFIG.MeasuredTemplate.objectClass.getCircleShape(this.distance);
 
-  /**
-   * Get boundary shape for this sized circle set to the origin.
-   * @returns {PIXI.Circle}
-   */
-  get boundaryShape() {
     // Pad the circle by one pixel so it better covers expected grid spaces.
     // (Rounding tends to drop spaces on the edge.)
-    const cir = this.originalShape;
-    if ( this.originalShape instanceof PIXI.Circle ) cir.radius += 1;
+    if ( cir instanceof PIXI.Circle ) cir.radius += 1;
     return cir;
   }
 
