@@ -18,7 +18,7 @@ function renderMeasuredTemplateConfigHook(app, html, data) {
 
   // Look up the token. If present in the scene, consider it attached for the config.
   const attachedTokenId = data.data.flags[MODULE_ID]?.[FLAGS.ATTACHED_TOKEN_ID];
-  const attachedToken = attachedTokenId ? canvas.tokens.placeables.find(t => t.id === attachedTokenId) : undefined;
+  const attachedToken = canvas.tokens.documentCollection.get(attachedTokenId)?.object; // Undefined id -> undefined
   const attachedTokenName = attachedToken?.name || game.i18n.localize("None");
   const renderData = {};
   renderData[MODULE_ID] = {
@@ -106,7 +106,7 @@ async function onTargetedTokenButton(_event) {
     ui.notifications.notify(game.i18n.localize(NOTIFICATIONS.NOTIFY.ATTACH_TOKEN_NOT_TARGETED));
     return;
   }
-  const token = canvas.tokens.placeables.find(t => t.id === tokenId);
+  const token = canvas.tokens.documentCollection.get(tokenId)?.object;
   if ( !token ) {
     ui.notifications.error(`Targeted token for id ${tokenId} not found.`);
     return;
