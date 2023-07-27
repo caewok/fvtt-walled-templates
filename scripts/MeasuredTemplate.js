@@ -180,7 +180,41 @@ function boundsOverlap(bounds) {
   return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%
 }
 
-PATCHES.BASIC.METHODS = { boundsOverlap };
+/**
+ * New method: MeasuredTemplate.prototype.attachToken
+ * Attach the provided token to the template, so that both move in sync.
+ * A template can have only one token attached.
+ * The token id is added to this template flags.
+ * An active effect is added to the token to indicate the template is attached.
+ * If this template is attached to another token, it is detached first.
+ * @param {Token} token           Token to attach
+ * @param {object} [effectData]   Data passed to the token as an active effect
+ * @param {opts}
+ */
+async function attachToken(token, effectData) {
+  // Attach this template to the token as an active effect.
+  token.attachTemplate(this, effectData);
+}
+
+/**
+ * New method: MeasuredTemplate.prototype.detachToken
+ * Detach the token, if any, from this template.
+ */
+async function detachToken() {
+  // Detach token, if any, from this template.
+  const attachedTokenId = this.document.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID);
+  if ( !attachedTokenId ) return;
+  await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID);
+
+  // Search for an existing token.
+  const attachedToken = canvas.tokens.documentCollection.get(attachedTokenId)?.object;
+  if ( !attachedToken ) return;
+
+  // Detach this template from the token.
+  return attachedToken.detachTemplate(this.id);
+}
+
+PATCHES.BASIC.METHODS = { boundsOverlap, attachToken, detachToken };
 
 // ----- NOTE: Autotargeting ----- //
 

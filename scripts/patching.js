@@ -15,8 +15,10 @@ import { PATCHES as PATCHES_MeasuredTemplateConfig } from "./MeasuredTemplateCon
 import { PATCHES as PATCHES_Token } from "./Token.js";
 import { PATCHES as PATCHES_Wall } from "./Wall.js";
 import { PATCHES as PATCHES_dnd5e } from "./dnd5e.js";
+import { PATCHES as PATCHES_ActiveEffect } from "./ActiveEffect.js";
 
 export const PATCHES = {
+  ActiveEffect: PATCHES_ActiveEffect,
   MeasuredTemplate: PATCHES_MeasuredTemplate,
   MeasuredTemplateConfig: PATCHES_MeasuredTemplateConfig,
   Token: PATCHES_Token,

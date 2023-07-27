@@ -1,8 +1,11 @@
 /* globals
-game
+game,
+MeasuredTemplate
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
+
+import { MODULE_ID, FLAGS, ACTIVE_EFFECT_ICON } from "./const.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
@@ -65,4 +68,48 @@ function refreshTokenHook(token, flags) {
 }
 
 PATCHES.AUTOTARGET.HOOKS = { controlToken: controlTokenHook };
-PATCHES.BASIC.HOOKS = { preUpdateToken: preUpdateTokenHook, updateToken: updateTokenHook, refreshToken: refreshTokenHook };
+PATCHES.BASIC.HOOKS = {
+  preUpdateToken: preUpdateTokenHook,
+  updateToken: updateTokenHook,
+  refreshToken: refreshTokenHook };
+
+
+// ----- NOTE: Methods ----- //
+
+/**
+ * Attach a given template to this token as an active effect.
+ * A token can have multiple templates attached.
+ * @param {MeasuredTemplate}        template
+ * @param {object} [effectData]     Data passed to the token as an active effect
+ */
+async function attachTemplate(template, effectData = {}) {
+  // Detach any token from the template.
+  await this.detachTemplate(template);
+
+  // Attach token to the template.
+  await template.document.setFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID, this.id);
+
+  // Attach the template to this token as an active effect.
+  const templateShape = game.i18n.localize(template.document.t === "rect" ? "rectangle" : template.document.t);
+  effectData.id = template.id;
+  effectData.icon ??= ACTIVE_EFFECT_ICON;
+  effectData.name ??= `Measured Template ${templateShape}`;
+  effectData.origin = template.document.uuid;
+  return this.document.toggleActiveEffect(effectData, { active: true });
+}
+
+/**
+ * Detach a given template from this token.
+ * @param {string|MeasuredTemplate} templateId
+ */
+async function detachTemplate(templateId) {
+  if ( templateId instanceof MeasuredTemplate ) templateId = templateId.id;
+
+  // Don't call template.detachToken to avoid circularity, but do check and remove this token.
+  await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID);
+
+  // Remove the active effect associated with this template (if any).
+  await this.document.toggleActiveEffect({ id: templateId }, { active: false });
+}
+
+PATCHES.BASIC.METHODS = { attachTemplate, detachTemplate };
