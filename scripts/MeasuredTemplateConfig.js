@@ -16,14 +16,16 @@ function renderMeasuredTemplateConfigHook(app, html, data) {
   renderMeasuredTemplateConfig(app, html, data);
   activateListeners(app, html);
 
-  //   const attachedTokenId = data.object.flags[MODULE_ID]?.[FLAGS.ATTACHED_TOKEN]
-
+  // Look up the token. If present in the scene, consider it attached for the config.
+  const attachedTokenId = data.data.flags[MODULE_ID]?.[FLAGS.ATTACHED_TOKEN_ID];
+  const attachedToken = attachedTokenId ? canvas.tokens.placeables.find(t => t.id === attachedTokenId) : undefined;
+  const attachedTokenName = attachedToken?.name || game.i18n.localize("None");
   const renderData = {};
   renderData[MODULE_ID] = {
     blockoptions: LABELS.WALLS_BLOCK,
     walloptions: LABELS.WALL_RESTRICTION,
-    attachedTokenName: game.i18n.localize("None"),
-    noAttachedToken: true
+    attachedTokenName,
+    noAttachedToken: Boolean(attachedToken)
   };
 
   foundry.utils.mergeObject(data, renderData, { inplace: true });
@@ -83,20 +85,22 @@ function activateListeners(app, html) {
  * Handle when user clicks the "Attach last selected token" button.
  * @param {Event} event
  */
-function onSelectedTokenButton(_event) {
+async function onSelectedTokenButton(_event) {
   const token = game.user._lastSelected;
   if ( !token ) {
     ui.notifications.notify(game.i18n.localize(NOTIFICATIONS.NOTIFY.ATTACH_TOKEN_NOT_SELECTED));
     return;
   }
+  await this.document.setFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID, token.id);
   ui.notifications.notify(`${token.name} attached!`);
+  this.render();
 }
 
 /**
  * Handle when user clicks the "Attach last targeted token" button.
  * @param {Event} event
  */
-function onTargetedTokenButton(_event) {
+async function onTargetedTokenButton(_event) {
   const tokenId = game.user.targets.ids.at(-1);
   if ( !tokenId ) {
     ui.notifications.notify(game.i18n.localize(NOTIFICATIONS.NOTIFY.ATTACH_TOKEN_NOT_TARGETED));
@@ -105,9 +109,11 @@ function onTargetedTokenButton(_event) {
   const token = canvas.tokens.placeables.find(t => t.id === tokenId);
   if ( !token ) {
     ui.notifications.error(`Targeted token for id ${tokenId} not found.`);
-    console.error(`Targeted token for id ${tokenId} not found.`);
     return;
   }
+
+  await this.document.setFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID, token.id);
+  this.render();
   ui.notifications.notify(`${token.name} attached!`);
 }
 
@@ -115,7 +121,9 @@ function onTargetedTokenButton(_event) {
  * Handle when user clicks "Remove attached token" button
  * @param {Event} event
  */
-function onRemoveTokenButton(_event) {
+async function onRemoveTokenButton(_event) {
+  await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID);
+  this.render();
   ui.notifications.notify(`Remove attached clicked!`);
 }
 
