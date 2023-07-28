@@ -201,20 +201,24 @@ async function attachToken(token, effectData) {
  * Detach the token, if any, from this template.
  */
 async function detachToken() {
-  // Detach token, if any, from this template.
-  const attachedTokenId = this.document.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID);
-  if ( !attachedTokenId ) return;
+  const attachedToken = this.attachedToken;
   await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID);
-
-  // Search for an existing token.
-  const attachedToken = canvas.tokens.documentCollection.get(attachedTokenId)?.object;
-  if ( !attachedToken ) return;
-
-  // Detach this template from the token.
   return attachedToken.detachTemplate(this.id);
 }
 
 PATCHES.BASIC.METHODS = { boundsOverlap, attachToken, detachToken };
+
+// ----- NOTE: Getters ----- //
+/**
+ * New getter: MeasuredTemplate.prototype.attachedToken
+ * @type {Token}
+ */
+function attachedToken() {
+  const attachedTokenId = this.document.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID);
+  return canvas.tokens.documentCollection.get(attachedTokenId)?.object;
+}
+
+PATCHES.BASIC.GETTERS = { attachedToken };
 
 // ----- NOTE: Autotargeting ----- //
 
