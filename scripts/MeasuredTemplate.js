@@ -148,13 +148,81 @@ function _computeShape(wrapped) {
  */
 function _canDrag(wrapped, user, event) {
   if ( this.attachedToken ) return false;
-  return wrapepd(user, event);
+  return wrapped(user, event);
 }
+
+/**
+ * Wrap MeasuredTemplate.prototype.clone
+ * Clone the shape
+ * @returns {PlaceableObject}
+ */
+function clone(wrapped) {
+  const clone = wrapped();
+
+  // Ensure shape is not shared with original.
+  clone.renderFlags.set({ refreshShape: true });
+  return clone;
+}
+
+/**
+ * Wrap MeasuredTemplate.prototype._onDragLeftStart
+ * If this is a clone
+ */
+function _onDragLeftStart(wrapped, event) {
+  if ( !this.attachedToken ) return wrapped(event);
+
+  // Store token and template clones separately.
+  const tokenClones = event.interactionData.clones;
+  wrapped(event);
+  event.interactionData.attachedTemplateClones ??= new Map();
+
+  // Only one clone will be created for this template; retrieve and store.
+  const templateClone = event.interactionData.clones[0];
+  event.interactionData.attachedTemplateClones.set(templateClone.id, templateClone);
+
+  // Restore the token clones.
+  event.interactionData.clones = tokenClones;
+}
+
+function _onDragLeftMove(wrapped, event) {
+  if ( !this.attachedToken ) return wrapped(event);
+
+  // Temporarily set the event clones to this template clone.
+  const tokenClones = event.interactionData.clones;
+  event.interactionData.clones = [event.interactionData.attachedTemplateClones.get(this.id)];
+  wrapped(event);
+
+  // Restore the token clones.
+  event.interactionData.clones = tokenClones;
+}
+
+function _onDragLeftCancel(wrapped, event) {
+  return wrapped(event);
+}
+
+function _onDragLeftDrop(wrapped, event) {
+  if ( !this.attachedToken ) return wrapped(event);
+
+  // Temporarily set the event clones to this template clone.
+  const tokenClones = event.interactionData.clones;
+  event.interactionData.clones = [event.interactionData.attachedTemplateClones.get(this.id)];
+  wrapped(event);
+
+  // Restore the token clones.
+  event.interactionData.clones = tokenClones;
+}
+
 
 PATCHES.BASIC.WRAPS = {
   _getGridHighlightPositions,
   _computeShape,
-  _canDrag
+  _canDrag,
+  clone,
+  _onDragLeftStart,
+  _onDragLeftMove,
+  _onDragLeftCancel,
+  _onDragLeftDrop
+
 };
 
 // ----- NOTE: Methods ----- //

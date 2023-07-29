@@ -211,7 +211,7 @@ function doTemplateAnimation(template, _dt, _anim, documentData, _config) {
   const templateData = template._calculateAttachedTemplateOffset(documentData);
 
   // Update the document
-  foundry.utils.mergeObject(template.document, templateData, {insertKeys: false});
+  foundry.utils.mergeObject(template.document, templateData, { insertKeys: false });
 
   // Refresh the Template
   template.renderFlags.set({
@@ -221,5 +221,64 @@ function doTemplateAnimation(template, _dt, _anim, documentData, _config) {
   });
 }
 
+/**
+ * Wrap Token.prototype.clone
+ * Clone attached templates for use in dragging.
+ */
+// function clone(wrapped) {
+//   const tokenClone = wrapped();
+//   const attachedTemplates = this.attachedTemplates;
+//   if ( !attachedTemplates.length ) return clone;
+//   tokenClone[MODULE_ID] ??= {};
+//   const map = tokenClone[MODULE_ID].clonedTemplates = [];
+//   for ( const template of attachedTemplates ) map.set(template.id, template.clone());
+//   return tokenClone;
+// }
 
-PATCHES.BASIC.WRAPS = { _applyRenderFlags, animate };
+/**
+ * Wrap Token.prototype._onDragLeftStart
+ * Trigger the attached template(s) to drag in sync.
+ * @param {PIXI.FederatedEvent} event   The triggering canvas interaction event
+ */
+function _onDragLeftStart(wrapped, event) {
+  wrapped(event);
+
+  // Trigger each attached template to drag.
+  for ( const clone of event.interactionData.clones ) {
+    const attachedTemplates = clone.attachedTemplates;
+    for ( const template of attachedTemplates ) template._onDragLeftStart(event);
+  }
+}
+
+function _onDragLeftMove(wrapped, event) {
+  wrapped(event);
+
+  // Trigger each attached template to drag.
+  for ( const clone of event.interactionData.clones ) {
+    const attachedTemplates = clone.attachedTemplates;
+    for ( const template of attachedTemplates ) template._onDragLeftMove(event);
+  }
+}
+
+function _onDragLeftDrop(wrapped, event) {
+  wrapped(event);
+
+  // Trigger each attached template to drag.
+  for ( const clone of event.interactionData.clones ) {
+    const attachedTemplates = clone.attachedTemplates;
+    for ( const template of attachedTemplates ) template._onDragLeftDrop(event);
+  }
+}
+
+function _onDragLeftCancel(wrapped, event) {
+  wrapped(event);
+
+  // Trigger each attached template to drag.
+  for ( const clone of event.interactionData.clones ) {
+    const attachedTemplates = clone.attachedTemplates;
+    for ( const template of attachedTemplates ) template._onDragLeftCancel(event);
+  }
+
+}
+
+PATCHES.BASIC.WRAPS = { _applyRenderFlags, animate, _onDragLeftStart, _onDragLeftMove, _onDragLeftDrop, _onDragLeftCancel };
