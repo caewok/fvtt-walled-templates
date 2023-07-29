@@ -159,6 +159,9 @@ function _refreshCloneTarget(reticule) {
   const isSecret = (this.document.disposition === CONST.TOKEN_DISPOSITIONS.SECRET) && !this.isOwner;
   if ( !this.cloneTargeted.size || isSecret ) return;
 
+  // Clone target overrides the normal target.
+  this.target.clear();
+
   // Determine whether the current user has target and any other users
   const [others, user] = Array.from(this.cloneTargeted).partition(u => u === game.user);
 
@@ -166,13 +169,13 @@ function _refreshCloneTarget(reticule) {
   if ( user.length ) {
     // Use half-transparency to distinguish from normal targets.
     reticule ||= {};
-    reticule.alpha = 0.5;
+    reticule.alpha = 0.25;
 
     // So we can re-use drawTarget; swap in the clone target graphic.
     const origTarget = this.target;
     this.target = this.cloneTarget;
     this._drawTarget(reticule);
-    this.target = this.cloneTarget;
+    this.target = origTarget;
   }
 }
 
