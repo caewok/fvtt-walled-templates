@@ -142,7 +142,7 @@ async function attachTemplate(template, effectData = {}, attachToTemplate = true
  */
 async function detachTemplate(templateId, detachFromTemplate = true) {
   let template;
-  if ( templateId instanceof MeasuredTemplate ) {
+  if ( templateId instanceof CONFIG.MeasuredTemplate.objectClass ) {
     template = templateId;
     templateId = templateId.id;
   } else template = canvas.templates.documentCollection.get(templateId);
