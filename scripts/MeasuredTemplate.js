@@ -142,9 +142,19 @@ function _computeShape(wrapped) {
   return wt.walledTemplate.computeShape();
 }
 
+/**
+ * Wrap MeasuredTemplate.prototype._canDrag
+ * Don't allow dragging of attached templates.
+ */
+function _canDrag(wrapped, user, event) {
+  if ( this.attachedToken ) return false;
+  return wrapepd(user, event);
+}
+
 PATCHES.BASIC.WRAPS = {
   _getGridHighlightPositions,
-  _computeShape
+  _computeShape,
+  _canDrag
 };
 
 // ----- NOTE: Methods ----- //

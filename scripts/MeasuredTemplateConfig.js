@@ -17,14 +17,12 @@ function renderMeasuredTemplateConfigHook(app, html, data) {
   activateListeners(app, html);
 
   // Look up the token. If present in the scene, consider it attached for the config.
-  const attachedTokenId = data.data.flags[MODULE_ID]?.[FLAGS.ATTACHED_TOKEN_ID];
-  const attachedToken = canvas.tokens.documentCollection.get(attachedTokenId)?.object; // Undefined id -> undefined
-  const attachedTokenName = attachedToken?.name || game.i18n.localize("None");
+  const attachedToken = app.object?.object?.attachedToken;
   const renderData = {};
   renderData[MODULE_ID] = {
     blockoptions: LABELS.WALLS_BLOCK,
     walloptions: LABELS.WALL_RESTRICTION,
-    attachedTokenName,
+    attachedTokenName: attachedToken?.name || game.i18n.localize("None"),
     noAttachedToken: Boolean(attachedToken)
   };
 
