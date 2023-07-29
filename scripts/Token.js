@@ -153,7 +153,6 @@ async function detachTemplate(templateId, detachFromTemplate = true) {
  * @pram {ReticuleOptions} [reticule] Additional parameters to configure how the targeting reticule is drawn.
  */
 function _refreshCloneTarget(reticule) {
-  this.cloneTarget ||= this.addChild(new PIXI.Graphics());
   this.cloneTarget.clear();
 
   // We don't show the target arrows for a secret token disposition and non-GM users
@@ -361,6 +360,16 @@ function _refreshTarget(wrapped, reticule) {
   this._refreshCloneTarget(reticule);
 }
 
+/**
+ * Wrap Token.prototype._draw
+ * Add a PIXI.Graphics for the cloneTarget.
+ */
+function _draw(wrapped) {
+  wrapped();
+  this.cloneTarget ||= this.addChild(new PIXI.Graphics());
+}
+
+
 
 PATCHES.BASIC.WRAPS = {
   animate,
@@ -368,4 +377,5 @@ PATCHES.BASIC.WRAPS = {
   _onDragLeftMove,
   _onDragLeftDrop,
   _onDragLeftCancel,
-  _refreshTarget };
+  _refreshTarget,
+  _draw };
