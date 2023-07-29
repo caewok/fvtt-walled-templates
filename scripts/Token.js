@@ -1,18 +1,18 @@
 /* globals
+canvas,
 CONFIG,
-duplicate,
-flattenObject,
+CONST,
 foundry,
 fromUuidSync,
 game,
-getProperty,
-MeasuredTemplate,
+isEmpty,
 PIXI
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { MODULE_ID, FLAGS, ACTIVE_EFFECT_ICON } from "./const.js";
+import { MODULE_ID, ACTIVE_EFFECT_ICON } from "./const.js";
+import { UserCloneTargets } from "./UserCloneTargets.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
@@ -42,7 +42,7 @@ function controlTokenHook(object, controlled) {
 /**
  * Hook preUpdateToken
  */
-function preUpdateTokenHook(tokenD, changes, options, _userId) {
+function preUpdateTokenHook(tokenD, changes, _options, _userId) {
   const token = tokenD.object;
 //   console.debug(`preUpdateToken hook ${changes.x}, ${changes.y}, ${changes.elevation} at elevation ${token.document?.elevation} with elevationD ${tokenD.elevation}`, changes);
 //   console.debug(`preUpdateToken hook moving ${tokenD.x},${tokenD.y} --> ${changes.x ? changes.x : tokenD.x},${changes.y ? changes.y : tokenD.y}`);
@@ -51,7 +51,7 @@ function preUpdateTokenHook(tokenD, changes, options, _userId) {
 /**
  * Hook updateToken
  */
-function updateTokenHook(tokenD, changed, options, _userId) {
+function updateTokenHook(tokenD, changed, _options, _userId) {
   const token = tokenD.object;
 //   console.debug(`updateToken hook ${changed.x}, ${changed.y}, ${changed.elevation} at elevation ${token.document?.elevation} with elevationD ${tokenD.elevation}`, changed);
 //   console.debug(`updateToken hook moving ${tokenD.x},${tokenD.y} --> ${changed.x ? changed.x : tokenD.x},${changed.y ? changed.y : tokenD.y}`);
@@ -82,14 +82,7 @@ function refreshTokenHook(token, flags) {
   if ( !flags.refreshPosition ) return;
   // TODO: refreshElevation flag?
 //   console.debug(`refreshToken for ${token.name} at ${token.position.x},${token.position.y}. Token is ${token._original ? "Clone" : "Original"}. Token is ${token._animation ? "" : "not "}animating.`);
-//   const priorPosition = token[MODULE_ID]?.priorPosition;
-//   if ( typeof priorPosition === "undefined" ) return;
-//   const delta = PIXI.Point.fromObject(token.position).subtract(priorPosition);
-//   if ( !(delta.x || delta.y) ) return;
-//
-//   const attachedTemplates = token.attachedTemplates;
-//   if ( !attachedTemplates.length ) return;
-//
+
   if ( token._original ) {
     // clone
 //     console.debug(`clone of ${token.name} at ${token.position.x},${token.position.y} and document ${token.document.x}, ${token.document.y}`);
@@ -154,7 +147,93 @@ async function detachTemplate(templateId, detachFromTemplate = true) {
   if ( detachFromTemplate && template ) await template.detachToken(false);
 }
 
-PATCHES.BASIC.METHODS = { attachTemplate, detachTemplate };
+/**
+ * New method: Token.prototype.refreshCloneTarget
+ * Draw only the target arrows for the primary user.
+ * @pram {ReticuleOptions} [reticule] Additional parameters to configure how the targeting reticule is drawn.
+ */
+function _refreshCloneTarget(reticule) {
+  this.cloneTarget.clear();
+
+  // We don't show the target arrows for a secret token disposition and non-GM users
+  const isSecret = (this.document.disposition === CONST.TOKEN_DISPOSITIONS.SECRET) && !this.isOwner;
+  if ( !this.cloneTargeted.size || isSecret ) return;
+
+  // Clone target overrides the normal target.
+  this.target.clear();
+
+  // Determine whether the current user has target and any other users
+  const [others, user] = Array.from(this.cloneTargeted).partition(u => u === game.user);
+
+  // For the current user, draw the target arrows.
+  if ( user.length ) {
+    // Use half-transparency to distinguish from normal targets.
+    reticule ||= {};
+    reticule.alpha = 0.25;
+
+    // So we can re-use drawTarget; swap in the clone target graphic.
+    const origTarget = this.target;
+    this.target = this.cloneTarget;
+    this._drawTarget(reticule);
+    this.target = origTarget;
+  }
+}
+
+/**
+ * New method: Token.prototype.setCloneTarget
+ * @param {boolean} targeted                        Is the Token now targeted?
+ * @param {object} [context={}]                     Additional context options
+ * @param {User|null} [context.user=null]           Assign the token as a target for a specific User
+ * @param {boolean} [context.releaseOthers=true]    Release other active targets for the same player?
+ * @param {boolean} [context.groupSelection=false]  Is this target being set as part of a group selection workflow?
+ */
+function setCloneTarget(targeted=true, {user=null, releaseOthers=true, groupSelection=false}={}) {
+  // Do not allow setting a preview token as a target
+  if ( this.isPreview ) return;
+
+  // Release other targets
+  user = user || game.user;
+  user.cloneTargets ||= new UserCloneTargets(user);
+  if ( user.cloneTargets.size && releaseOthers ) {
+    user.cloneTargets.forEach(t => {
+      if ( t !== this ) t.setCloneTarget(false, {user, releaseOthers: false, groupSelection});
+    });
+  }
+
+  const wasTargeted = this.cloneTargeted.has(user);
+
+  // Acquire target
+  if ( targeted ) {
+    this.cloneTargeted.add(user);
+    user.cloneTargets.add(this);
+  }
+
+  // Release target
+  else {
+    this.cloneTargeted.delete(user);
+    user.cloneTargets.delete(this);
+  }
+
+  if ( wasTargeted !== targeted ) {
+    // Refresh Token display
+    this.renderFlags.set({refreshTarget: true});
+
+    // Refresh the Token HUD
+    if ( this.hasActiveHUD ) this.layer.hud.render();
+  }
+
+  // Broadcast the target change
+  // if ( !groupSelection ) user.broadcastActivity({targets: user.targets.ids});
+}
+
+
+PATCHES.BASIC.METHODS = {
+  attachTemplate,
+  detachTemplate,
+  cloneTargeted: new Set([]),  // Store targets created when dragging templates.
+  _refreshCloneTarget,
+  setCloneTarget
+};
 
 // ----- NOTE: Getters ----- //
 
@@ -172,12 +251,6 @@ function attachedTemplates() {
 PATCHES.BASIC.GETTERS = { attachedTemplates };
 
 // ----- NOTE: Wraps ----- //
-function _applyRenderFlags(wrapper, flags) {
-  this[MODULE_ID] ??= {};
-  this[MODULE_ID].priorPosition ??= new PIXI.Point();
-  if ( flags.refreshPosition ) this[MODULE_ID].priorPosition.copyFrom(this.position);
-  return wrapper(flags);
-}
 
 /**
  * Wrap Token.prototype.animate
@@ -278,7 +351,34 @@ function _onDragLeftCancel(wrapped, event) {
     const attachedTemplates = clone.attachedTemplates;
     for ( const template of attachedTemplates ) template._onDragLeftCancel(event);
   }
-
 }
 
-PATCHES.BASIC.WRAPS = { _applyRenderFlags, animate, _onDragLeftStart, _onDragLeftMove, _onDragLeftDrop, _onDragLeftCancel };
+/**
+ * Wrap Token.prototype._refreshTarget
+ * Trigger refresh of the clone targets
+ * @param {ReticuleOptions} [reticule]  Additional parameters to configure how the targeting reticule is drawn.
+ */
+function _refreshTarget(wrapped, reticule) {
+  wrapped(reticule);
+  this._refreshCloneTarget(reticule);
+}
+
+/**
+ * Wrap Token.prototype._draw
+ * Add a PIXI.Graphics for the cloneTarget.
+ */
+async function _draw(wrapped) {
+  await wrapped();
+  this.cloneTarget ||= this.addChild(new PIXI.Graphics());
+}
+
+
+
+PATCHES.BASIC.WRAPS = {
+  animate,
+  _onDragLeftStart,
+  _onDragLeftMove,
+  _onDragLeftDrop,
+  _onDragLeftCancel,
+  _refreshTarget,
+  _draw };

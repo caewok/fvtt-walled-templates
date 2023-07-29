@@ -16,6 +16,7 @@ import { MODULE_ID, FLAGS } from "./const.js";
 import { getSetting, SETTINGS } from "./settings.js";
 import { Hexagon } from "./geometry/RegularPolygon/Hexagon.js";
 import { Square } from "./geometry/RegularPolygon/Square.js";
+import { UserCloneTargets } from "./UserCloneTargets.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
@@ -161,6 +162,10 @@ function clone(wrapped) {
 
   // Ensure shape is not shared with original.
   clone.renderFlags.set({ refreshShape: true });
+
+  // Do not target when clone; instead track a shadow "cloneTarget"
+  clone.targets = new Set();
+
   return clone;
 }
 
@@ -202,6 +207,13 @@ function _onDragLeftCancel(wrapped, event) {
 
 function _onDragLeftDrop(wrapped, event) {
   if ( !this.attachedToken ) return wrapped(event);
+
+  // Move the cloned targets back to the original.
+//   this._original.releaseTargets();
+//   this._original.acquireTargets()
+//
+//   this.targets.forEach(t => this._original.targets.add(t));
+//   this._original.
 
   // Temporarily set the event clones to this template clone.
   const tokenClones = event.interactionData.clones;
@@ -397,7 +409,16 @@ function releaseTargets({ tokens , broadcast = true } = {}) {
 
   // Release targets for this user.
   const user = this.document.user;
-  targetsToRelease.forEach(t => t.setTarget(false, { user, releaseOthers: false, groupSelection: true }));
+  const targetFn = this._original ? "setCloneTarget" : "setTarget";
+  for ( const t of targetsToRelease ) {
+    // When switching to a new scene, Foundry will sometimes try to setTarget using
+    // token.position, but token.position throws an error. Maybe canvas not loaded?
+    try {
+      t[targetFn](false, { user, releaseOthers: false, groupSelection: true });
+    } catch ( error ) {
+      console.debug(error);
+    }
+  }
 
   // Wipe the targets from this template.
   if ( targetsToRelease === this.targets ) this.targets.clear();
@@ -427,7 +448,16 @@ function acquireTargets({ tokens, checkShapeBounds = true, onlyVisible = false, 
 
   // Acquire targets for this user.
   const user = this.document.user;
-  targetsToAcquire.forEach(t => t.setTarget(true, { user, releaseOthers: false, groupSelection: true }));
+  const targetFn = this._original ? "setCloneTarget" : "setTarget";
+  for ( const t of targetsToAcquire ) {
+    // When switching to a new scene, Foundry will sometimes try to setTarget using
+    // token.position, but token.position throws an error. Maybe canvas not loaded?
+    try {
+      t[targetFn](true, { user, releaseOthers: false, groupSelection: true });
+    } catch ( error ) {
+      console.debug(error);
+    }
+  }
 
   // Add targets to this template
   targetsToAcquire.forEach(t => this.targets.add(t));
@@ -456,6 +486,16 @@ PATCHES.AUTOTARGET.METHODS = {
   targetsWithinShape,
   targets: new Set()
 };
+
+// ----- NOTE: Wraps ----- //
+
+function destroy(wrapped, options) {
+  // Remove all clone targets before destroying.
+  if ( this._original ) this.releaseTargets();
+  return wrapped(options);
+}
+
+PATCHES.AUTOTARGET.WRAPS = { destroy };
 
 // ----- NOTE: Helper functions ----- //
 
