@@ -1,12 +1,10 @@
 /* globals
-CONFIG,
-Hooks,
-libWrapper
+canvas,
+game
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { MODULE_ID } from "./const.js";
 import { SETTINGS, getSetting } from "./settings.js";
 import { Patcher } from "./Patcher.js";
 
