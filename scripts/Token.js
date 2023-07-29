@@ -1,6 +1,13 @@
 /* globals
+CONFIG,
+duplicate,
+flattenObject,
+foundry,
+fromUuidSync,
 game,
-MeasuredTemplate
+getProperty,
+MeasuredTemplate,
+PIXI
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
@@ -35,7 +42,7 @@ function controlTokenHook(object, controlled) {
 /**
  * Hook preUpdateToken
  */
-function preUpdateTokenHook(tokenD, changes, _options, _userId) {
+function preUpdateTokenHook(tokenD, changes, options, _userId) {
   const token = tokenD.object;
   console.debug(`preUpdateToken hook ${changes.x}, ${changes.y}, ${changes.elevation} at elevation ${token.document?.elevation} with elevationD ${tokenD.elevation}`, changes);
   console.debug(`preUpdateToken hook moving ${tokenD.x},${tokenD.y} --> ${changes.x ? changes.x : tokenD.x},${changes.y ? changes.y : tokenD.y}`);
@@ -44,14 +51,28 @@ function preUpdateTokenHook(tokenD, changes, _options, _userId) {
 /**
  * Hook updateToken
  */
-function updateTokenHook(tokenD, changed, _options, _userId) {
+function updateTokenHook(tokenD, changed, options, _userId) {
   const token = tokenD.object;
   console.debug(`updateToken hook ${changed.x}, ${changed.y}, ${changed.elevation} at elevation ${token.document?.elevation} with elevationD ${tokenD.elevation}`, changed);
   console.debug(`updateToken hook moving ${tokenD.x},${tokenD.y} --> ${changed.x ? changed.x : tokenD.x},${changed.y ? changed.y : tokenD.y}`);
 
-  // Update elevation, rotation
+  const attachedTemplates = token.attachedTemplates;
+  if ( !attachedTemplates.length ) return;
 
+  // TODO: Update elevation, rotation
+  const props = (new Set(["x", "y", "elevation", "rotation"])).intersection(new Set(Object.keys(changed)));
+  if ( !props.size ) return;
 
+  const updates = [];
+  for ( const template of token.attachedTemplates ) {
+    console.debug(`Updating template ${template.id}. Current: ${template.document.x},${template.document.y}. Token: ${tokenD.x},${tokenD.y}`);
+    const templateData = template._calculateAttachedTemplateOffset(changed);
+    if ( isEmpty(templateData) ) continue;
+    templateData._id = template.id;
+    updates.push(templateData);
+    console.debug(`Updating template ${template.id} to ${updates.at(-1).x},${updates.at(-1).y}`, templateData);
+  }
+  if ( updates.length ) canvas.scene.updateEmbeddedDocuments("MeasuredTemplate", updates);
 }
 
 /**
@@ -98,12 +119,12 @@ PATCHES.BASIC.HOOKS = {
  * @param {MeasuredTemplate}        template
  * @param {object} [effectData]     Data passed to the token as an active effect
  */
-async function attachTemplate(template, effectData = {}) {
-  // Detach any token from the template.
+async function attachTemplate(template, effectData = {}, attachToTemplate = true) {
+  // Detach existing token from the template, if any.
   await this.detachTemplate(template);
 
   // Attach token to the template.
-  await template.document.setFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID, this.id);
+  if ( attachToTemplate ) await template.attachToken(this, effectData, false);
 
   // Attach the template to this token as an active effect.
   const templateShape = game.i18n.localize(template.document.t === "rect" ? "rectangle" : template.document.t);
@@ -117,16 +138,20 @@ async function attachTemplate(template, effectData = {}) {
 /**
  * New method: Token.prototype.detachTemplate
  * Detach a given template from this token.
- * @param {string|MeasuredTemplate} templateId
+ * @param {MeasuredTemplate|string} templateId    Template to detach or its id.
  */
-async function detachTemplate(templateId) {
-  if ( templateId instanceof MeasuredTemplate ) templateId = templateId.id;
-
-  // Don't call template.detachToken to avoid circularity, but do check and remove this token.
-  await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID);
+async function detachTemplate(templateId, detachFromTemplate = true) {
+  let template;
+  if ( templateId instanceof MeasuredTemplate ) {
+    template = templateId;
+    templateId = templateId.id;
+  } else template = canvas.templates.documentCollection.get(templateId);
 
   // Remove the active effect associated with this template (if any).
   await this.document.toggleActiveEffect({ id: templateId }, { active: false });
+
+  // Remove this token from the template
+  if ( detachFromTemplate && template ) await template.detachToken(false);
 }
 
 PATCHES.BASIC.METHODS = { attachTemplate, detachTemplate };
@@ -154,63 +179,46 @@ function _applyRenderFlags(wrapper, flags) {
   return wrapper(flags);
 }
 
+/**
+ * Wrap Token.prototype.animate
+ * Cannot just use the `preUpdate` hook b/c it does not pass back options to Token.prototype._updateData.
+ */
 async function animate(wrapped, updateData, opts) {
   const attachedTemplates = this.attachedTemplates;
-  if ( !attachedTemplates.length )  return wrapped(updateData, opts);
+  if ( !attachedTemplates.length ) return wrapped(updateData, opts);
 
-  const props = (new Set(["x", "y"])).intersection(new Set(Object.keys(updateData)));
+  const props = (new Set(["x", "y", "elevation", "rotation"])).intersection(new Set(Object.keys(updateData)));
   if ( !props.size ) return wrapped(updateData, opts);
-
-  let previousData;
-  //for ( const prop of props ) previousData[prop] = updateData[prop];//this.document[prop];
-//
-//   const delta = {};
-//   for ( const prop of props ) delta[prop] = updateData[prop] - previousData[prop];
-//   for ( const template of attachedTemplates ) {
-//     let templateData = {};
-//     for ( const prop of props ) templateData[prop] = template.document[prop] + delta[prop];
-//     templateData = template.document.constructor.cleanData(templateData, {partial: true});
-//     await template.document.update({templateData});
-//   }
-
 
   if ( opts.ontick ) {
     const ontickOriginal = opts.ontick;
     opts.ontick = (dt, anim, documentData, config) => {
-      const delta = {};
-      previousData ??= duplicate(documentData);
-      for ( const prop of props ) delta[prop] = documentData[prop] - previousData[prop];
-      attachedTemplates.forEach(t => doTemplateAnimation(t, delta, props, dt, anim, documentData, config));
-      previousData = duplicate(documentData);
+      attachedTemplates.forEach(t => doTemplateAnimation(t, dt, anim, documentData, config));
+
       ontickOriginal(dt, anim, documentData, config);
-    }
+    };
   } else {
     opts.ontick = (dt, anim, documentData, config) => {
-      const delta = {};
-      previousData ??= duplicate(documentData);
-      console.debug(`Previous ${previousData.x},${previousData.y} docData ${documentData.x},${documentData.y}`);
-      for ( const prop of props ) delta[prop] = documentData[prop] - previousData[prop];
-      attachedTemplates.forEach(t => doTemplateAnimation(t, delta, props, dt, anim, documentData, config));
-      previousData = duplicate(documentData);
-    }
+      attachedTemplates.forEach(t => doTemplateAnimation(t, dt, anim, documentData, config));
+    };
   }
 
   return wrapped(updateData, opts);
 }
 
-function doTemplateAnimation(template, delta, props, dt, anim, documentData, config) {
-  console.debug(`Animating template ${template.id} for ${delta.x},${delta.y}`);
-  let templateData = {};
-  for ( const prop of props ) templateData[prop] = template.document[prop] + delta[prop];
+function doTemplateAnimation(template, _dt, _anim, documentData, _config) {
+  console.debug(`Animating template ${template.id}. Current: ${template.document.x},${template.document.y}. Token: ${documentData.x},${documentData.y}`);
+  const templateData = template._calculateAttachedTemplateOffset(documentData);
 
-  // Update the document
-  templateData = template.document.constructor.cleanData(templateData, {partial: true});
-  foundry.utils.mergeObject(template.document, templateData, {insertKeys: false});
-
-  // Refresh the Template
-  template.renderFlags.set({
-    refreshPosition: props.has("x") || props.has("y")
-  });
+//   // Update the document
+//   foundry.utils.mergeObject(template.document, templateData, {insertKeys: false});
+//
+//   // Refresh the Template
+//   template.renderFlags.set({
+//     refreshPosition: Object.hasOwn(templateData, "x") || Object.hasOwn(templateData, "y"),
+//     refreshElevation: Object.hasOwn(templateData, "elevation"),
+//     refreshShape: Object.hasOwn(templateData, "direction")
+//   });
 }
 
 

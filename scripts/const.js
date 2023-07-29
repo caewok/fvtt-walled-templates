@@ -10,7 +10,10 @@ export const FLAGS = {
   WALLS_BLOCK: "wallsBlock",
   WALL_RESTRICTION: "wallRestriction",
   RECURSE_DATA: "recurseData",
-  ATTACHED_TOKEN_ID: "attachedTokenId"
+  ATTACHED_TOKEN: {
+    ID: "attachedTokenId",
+    DELTAS: "attachedTokenDelta"
+  }
 };
 
 export const LABELS = {
