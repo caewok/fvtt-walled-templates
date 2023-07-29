@@ -81,7 +81,7 @@ function updateTokenHook(tokenD, changed, _options, _userId) {
 function refreshTokenHook(token, flags) {
   if ( !flags.refreshPosition ) return;
   // TODO: refreshElevation flag?
-//   console.debug(`refreshToken for ${token.name} at ${token.position.x},${token.position.y}. Token is ${token._original ? "Clone" : "Original"}. Token is ${token._animation ? "" : "not "}animating.`);
+  console.debug(`refreshToken for ${token.name} at ${token.position.x},${token.position.y}. Token is ${token._original ? "Clone" : "Original"}. Token is ${token._animation ? "" : "not "}animating.`);
 
   if ( token._original ) {
     // clone
@@ -153,14 +153,12 @@ async function detachTemplate(templateId, detachFromTemplate = true) {
  * @pram {ReticuleOptions} [reticule] Additional parameters to configure how the targeting reticule is drawn.
  */
 function _refreshCloneTarget(reticule) {
+  this.cloneTarget ||= this.addChild(new PIXI.Graphics());
   this.cloneTarget.clear();
 
   // We don't show the target arrows for a secret token disposition and non-GM users
   const isSecret = (this.document.disposition === CONST.TOKEN_DISPOSITIONS.SECRET) && !this.isOwner;
   if ( !this.cloneTargeted.size || isSecret ) return;
-
-  // Clone target overrides the normal target.
-  this.target.clear();
 
   // Determine whether the current user has target and any other users
   const [others, user] = Array.from(this.cloneTargeted).partition(u => u === game.user);
@@ -169,13 +167,13 @@ function _refreshCloneTarget(reticule) {
   if ( user.length ) {
     // Use half-transparency to distinguish from normal targets.
     reticule ||= {};
-    reticule.alpha = 0.25;
+    reticule.alpha = 0.5;
 
     // So we can re-use drawTarget; swap in the clone target graphic.
     const origTarget = this.target;
     this.target = this.cloneTarget;
     this._drawTarget(reticule);
-    this.target = origTarget;
+    this.target = this.cloneTarget;
   }
 }
 
@@ -251,6 +249,12 @@ function attachedTemplates() {
 PATCHES.BASIC.GETTERS = { attachedTemplates };
 
 // ----- NOTE: Wraps ----- //
+function _applyRenderFlags(wrapper, flags) {
+  this[MODULE_ID] ??= {};
+  this[MODULE_ID].priorPosition ??= new PIXI.Point();
+  if ( flags.refreshPosition ) this[MODULE_ID].priorPosition.copyFrom(this.position);
+  return wrapper(flags);
+}
 
 /**
  * Wrap Token.prototype.animate
@@ -363,22 +367,12 @@ function _refreshTarget(wrapped, reticule) {
   this._refreshCloneTarget(reticule);
 }
 
-/**
- * Wrap Token.prototype._draw
- * Add a PIXI.Graphics for the cloneTarget.
- */
-async function _draw(wrapped) {
-  await wrapped();
-  this.cloneTarget ||= this.addChild(new PIXI.Graphics());
-}
-
-
 
 PATCHES.BASIC.WRAPS = {
+  _applyRenderFlags,
   animate,
   _onDragLeftStart,
   _onDragLeftMove,
   _onDragLeftDrop,
   _onDragLeftCancel,
-  _refreshTarget,
-  _draw };
+  _refreshTarget };
