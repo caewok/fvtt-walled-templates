@@ -240,7 +240,13 @@ function attachedToken() {
   return canvas.tokens.documentCollection.get(attachedTokenId)?.object;
 }
 
-PATCHES.BASIC.GETTERS = { attachedToken };
+/**
+ * New getter: MeasuredTemplate.prototype.wallsBlock
+ * @type {boolean}
+ */
+function wallsBlock() { return this.walledtemplates?.walledTemplate?.doWallsBlock; }
+
+PATCHES.BASIC.GETTERS = { attachedToken, wallsBlock };
 
 // ----- NOTE: Autotargeting ----- //
 
@@ -255,6 +261,7 @@ PATCHES.BASIC.GETTERS = { attachedToken };
  */
 function refreshMeasuredTemplateHook(template, flags) {
   if ( flags.retarget ) template.autotargetTokens();
+  // if ( flags.refreshPosition && template.wallsBlock ) template.renderFlags.set({refreshShape: true});
 }
 
 PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook };
