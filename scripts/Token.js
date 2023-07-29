@@ -44,8 +44,8 @@ function controlTokenHook(object, controlled) {
  */
 function preUpdateTokenHook(tokenD, changes, _options, _userId) {
   const token = tokenD.object;
-  console.debug(`preUpdateToken hook ${changes.x}, ${changes.y}, ${changes.elevation} at elevation ${token.document?.elevation} with elevationD ${tokenD.elevation}`, changes);
-  console.debug(`preUpdateToken hook moving ${tokenD.x},${tokenD.y} --> ${changes.x ? changes.x : tokenD.x},${changes.y ? changes.y : tokenD.y}`);
+//   console.debug(`preUpdateToken hook ${changes.x}, ${changes.y}, ${changes.elevation} at elevation ${token.document?.elevation} with elevationD ${tokenD.elevation}`, changes);
+//   console.debug(`preUpdateToken hook moving ${tokenD.x},${tokenD.y} --> ${changes.x ? changes.x : tokenD.x},${changes.y ? changes.y : tokenD.y}`);
 }
 
 /**
@@ -53,8 +53,8 @@ function preUpdateTokenHook(tokenD, changes, _options, _userId) {
  */
 function updateTokenHook(tokenD, changed, _options, _userId) {
   const token = tokenD.object;
-  console.debug(`updateToken hook ${changed.x}, ${changed.y}, ${changed.elevation} at elevation ${token.document?.elevation} with elevationD ${tokenD.elevation}`, changed);
-  console.debug(`updateToken hook moving ${tokenD.x},${tokenD.y} --> ${changed.x ? changed.x : tokenD.x},${changed.y ? changed.y : tokenD.y}`);
+//   console.debug(`updateToken hook ${changed.x}, ${changed.y}, ${changed.elevation} at elevation ${token.document?.elevation} with elevationD ${tokenD.elevation}`, changed);
+//   console.debug(`updateToken hook moving ${tokenD.x},${tokenD.y} --> ${changed.x ? changed.x : tokenD.x},${changed.y ? changed.y : tokenD.y}`);
 
   const attachedTemplates = token.attachedTemplates;
   if ( !attachedTemplates.length ) return;
@@ -65,12 +65,12 @@ function updateTokenHook(tokenD, changed, _options, _userId) {
 
   const updates = [];
   for ( const template of token.attachedTemplates ) {
-    console.debug(`Updating template ${template.id}. Current: ${template.document.x},${template.document.y}. Token: ${tokenD.x},${tokenD.y}`);
+//     console.debug(`Updating template ${template.id}. Current: ${template.document.x},${template.document.y}. Token: ${tokenD.x},${tokenD.y}`);
     const templateData = template._calculateAttachedTemplateOffset(changed);
     if ( isEmpty(templateData) ) continue;
     templateData._id = template.id;
     updates.push(templateData);
-    console.debug(`Updating template ${template.id} to ${updates.at(-1).x},${updates.at(-1).y}`, templateData);
+//     console.debug(`Updating template ${template.id} to ${updates.at(-1).x},${updates.at(-1).y}`, templateData);
   }
   if ( updates.length ) canvas.scene.updateEmbeddedDocuments("MeasuredTemplate", updates);
 }
@@ -85,13 +85,13 @@ function refreshTokenHook(token, flags) {
 
   if ( token._original ) {
     // clone
-    console.debug(`clone of ${token.name} at ${token.position.x},${token.position.y} and document ${token.document.x}, ${token.document.y}`);
+//     console.debug(`clone of ${token.name} at ${token.position.x},${token.position.y} and document ${token.document.x}, ${token.document.y}`);
 
   }
 
   if ( token._animation ) {
     // animating
-    console.debug(`${token.name} at ${token.position.x},${token.position.y} and document ${token.document.x}, ${token.document.y}`);
+//     console.debug(`${token.name} at ${token.position.x},${token.position.y} and document ${token.document.x}, ${token.document.y}`);
 //     attachedTemplates.map(t => t.document.updateSource({ x: t.x + delta.x, y: t.y + delta.y }));
   }
 }
