@@ -458,6 +458,16 @@ PATCHES.AUTOTARGET.METHODS = {
   targets: new Set()
 };
 
+// ----- NOTE: Wraps ----- //
+
+function destroy(wrapped, options) {
+  // Remove all clone targets before destroying.
+  if ( this._original ) this.releaseTargets();
+  return wrapped(options);
+}
+
+PATCHES.AUTOTARGET.WRAPS = { destroy };
+
 // ----- NOTE: Helper functions ----- //
 
 /**
