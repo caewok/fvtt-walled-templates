@@ -306,7 +306,31 @@ async function detachToken(detachFromToken = true) {
   if ( detachFromToken && attachedToken ) await attachedToken.detachTemplate(this, false);
 }
 
-PATCHES.BASIC.METHODS = { boundsOverlap, attachToken, detachToken };
+/**
+ * New method: Retrieve template change data based on a token document object
+ * Construct a template data object that can be used for updating based on the delta from the token.
+ * @param {object|TokenDocument} tokenData    Object with token data to offset.
+ * @returns {object} Object of adjusted data for the template
+ */
+function _calculateAttachedTemplateOffset(tokenD) {
+  const delta = this.document.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.DELTAS);
+  if ( !delta ) return {};
+  const templateData = {};
+  if ( Object.hasOwn(tokenD, "x") ) templateData.x = tokenD.x + delta.x;
+  if ( Object.hasOwn(tokenD, "y") ) templateData.y = tokenD.y + delta.y;
+  if ( Object.hasOwn(tokenD, "elevation") ) {
+    // Note: cleanData requires the actual object, no string properties
+    // templateData.flags.["flags.elevatedvision.elevation"] = tokenD.elevation + delta.elevation;
+    const elevation = tokenD.elevation + delta.elevation;
+    templateData.flags = { elevatedvision: { elevation }};
+  }
+  if ( Object.hasOwn(tokenD, "rotation") && Object.hasOwn(delta, "rotation") ) {
+    templateData.direction = Math.normalizeDegrees(tokenD.rotation + delta.rotation);
+  }
+  return this.document.constructor.cleanData(templateData, {partial: true});
+}
+
+PATCHES.BASIC.METHODS = { boundsOverlap, attachToken, detachToken, _calculateAttachedTemplateOffset };
 
 // ----- NOTE: Getters ----- //
 /**
