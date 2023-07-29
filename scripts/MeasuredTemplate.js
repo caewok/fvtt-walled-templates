@@ -16,6 +16,7 @@ import { MODULE_ID, FLAGS } from "./const.js";
 import { getSetting, SETTINGS } from "./settings.js";
 import { Hexagon } from "./geometry/RegularPolygon/Hexagon.js";
 import { Square } from "./geometry/RegularPolygon/Square.js";
+import { UserCloneTargets } from "./UserCloneTargets.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
@@ -387,7 +388,13 @@ function autotargetTokens({ only_visible = false } = {}) {
   });
 
   log(`autotargetTokens|${targets.length} targets.`);
-  if ( getSetting(SETTINGS.AUTOTARGET.ENABLED) ) releaseAndAcquireTargets(targets, this.document.user);
+  if ( this._original ) {
+    console.debug(`autotargetTokens|${targets.length} clone targets.`);
+  }
+
+  if ( getSetting(SETTINGS.AUTOTARGET.ENABLED) ) {
+    releaseAndAcquireTargets(targets, this.document.user, Boolean(this._original));
+  }
   else releaseTargets(targets, this.document.user);
 }
 
@@ -420,17 +427,24 @@ function boundsShapeIntersection(tBounds, shape) {
  * these.
  * @param {Token[]} targets
  */
-function releaseAndAcquireTargets(targets, user = game.user) {
+function releaseAndAcquireTargets(targets, user = game.user, isTemplateClone = false) {
   // Closely follows TokenLayer.prototype.targetObjects
+  let userTargets = user.targets;
+  let targetFn = "setTarget";
+  if ( isTemplateClone ) {
+    user.cloneTargets ||= new UserCloneTargets(user);
+    userTargets = user.cloneTargets;
+    targetFn = "setCloneTarget";
+  }
 
   // Release other targets
-  for ( let t of user.targets ) {
+  for ( let t of userTargets ) {
     if ( !targets.includes(t) ) {
       log(`Un-targeting token ${t.id}`, t);
       // When switching to a new scene, Foundry will sometimes try to setTarget using
       // token.position, but token.position throws an error. Maybe canvas not loaded?
       try {
-        t.setTarget(false, { releaseOthers: false, groupSelection: true });
+        t[targetFn](false, { releaseOthers: false, groupSelection: true });
       } catch(error) {
         log(error); // Just log it b/c probably not (easily) fixable
       }
@@ -439,12 +453,12 @@ function releaseAndAcquireTargets(targets, user = game.user) {
 
   // Acquire targets for those not yet targeted
   targets.forEach(t => {
-    if ( !user.targets.has(t) ) {
+    if ( !userTargets.has(t) ) {
       log(`Targeting token ${t.id}`, t);
       // When switching to a new scene, Foundry will sometimes try to setTarget using
       // token.position, but token.position throws an error. Maybe canvas not loaded?
       try {
-        t.setTarget(true, { user, releaseOthers: false, groupSelection: true });
+        t[targetFn](true, { user, releaseOthers: false, groupSelection: true });
       } catch(error) {
         log(error); // Just log it b/c probably not (easily) fixable
       }
@@ -452,22 +466,30 @@ function releaseAndAcquireTargets(targets, user = game.user) {
   });
 
   // Broadcast the target change
-  user.broadcastActivity({ targets: user.targets.ids });
+  if ( !isTemplateClone ) user.broadcastActivity({ targets: user.targets.ids });
 }
 
 /**
  * Given an array of target tokens, release those for the user.
  * @param {Token[]} targets
  */
-function releaseTargets(targets, user = game.user) {
+function releaseTargets(targets, user = game.user, isTemplateClone = false) {
+  let userTargets = user.targets;
+  let targetFn = "setTarget";
+  if ( isTemplateClone ) {
+    user.cloneTargets ||= new UserCloneTargets(user);
+    userTargets = user.cloneTargets;
+    targetFn = "setCloneTarget";
+  }
+
   // Release other targets
-  for ( let t of user.targets ) {
+  for ( let t of userTargets ) {
     if ( targets.includes(t) ) {
       log(`Un-targeting token ${t.id}`, t);
       // When switching to a new scene, Foundry will sometimes try to setTarget using
       // token.position, but token.position throws an error. Maybe canvas not loaded?
       try {
-        t.setTarget(false, { releaseOthers: false, groupSelection: true });
+        t[targetFn](false, { releaseOthers: false, groupSelection: true });
       } catch(error) {
         log(error); // Just log it b/c probably not (easily) fixable
       }
@@ -475,7 +497,7 @@ function releaseTargets(targets, user = game.user) {
   }
 
   // Broadcast the target change
-  user.broadcastActivity({ targets: user.targets.ids });
+  if ( !isTemplateClone ) user.broadcastActivity({ targets: user.targets.ids });
 }
 
 /**
