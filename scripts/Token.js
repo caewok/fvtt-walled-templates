@@ -364,8 +364,8 @@ function _refreshTarget(wrapped, reticule) {
  * Wrap Token.prototype._draw
  * Add a PIXI.Graphics for the cloneTarget.
  */
-function _draw(wrapped) {
-  wrapped();
+async function _draw(wrapped) {
+  await wrapped();
   this.cloneTarget ||= this.addChild(new PIXI.Graphics());
 }
 
