@@ -330,7 +330,11 @@ function _calculateAttachedTemplateOffset(tokenD) {
   return this.document.constructor.cleanData(templateData, {partial: true});
 }
 
-PATCHES.BASIC.METHODS = { boundsOverlap, attachToken, detachToken, _calculateAttachedTemplateOffset };
+PATCHES.BASIC.METHODS = {
+  boundsOverlap,
+  attachToken,
+  detachToken,
+  _calculateAttachedTemplateOffset };
 
 // ----- NOTE: Getters ----- //
 /**
@@ -372,11 +376,69 @@ PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHoo
  * New method: MeasuredTemplate.prototype.autotarget
  * Target tokens within the template area.
  */
-function autotargetTokens({ only_visible = false } = {}) {
+function autotargetTokens({ onlyVisible = false } = {}) {
   log("autotargetTokens", this);
+  if ( !getSetting(SETTINGS.AUTOTARGET.ENABLED) ) return this.releaseTargets();
 
-  const targets = canvas.tokens.placeables.filter(token => {
-    if ( only_visible && !token.visible ) return false;
+  this.releaseTargets({ broadcast: false });
+  this.acquireTargets({ broadcast: true });
+}
+
+/**
+ * New method: MeasuredTemplate.prototype.releaseTargets
+ * Release targets held by this template for this template document user.
+ * @param {object} [opts]                       Options for narrowing target choices
+ * @param {Set<Token>} [opts.tokens]            Release only tokens within this set
+ * @param {boolean} [opts.broadcast=true]       Broadcast the user target change
+ */
+function releaseTargets({ tokens , broadcast = true } = {}) {
+  const targetsToRelease = tokens ? this.targets.intersection(tokens) : this.targets;
+  if ( !targetsToRelease.size ) return;
+
+  // Release targets for this user.
+  const user = this.document.user;
+  targetsToRelease.forEach(t => t.setTarget(false, { user, releaseOthers: false, groupSelection: true }));
+
+  // Wipe the targets from this template.
+  if ( targetsToRelease === this.targets ) this.targets.clear();
+  else targetsToRelease.forEach(t => this.targets.delete(t));
+
+  // Broadcast the target change
+  if ( broadcast ) user.broadcastActivity({ targets: user.targets.ids });
+}
+
+/**
+ * New method: MeasuredTemplate.prototype.acquireTargets
+ * Acquire targets for this template. Targets must be within template shape to qualify.
+ * @param {object} [opts]                         Options for narrowing target choices
+ * @param {Set<Token>|Token[]} [opts.tokens]      Acquire tokens within this set
+ * @param {boolean} [opts.checkShapeBounds=true]  Test the tokens against the shape bounds
+ * @param {boolean} [opts.onlyVisible=false]      Acquire only visible tokens
+ * @param {boolean} [opts.broadcast=true]         Broadcast the user target change
+ */
+function acquireTargets({ tokens, checkShapeBounds = true, onlyVisible = false, broadcast = true } = {}) {
+  if ( tokens ) {
+    if ( tokens instanceof Array ) tokens = new Set(tokens);
+    if ( checkShapeBounds ) tokens = new Set(this.targetsWithinShape({onlyVisible})).intersection(tokens);
+    else if ( onlyVisible ) tokens = tokens.filter(t => t.visible);
+  } else tokens = new Set(this.targetsWithinShape({onlyVisible}));
+  const targetsToAcquire = tokens.difference(this.targets);
+  if ( !targetsToAcquire.size ) return;
+
+  // Acquire targets for this user.
+  const user = this.document.user;
+  targetsToAcquire.forEach(t => t.setTarget(true, { user, releaseOthers: false, groupSelection: true }));
+
+  // Add targets to this template
+  targetsToAcquire.forEach(t => this.targets.add(t));
+
+  // Broadcast the target change
+  if ( broadcast ) user.broadcastActivity({ targets: user.targets.ids });
+}
+
+function targetsWithinShape({ onlyVisible = false } = {}) {
+  return canvas.tokens.placeables.filter(token => {
+    if ( onlyVisible && !token.visible ) return false;
     if ( !token.hitArea ) return false; // Token not yet drawn. See Token.prototype._draw.
 
     // Midi-qol; Walled Templates issue #28.
@@ -385,13 +447,15 @@ function autotargetTokens({ only_visible = false } = {}) {
     const tBounds = tokenBounds(token);
     return this.boundsOverlap(tBounds);
   });
-
-  log(`autotargetTokens|${targets.length} targets.`);
-  if ( getSetting(SETTINGS.AUTOTARGET.ENABLED) ) releaseAndAcquireTargets(targets, this.document.user);
-  else releaseTargets(targets, this.document.user);
 }
 
-PATCHES.AUTOTARGET.METHODS = { autotargetTokens };
+PATCHES.AUTOTARGET.METHODS = {
+  autotargetTokens,
+  releaseTargets,
+  acquireTargets,
+  targetsWithinShape,
+  targets: new Set()
+};
 
 // ----- NOTE: Helper functions ----- //
 
@@ -413,69 +477,6 @@ function boundsShapeIntersection(tBounds, shape) {
 
   // Shape should be circle
   return shape.intersectPolygon(tBounds.toPolygon());
-}
-
-/**
- * Given an array of target tokens, release all other targets for the user and target
- * these.
- * @param {Token[]} targets
- */
-function releaseAndAcquireTargets(targets, user = game.user) {
-  // Closely follows TokenLayer.prototype.targetObjects
-
-  // Release other targets
-  for ( let t of user.targets ) {
-    if ( !targets.includes(t) ) {
-      log(`Un-targeting token ${t.id}`, t);
-      // When switching to a new scene, Foundry will sometimes try to setTarget using
-      // token.position, but token.position throws an error. Maybe canvas not loaded?
-      try {
-        t.setTarget(false, { releaseOthers: false, groupSelection: true });
-      } catch(error) {
-        log(error); // Just log it b/c probably not (easily) fixable
-      }
-    }
-  }
-
-  // Acquire targets for those not yet targeted
-  targets.forEach(t => {
-    if ( !user.targets.has(t) ) {
-      log(`Targeting token ${t.id}`, t);
-      // When switching to a new scene, Foundry will sometimes try to setTarget using
-      // token.position, but token.position throws an error. Maybe canvas not loaded?
-      try {
-        t.setTarget(true, { user, releaseOthers: false, groupSelection: true });
-      } catch(error) {
-        log(error); // Just log it b/c probably not (easily) fixable
-      }
-    }
-  });
-
-  // Broadcast the target change
-  user.broadcastActivity({ targets: user.targets.ids });
-}
-
-/**
- * Given an array of target tokens, release those for the user.
- * @param {Token[]} targets
- */
-function releaseTargets(targets, user = game.user) {
-  // Release other targets
-  for ( let t of user.targets ) {
-    if ( targets.includes(t) ) {
-      log(`Un-targeting token ${t.id}`, t);
-      // When switching to a new scene, Foundry will sometimes try to setTarget using
-      // token.position, but token.position throws an error. Maybe canvas not loaded?
-      try {
-        t.setTarget(false, { releaseOthers: false, groupSelection: true });
-      } catch(error) {
-        log(error); // Just log it b/c probably not (easily) fixable
-      }
-    }
-  }
-
-  // Broadcast the target change
-  user.broadcastActivity({ targets: user.targets.ids });
 }
 
 /**
