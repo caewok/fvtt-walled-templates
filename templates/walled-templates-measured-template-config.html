@@ -21,4 +21,15 @@
       <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint"}}</p>
     </div>
 
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.attach-token.Name"}}</label>
+      <div class="form-fields">
+        <span class="display-value"><em>{{walledtemplates.attachedTokenName}}</em></span>
+        <button type="button" data-type="token" data-target="data.entity" class="walledtemplates-entity-picker" id="walledtemplates-useSelectedToken" title="{{localize 'walledtemplates.MeasuredTemplateConfiguration.attach-token.useSelectedToken'}}"><i class="fas fa-user-alt fa-sm"></i></button>
+        <button type="button" data-type="token" data-target="data.entity" class="walledtemplates-entity-picker" id="walledtemplates-useTargetedToken" title="{{localize 'walledtemplates.MeasuredTemplateConfiguration.attach-token.useTargetedToken'}}"><i class="fas fa-crosshairs fa-sm"></i></button>
+        <button type="button" {{ disabled walledtemplates.noAttachedToken }} data-type="token" data-target="data.entity" class="walledtemplates-entity-picker" id="walledtemplates-removeAttachedToken" title="{{localize 'walledtemplates.MeasuredTemplateConfiguration.attach-token.removeToken'}}"><i class="fas fa-user-slash fa-sm"></i></button>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.attach-token.Hint"}}</p>
+    </div>
+
 </fieldset>

@@ -142,9 +142,87 @@ function _computeShape(wrapped) {
   return wt.walledTemplate.computeShape();
 }
 
+/**
+ * Wrap MeasuredTemplate.prototype._canDrag
+ * Don't allow dragging of attached templates.
+ */
+function _canDrag(wrapped, user, event) {
+  if ( this.attachedToken ) return false;
+  return wrapped(user, event);
+}
+
+/**
+ * Wrap MeasuredTemplate.prototype.clone
+ * Clone the shape
+ * @returns {PlaceableObject}
+ */
+function clone(wrapped) {
+  const clone = wrapped();
+
+  // Ensure shape is not shared with original.
+  clone.renderFlags.set({ refreshShape: true });
+  return clone;
+}
+
+/**
+ * Wrap MeasuredTemplate.prototype._onDragLeftStart
+ * If this is a clone
+ */
+function _onDragLeftStart(wrapped, event) {
+  if ( !this.attachedToken ) return wrapped(event);
+
+  // Store token and template clones separately.
+  const tokenClones = event.interactionData.clones;
+  wrapped(event);
+  event.interactionData.attachedTemplateClones ??= new Map();
+
+  // Only one clone will be created for this template; retrieve and store.
+  const templateClone = event.interactionData.clones[0];
+  event.interactionData.attachedTemplateClones.set(templateClone.id, templateClone);
+
+  // Restore the token clones.
+  event.interactionData.clones = tokenClones;
+}
+
+function _onDragLeftMove(wrapped, event) {
+  if ( !this.attachedToken ) return wrapped(event);
+
+  // Temporarily set the event clones to this template clone.
+  const tokenClones = event.interactionData.clones;
+  event.interactionData.clones = [event.interactionData.attachedTemplateClones.get(this.id)];
+  wrapped(event);
+
+  // Restore the token clones.
+  event.interactionData.clones = tokenClones;
+}
+
+function _onDragLeftCancel(wrapped, event) {
+  return wrapped(event);
+}
+
+function _onDragLeftDrop(wrapped, event) {
+  if ( !this.attachedToken ) return wrapped(event);
+
+  // Temporarily set the event clones to this template clone.
+  const tokenClones = event.interactionData.clones;
+  event.interactionData.clones = [event.interactionData.attachedTemplateClones.get(this.id)];
+  wrapped(event);
+
+  // Restore the token clones.
+  event.interactionData.clones = tokenClones;
+}
+
+
 PATCHES.BASIC.WRAPS = {
   _getGridHighlightPositions,
-  _computeShape
+  _computeShape,
+  _canDrag,
+  clone,
+  _onDragLeftStart,
+  _onDragLeftMove,
+  _onDragLeftCancel,
+  _onDragLeftDrop
+
 };
 
 // ----- NOTE: Methods ----- //
@@ -180,7 +258,73 @@ function boundsOverlap(bounds) {
   return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%
 }
 
-PATCHES.BASIC.METHODS = { boundsOverlap };
+/**
+ * New method: MeasuredTemplate.prototype.attachToken
+ * Attach the provided token to the template, so that both move in sync.
+ * A template can have only one token attached.
+ * The token id is added to this template flags.
+ * An active effect is added to the token to indicate the template is attached.
+ * If this template is attached to another token, it is detached first.
+ * @param {Token} token           Token to attach
+ * @param {object} [effectData]   Data passed to the token as an active effect
+ * @param {opts}
+ */
+async function attachToken(token, effectData, attachToToken = true) {
+  // Detach existing token, if any
+  await this.detachToken();
+
+  // Attach this template to the token as an active effect.
+  if ( attachToToken ) await token.attachTemplate(this, effectData, false);
+
+  // Attach token to the template.
+  await this.document.setFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ID, token.id);
+
+  // Record the difference between the token and template for specific properties.
+  // Use the token document naming scheme.
+  const delta = {};
+  delta.x = this.document.x - token.x;
+  delta.y = this.document.y - token.y;
+  delta.elevation = this.elevationE - token.elevationE;
+
+  // If the template originates from the token, rotate with the token.
+  const center = PIXI.Point.fromObject(token.center);
+  if ( center.almostEqual(this) ) delta.rotation = this.document.direction - token.document.rotation;
+
+  // Attach deltas to the template. These should remain constant so long as the token is attached.
+  await this.document.setFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.DELTAS, delta);
+}
+
+/**
+ * New method: MeasuredTemplate.prototype.detachToken
+ * Detach the token, if any, from this template.
+ */
+async function detachToken(detachFromToken = true) {
+  const attachedToken = this.attachedToken;
+  await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ID);
+  await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.DELTAS);
+
+  if ( detachFromToken && attachedToken ) await attachedToken.detachTemplate(this, false);
+}
+
+PATCHES.BASIC.METHODS = { boundsOverlap, attachToken, detachToken };
+
+// ----- NOTE: Getters ----- //
+/**
+ * New getter: MeasuredTemplate.prototype.attachedToken
+ * @type {Token}
+ */
+function attachedToken() {
+  const attachedTokenId = this.document.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ID);
+  return canvas.tokens.documentCollection.get(attachedTokenId)?.object;
+}
+
+/**
+ * New getter: MeasuredTemplate.prototype.wallsBlock
+ * @type {boolean}
+ */
+function wallsBlock() { return this.walledtemplates?.walledTemplate?.doWallsBlock; }
+
+PATCHES.BASIC.GETTERS = { attachedToken, wallsBlock };
 
 // ----- NOTE: Autotargeting ----- //
 
@@ -195,6 +339,7 @@ PATCHES.BASIC.METHODS = { boundsOverlap };
  */
 function refreshMeasuredTemplateHook(template, flags) {
   if ( flags.retarget ) template.autotargetTokens();
+  // if ( flags.refreshPosition && template.wallsBlock ) template.renderFlags.set({refreshShape: true});
 }
 
 PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook };
@@ -223,7 +368,31 @@ function autotargetTokens({ only_visible = false } = {}) {
   else releaseTargets(targets, this.document.user);
 }
 
-PATCHES.AUTOTARGET.METHODS = { autotargetTokens };
+/**
+ * New method: Retrieve template change data based on a token document object
+ * Construct a template data object that can be used for updating based on the delta from the token.
+ * @param {object|TokenDocument} tokenData    Object with token data to offset.
+ * @returns {object} Object of adjusted data for the template
+ */
+function _calculateAttachedTemplateOffset(tokenD) {
+  const delta = this.document.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.DELTAS);
+  if ( !delta ) return {};
+  const templateData = {};
+  if ( Object.hasOwn(tokenD, "x") ) templateData.x = tokenD.x + delta.x;
+  if ( Object.hasOwn(tokenD, "y") ) templateData.y = tokenD.y + delta.y;
+  if ( Object.hasOwn(tokenD, "elevation") ) {
+    // cleanData requires the actual object, no string properties
+    // templateData.flags.["flags.elevatedvision.elevation"] = tokenD.elevation + delta.elevation;
+    const elevation = tokenD.elevation + delta.elevation;
+    templateData.flags = { elevatedvision: { elevation }};
+  }
+  if ( Object.hasOwn(tokenD, "rotation") && Object.hasOwn(delta, "rotation") ) {
+    templateData.direction = Math.normalizeDegrees(tokenD.rotation + delta.rotation);
+  }
+  return this.document.constructor.cleanData(templateData, {partial: true});
+}
+
+PATCHES.AUTOTARGET.METHODS = { autotargetTokens, _calculateAttachedTemplateOffset };
 
 // ----- NOTE: Helper functions ----- //
 

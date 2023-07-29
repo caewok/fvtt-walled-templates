@@ -6,7 +6,7 @@ renderTemplate
 "use strict";
 
 import { log } from "./util.js";
-import { MODULE_ID, FLAGS, LABELS } from "./const.js";
+import { MODULE_ID, FLAGS, LABELS, NOTIFICATIONS } from "./const.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
@@ -14,11 +14,16 @@ PATCHES.BASIC = {};
 // ----- Note: Hooks ----- //
 function renderMeasuredTemplateConfigHook(app, html, data) {
   renderMeasuredTemplateConfig(app, html, data);
+  activateListeners(app, html);
 
+  // Look up the token. If present in the scene, consider it attached for the config.
+  const attachedToken = app.object?.object?.attachedToken;
   const renderData = {};
-  renderData.walledtemplates = {
+  renderData[MODULE_ID] = {
     blockoptions: LABELS.WALLS_BLOCK,
-    walloptions: LABELS.WALL_RESTRICTION
+    walloptions: LABELS.WALL_RESTRICTION,
+    attachedTokenName: attachedToken?.name || game.i18n.localize("None"),
+    noAttachedToken: Boolean(attachedToken)
   };
 
   foundry.utils.mergeObject(data, renderData, { inplace: true });
@@ -58,10 +63,66 @@ async function renderMeasuredTemplateConfig(app, html, data) {
   log("walledTemplatesRenderMeasuredTemplateConfig data after", data);
 
   const template = `modules/${MODULE_ID}/templates/walled-templates-measured-template-config.html`;
-
   const myHTML = await renderTemplate(template, data);
   log("config rendered HTML", myHTML);
   html.find(".form-group").last().after(myHTML);
 
   app.setPosition(app.position);
 }
+
+/**
+ * Catch when the user clicks a button to attach a token.
+ */
+function activateListeners(app, html) {
+  html.on("click", "#walledtemplates-useSelectedToken", onSelectedTokenButton.bind(app));
+  html.on("click", "#walledtemplates-useTargetedToken", onTargetedTokenButton.bind(app));
+  html.on("click", "#walledtemplates-removeAttachedToken", onRemoveTokenButton.bind(app));
+}
+
+/**
+ * Handle when user clicks the "Attach last selected token" button.
+ * @param {Event} event
+ */
+async function onSelectedTokenButton(_event) {
+  const token = game.user._lastSelected;
+  if ( !token ) {
+    ui.notifications.notify(game.i18n.localize(NOTIFICATIONS.NOTIFY.ATTACH_TOKEN_NOT_SELECTED));
+    return;
+  }
+  await this.document.setFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID, token.id);
+  ui.notifications.notify(`${token.name} attached!`);
+  this.render();
+}
+
+/**
+ * Handle when user clicks the "Attach last targeted token" button.
+ * @param {Event} event
+ */
+async function onTargetedTokenButton(_event) {
+  const tokenId = game.user.targets.ids.at(-1);
+  if ( !tokenId ) {
+    ui.notifications.notify(game.i18n.localize(NOTIFICATIONS.NOTIFY.ATTACH_TOKEN_NOT_TARGETED));
+    return;
+  }
+  const token = canvas.tokens.documentCollection.get(tokenId)?.object;
+  if ( !token ) {
+    ui.notifications.error(`Targeted token for id ${tokenId} not found.`);
+    return;
+  }
+
+  await this.document.setFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID, token.id);
+  this.render();
+  ui.notifications.notify(`${token.name} attached!`);
+}
+
+/**
+ * Handle when user clicks "Remove attached token" button
+ * @param {Event} event
+ */
+async function onRemoveTokenButton(_event) {
+  await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID);
+  this.render();
+  ui.notifications.notify(`Remove attached clicked!`);
+}
+
+
