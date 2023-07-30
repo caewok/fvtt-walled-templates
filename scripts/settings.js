@@ -7,6 +7,7 @@ game
 import { log } from "./util.js";
 import { MODULE_ID } from "./const.js";
 import { registerAutotargeting } from "./patching.js";
+import { WalledTemplateShapeSettings } from "./WalledTemplateShapeSettings.js";
 
 export const SETTINGS = {
   DEFAULTS: {
@@ -77,6 +78,14 @@ export async function setSetting(settingName, value) {
 
 export function registerSettings() {
   log("Registering walled template switch");
+
+  game.settings.registerMenu(MODULE_ID, 'menu', {
+    name: '',
+    label: `${MODULE_ID}.settings.menu.title`,
+    icon: "fas fa-cog",
+    type: WalledTemplateShapeSettings,
+    restricted: true
+  });
 
   game.settings.register(MODULE_ID, SETTINGS.AUTOTARGET.ENABLED, {
     name: "Enable autotargeting",
