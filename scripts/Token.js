@@ -144,6 +144,8 @@ async function detachTemplate(templateId, detachFromTemplate = true) {
  * @pram {ReticuleOptions} [reticule] Additional parameters to configure how the targeting reticule is drawn.
  */
 function _refreshCloneTarget(reticule) {
+  this.cloneTargeted ||= new Set();
+
   // We don't show the target arrows for a secret token disposition and non-GM users
   const isSecret = (this.document.disposition === CONST.TOKEN_DISPOSITIONS.SECRET) && !this.isOwner;
   if ( !this.cloneTargeted.size || isSecret ) return;
@@ -242,12 +244,6 @@ function attachedTemplates() {
 PATCHES.BASIC.GETTERS = { attachedTemplates };
 
 // ----- NOTE: Wraps ----- //
-function _applyRenderFlags(wrapper, flags) {
-  this[MODULE_ID] ??= {};
-  this[MODULE_ID].priorPosition ??= new PIXI.Point();
-  if ( flags.refreshPosition ) this[MODULE_ID].priorPosition.copyFrom(this.position);
-  return wrapper(flags);
-}
 
 /**
  * Wrap Token.prototype.animate
@@ -372,7 +368,6 @@ async function _draw(wrapped) {
 
 
 PATCHES.BASIC.WRAPS = {
-  _applyRenderFlags,
   animate,
   _onDragLeftStart,
   _onDragLeftMove,
