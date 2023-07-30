@@ -81,7 +81,7 @@ function updateTokenHook(tokenD, changed, _options, _userId) {
 function refreshTokenHook(token, flags) {
   if ( !flags.refreshPosition ) return;
   // TODO: refreshElevation flag?
-//   console.debug(`refreshToken for ${token.name} at ${token.position.x},${token.position.y}. Token is ${token._original ? "Clone" : "Original"}. Token is ${token._animation ? "" : "not "}animating.`);
+  console.debug(`refreshToken for ${token.name} at ${token.position.x},${token.position.y}. Token is ${token._original ? "Clone" : "Original"}. Token is ${token._animation ? "" : "not "}animating.`);
 
   if ( token._original ) {
     // clone
@@ -260,6 +260,12 @@ function attachedTemplates() {
 PATCHES.BASIC.GETTERS = { attachedTemplates };
 
 // ----- NOTE: Wraps ----- //
+function _applyRenderFlags(wrapper, flags) {
+  this[MODULE_ID] ??= {};
+  this[MODULE_ID].priorPosition ??= new PIXI.Point();
+  if ( flags.refreshPosition ) this[MODULE_ID].priorPosition.copyFrom(this.position);
+  return wrapper(flags);
+}
 
 /**
  * Wrap Token.prototype.animate
@@ -384,10 +390,10 @@ async function _draw(wrapped) {
 
 
 PATCHES.BASIC.WRAPS = {
+  _applyRenderFlags,
   animate,
   _onDragLeftStart,
   _onDragLeftMove,
   _onDragLeftDrop,
   _onDragLeftCancel,
-  _refreshTarget,
-  _draw };
+  _refreshTarget };

@@ -162,10 +162,6 @@ function clone(wrapped) {
 
   // Ensure shape is not shared with original.
   clone.renderFlags.set({ refreshShape: true });
-
-  // Do not target when clone; instead track a shadow "cloneTarget"
-  clone.targets = new Set();
-
   return clone;
 }
 
@@ -207,13 +203,6 @@ function _onDragLeftCancel(wrapped, event) {
 
 function _onDragLeftDrop(wrapped, event) {
   if ( !this.attachedToken ) return wrapped(event);
-
-  // Move the cloned targets back to the original.
-//   this._original.releaseTargets();
-//   this._original.acquireTargets()
-//
-//   this.targets.forEach(t => this._original.targets.add(t));
-//   this._original.
 
   // Temporarily set the event clones to this template clone.
   const tokenClones = event.interactionData.clones;
@@ -513,16 +502,6 @@ PATCHES.AUTOTARGET.METHODS = {
   targetsWithinShape,
   targets: new Set()
 };
-
-// ----- NOTE: Wraps ----- //
-
-function destroy(wrapped, options) {
-  // Remove all clone targets before destroying.
-  if ( this._original ) this.releaseTargets();
-  return wrapped(options);
-}
-
-PATCHES.AUTOTARGET.WRAPS = { destroy };
 
 // ----- NOTE: Helper functions ----- //
 
