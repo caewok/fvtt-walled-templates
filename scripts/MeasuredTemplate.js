@@ -392,8 +392,13 @@ function autotargetTokens({ onlyVisible = false } = {}) {
   log("autotargetTokens", this);
   if ( !getSetting(SETTINGS.AUTOTARGET.ENABLED) ) return this.releaseTargets();
 
-  this.releaseTargets({ broadcast: false });
-  this.acquireTargets({ broadcast: true });
+  console.debug(`Autotarget ${this._original ? "clone" : "original"} with ${this.targets.size} targets.`);
+  const tokens = new Set(this.targetsWithinShape({onlyVisible}));
+  const tokensToRelease = this.targets.difference(tokens);
+
+  this.releaseTargets({ tokens: tokensToRelease, broadcast: false });
+  this.acquireTargets({ tokens, broadcast: true, onlyVisible: false, checkShapeBounds: false });
+  console.debug(`Autotarget ${this._original ? "clone" : "original"} finished with ${this.targets.size} targets remaining.`);
 }
 
 /**
@@ -403,19 +408,30 @@ function autotargetTokens({ onlyVisible = false } = {}) {
  * @param {Set<Token>} [opts.tokens]            Release only tokens within this set
  * @param {boolean} [opts.broadcast=true]       Broadcast the user target change
  */
-function releaseTargets({ tokens , broadcast = true } = {}) {
+function releaseTargets({ tokens, broadcast = true } = {}) {
   const targetsToRelease = tokens ? this.targets.intersection(tokens) : this.targets;
   if ( !targetsToRelease.size ) return;
 
   // Release targets for this user.
   const user = this.document.user;
-  const targetFn = this._original ? "setCloneTarget" : "setTarget";
-  for ( const t of targetsToRelease ) {
+  let targetFn = "setTarget";
+  let userTargets = user.targets;
+  let broadcastOpts = { targets: user.targets.ids };
+  if ( this._original ) { // Template is clone
+    user.cloneTargets ||= new UserCloneTargets(user);
+    targetFn = "setCloneTarget";
+    userTargets = user.cloneTargets;
+    broadcastOpts = { cloneTargets: user.cloneTargets.ids };
+  }
+  const userTargetsToRelease = targetsToRelease.intersection(userTargets);
+  for ( const t of userTargetsToRelease ) {
+    console.debug(`Template ${this._original ? "clone" : "original"} releasing ${t.name}`);
+
     // When switching to a new scene, Foundry will sometimes try to setTarget using
     // token.position, but token.position throws an error. Maybe canvas not loaded?
     try {
       t[targetFn](false, { user, releaseOthers: false, groupSelection: true });
-    } catch ( error ) {
+    } catch( error ) {
       console.debug(error);
     }
   }
@@ -425,7 +441,7 @@ function releaseTargets({ tokens , broadcast = true } = {}) {
   else targetsToRelease.forEach(t => this.targets.delete(t));
 
   // Broadcast the target change
-  if ( broadcast ) user.broadcastActivity({ targets: user.targets.ids });
+  if ( broadcast ) user.broadcastActivity(broadcastOpts);
 }
 
 /**
@@ -448,13 +464,24 @@ function acquireTargets({ tokens, checkShapeBounds = true, onlyVisible = false, 
 
   // Acquire targets for this user.
   const user = this.document.user;
-  const targetFn = this._original ? "setCloneTarget" : "setTarget";
-  for ( const t of targetsToAcquire ) {
+  let targetFn = "setTarget";
+  let userTargets = user.targets;
+  let broadcastOpts = { targets: user.targets.ids };
+  if ( this._original ) { // Template is clone
+    user.cloneTargets ||= new UserCloneTargets(user);
+    targetFn = "setCloneTarget";
+    userTargets = user.cloneTargets;
+    broadcastOpts = { cloneTargets: user.cloneTargets.ids };
+  }
+  const userTargetsToAcquire = targetsToAcquire.difference(userTargets);
+
+  for ( const t of userTargetsToAcquire ) {
+    console.debug(`Template ${this._original ? "clone" : "original"} adding ${t.name}`);
     // When switching to a new scene, Foundry will sometimes try to setTarget using
     // token.position, but token.position throws an error. Maybe canvas not loaded?
     try {
       t[targetFn](true, { user, releaseOthers: false, groupSelection: true });
-    } catch ( error ) {
+    } catch( error ) {
       console.debug(error);
     }
   }
@@ -463,7 +490,7 @@ function acquireTargets({ tokens, checkShapeBounds = true, onlyVisible = false, 
   targetsToAcquire.forEach(t => this.targets.add(t));
 
   // Broadcast the target change
-  if ( broadcast ) user.broadcastActivity({ targets: user.targets.ids });
+  if ( broadcast ) user.broadcastActivity(broadcastOpts);
 }
 
 function targetsWithinShape({ onlyVisible = false } = {}) {

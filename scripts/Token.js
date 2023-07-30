@@ -153,29 +153,33 @@ async function detachTemplate(templateId, detachFromTemplate = true) {
  * @pram {ReticuleOptions} [reticule] Additional parameters to configure how the targeting reticule is drawn.
  */
 function _refreshCloneTarget(reticule) {
-  this.cloneTarget.clear();
+  console.debug(`_refreshCloneTarget | ${this.name} has ${this.cloneTargeted.size} clone targets.`);
 
   // We don't show the target arrows for a secret token disposition and non-GM users
   const isSecret = (this.document.disposition === CONST.TOKEN_DISPOSITIONS.SECRET) && !this.isOwner;
   if ( !this.cloneTargeted.size || isSecret ) return;
 
   // Clone target overrides the normal target.
+  console.debug(`_refreshCloneTarget | Clearing normal targeting for ${this.name}. ${this.cloneTargeted.size} clone target(s)`);
   this.target.clear();
 
   // Determine whether the current user has target and any other users
   const [others, user] = Array.from(this.cloneTargeted).partition(u => u === game.user);
 
-  // For the current user, draw the target arrows.
-  if ( user.length ) {
-    // Use half-transparency to distinguish from normal targets.
-    reticule ||= {};
-    reticule.alpha = 0.25;
+  // Use half-transparency to distinguish from normal targets.
+  reticule ||= {};
+  reticule.alpha = 0.25;
 
-    // So we can re-use drawTarget; swap in the clone target graphic.
-    const origTarget = this.target;
-    this.target = this.cloneTarget;
-    this._drawTarget(reticule);
-    this.target = origTarget;
+  // For the current user, draw the target arrows.
+  if ( user.length ) this._drawTarget(reticule);
+
+  // For other users, draw offset pips
+  const hw = (this.w / 2) + (others.length % 2 === 0 ? 8 : 0);
+  for ( let [i, u] of others.entries() ) {
+    const offset = Math.floor((i+1) / 2) * 16;
+    const sign = i % 2 === 0 ? 1 : -1;
+    const x = hw + (sign * offset);
+    this.target.beginFill(Color.from(u.color), 1.0).lineStyle(2, 0x0000000).drawCircle(x, 0, 6);
   }
 }
 
@@ -204,17 +208,20 @@ function setCloneTarget(targeted=true, {user=null, releaseOthers=true, groupSele
 
   // Acquire target
   if ( targeted ) {
+    console.debug(`setCloneTarget | ${this.name} acquiring clone target for ${user.name}`);
     this.cloneTargeted.add(user);
     user.cloneTargets.add(this);
   }
 
   // Release target
   else {
+    console.debug(`setCloneTarget | ${this.name} releasing clone target for ${user.name}`);
     this.cloneTargeted.delete(user);
     user.cloneTargets.delete(this);
   }
 
   if ( wasTargeted !== targeted ) {
+    console.debug(`setCloneTarget | ${this.name} refreshing clone targets`);
     // Refresh Token display
     this.renderFlags.set({refreshTarget: true});
 
@@ -223,14 +230,16 @@ function setCloneTarget(targeted=true, {user=null, releaseOthers=true, groupSele
   }
 
   // Broadcast the target change
-  // if ( !groupSelection ) user.broadcastActivity({targets: user.targets.ids});
+  if ( !groupSelection ) user.broadcastActivity({cloneTargets: user.cloneTargets.ids});
+
+  console.debug(`setCloneTarget | ${this.name} has ${this.cloneTargeted.size} clone targets and ${user.name} has ${user.cloneTargets.size} clone targets.`);
+
 }
 
 
 PATCHES.BASIC.METHODS = {
   attachTemplate,
   detachTemplate,
-  cloneTargeted: new Set([]),  // Store targets created when dragging templates.
   _refreshCloneTarget,
   setCloneTarget
 };
@@ -366,12 +375,12 @@ function _refreshTarget(wrapped, reticule) {
 /**
  * Wrap Token.prototype._draw
  * Add a PIXI.Graphics for the cloneTarget.
+ * Add cloneTarget set
  */
 async function _draw(wrapped) {
   await wrapped();
-  this.cloneTarget ||= this.addChild(new PIXI.Graphics());
+  this.cloneTargeted ||= new Set();
 }
-
 
 
 PATCHES.BASIC.WRAPS = {
