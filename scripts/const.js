@@ -30,6 +30,12 @@ export const LABELS = {
     sound: "WALLS.Sound"
   },
 
+  HEIGHT_CHOICES: {
+    minorAxis: "walledtemplates.MeasuredTemplateConfiguration.minorAxis",
+    majorAxis: "walledtemplates.MeasuredTemplateConfiguration.majorAxis",
+    custom: "walledtemplates.MeasuredTemplateConfiguration.custom"
+  },
+
   SPELL_TEMPLATE: {},
 
   GLOBAL_DEFAULT: "globalDefault"

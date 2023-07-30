@@ -20,6 +20,7 @@ function renderMeasuredTemplateConfigHook(app, html, data) {
   const attachedToken = app.object?.object?.attachedToken;
   const renderData = {};
   renderData[MODULE_ID] = {
+    heightChoices: LABELS.HEIGHT_CHOICES,
     blockoptions: LABELS.WALLS_BLOCK,
     walloptions: LABELS.WALL_RESTRICTION,
     attachedTokenName: attachedToken?.name || game.i18n.localize("None"),

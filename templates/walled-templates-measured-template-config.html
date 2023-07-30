@@ -8,6 +8,16 @@
     </div>
 
     <div class="form-group">
+      <label>{{ localize "walledtemplates.MeasuredTemplateConfiguration.height.Name" }} <span class="units">({{gridUnits}})</span> </label>
+      <div class="form-fields">
+        <select name="walledtemplates.heightType">
+          {{ selectOptions walledtemplates.heightChoices selected=data.flags.walledtemplates.heightType localize=true }}
+        </select>
+        <input type="number" placeholder="{{gridUnits}}" min = "1" id="walledtemplates.heightValue" name="flags.walledtemplates.heightValue" class="walledtemplates" value="{{ data.flags.walledtemplates.heightValue }}"/>
+      </div>
+    </div>
+
+    <div class="form-group">
       <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name"}}</label>
       <div class="form-fields">
         <select name="flags.walledtemplates.wallsBlock">
@@ -36,6 +46,13 @@
         <button type="button" {{ disabled walledtemplates.noAttachedToken }} data-type="token" data-target="data.entity" class="walledtemplates-entity-picker" id="walledtemplates-removeAttachedToken" title="{{localize 'walledtemplates.MeasuredTemplateConfiguration.attach-token.removeToken'}}"><i class="fas fa-user-slash fa-sm"></i></button>
       </div>
       <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.attach-token.Hint"}}</p>
+    </div>
+
+    <div class="form-group">
+      <label>{{ localize "walledtemplates.MeasuredTemplateConfiguration.heightTokenOverride.Name"}}&nbsp; <i class="tip fas fa-info-circle" data-tooltip="walledtemplates.MeasuredTemplateConfiguration.heightTokenOverride.Tip"></i> </label>
+      <div class="form-fields">
+        <input type="checkbox" name="walledtemplates-tokenOverride" {{ checked data.flags.walledtemplates.heightTokenOverride }}></input>
+      </div>
     </div>
 
 </fieldset>
