@@ -165,6 +165,15 @@ function clone(wrapped) {
   return clone;
 }
 
+PATCHES.BASIC.WRAPS = {
+  _getGridHighlightPositions,
+  _computeShape,
+  _canDrag,
+  clone
+};
+
+// ----- Autotarget Wraps ----- //
+
 /**
  * Wrap MeasuredTemplate.prototype._onDragLeftStart
  * If this is a clone
@@ -213,17 +222,20 @@ function _onDragLeftDrop(wrapped, event) {
   event.interactionData.clones = tokenClones;
 }
 
+function destroy(wrapped, options) {
+  if ( this._original ) {
+    this.releaseTargets();
+    this._original.autotargetTokens()
+  }
+  return wrapped(options);
+}
 
-PATCHES.BASIC.WRAPS = {
-  _getGridHighlightPositions,
-  _computeShape,
-  _canDrag,
-  clone,
+PATCHES.AUTOTARGET.WRAPS = {
   _onDragLeftStart,
   _onDragLeftMove,
   _onDragLeftCancel,
-  _onDragLeftDrop
-
+  _onDragLeftDrop,
+  destroy
 };
 
 // ----- NOTE: Methods ----- //
@@ -381,13 +393,13 @@ function autotargetTokens({ onlyVisible = false } = {}) {
   log("autotargetTokens", this);
   if ( !getSetting(SETTINGS.AUTOTARGET.ENABLED) ) return this.releaseTargets();
 
-  console.debug(`Autotarget ${this._original ? "clone" : "original"} with ${this.targets.size} targets.`);
+  log(`Autotarget ${this._original ? "clone" : "original"} with ${this.targets.size} targets.`);
   const tokens = new Set(this.targetsWithinShape({onlyVisible}));
   const tokensToRelease = this.targets.difference(tokens);
 
   this.releaseTargets({ tokens: tokensToRelease, broadcast: false });
   this.acquireTargets({ tokens, broadcast: true, onlyVisible: false, checkShapeBounds: false });
-  console.debug(`Autotarget ${this._original ? "clone" : "original"} finished with ${this.targets.size} targets remaining.`);
+  log(`Autotarget ${this._original ? "clone" : "original"} finished with ${this.targets.size} targets remaining.`);
 }
 
 /**
@@ -414,7 +426,7 @@ function releaseTargets({ tokens, broadcast = true } = {}) {
   }
   const userTargetsToRelease = targetsToRelease.intersection(userTargets);
   for ( const t of userTargetsToRelease ) {
-    console.debug(`Template ${this._original ? "clone" : "original"} releasing ${t.name}`);
+    log(`Template ${this._original ? "clone" : "original"} releasing ${t.name}`);
 
     // When switching to a new scene, Foundry will sometimes try to setTarget using
     // token.position, but token.position throws an error. Maybe canvas not loaded?
@@ -465,7 +477,6 @@ function acquireTargets({ tokens, checkShapeBounds = true, onlyVisible = false, 
   const userTargetsToAcquire = targetsToAcquire.difference(userTargets);
 
   for ( const t of userTargetsToAcquire ) {
-    console.debug(`Template ${this._original ? "clone" : "original"} adding ${t.name}`);
     // When switching to a new scene, Foundry will sometimes try to setTarget using
     // token.position, but token.position throws an error. Maybe canvas not loaded?
     try {
