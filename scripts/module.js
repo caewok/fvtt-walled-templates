@@ -145,9 +145,9 @@ Hooks.once("ready", async function() {
       const enabled = t.document.getFlag(MODULE_ID, "enabled");
       if ( typeof enabled !== "undefined" ) {
         promises.push(t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, enabled
-          ? SETTINGS.DEFAULTS.CHOICES.WALLED : SETTINGS.DEFAULTS.CHOICES.UNWALLED));
+          ? SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED : SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED));
       } else {
-        promises.push(t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULTS[shape])));
+        promises.push(t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[shape])));
       }
     }
 

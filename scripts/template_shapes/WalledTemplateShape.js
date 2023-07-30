@@ -110,19 +110,19 @@ export class WalledTemplateShape {
     return [this.translatedShape];
   }
 
-  /** @type {SETTINGS.DEFAULTS.CHOICES} */
+  /** @type {SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES} */
   get wallsBlockCode() {
     let wallsBlock = this.item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
       ?? this.template.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-      ?? getSetting(SETTINGS.DEFAULTS[this.t])
-      ?? SETTINGS.DEFAULTS.CHOICES.UNWALLED;
+      ?? getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[this.t])
+      ?? SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED;
 
-    if ( wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULTS[this.t]);
+    if ( wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[this.t]);
     return wallsBlock;
   }
 
   /** @type {boolean} */
-  get doWallsBlock() { return this.wallsBlockCode !== SETTINGS.DEFAULTS.CHOICES.UNWALLED; }
+  get doWallsBlock() { return this.wallsBlockCode !== SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED; }
 
   /** @type {SETTINGS.DEFAULT_WALL_RESTRICTIONS} */
   get wallRestriction() {
@@ -160,7 +160,7 @@ export class WalledTemplateShape {
    */
   get doRecursion() {
     const numRecursions = CONFIG[MODULE_ID].recursions[this.t] ?? 0;
-    return this.wallsBlockCode === SETTINGS.DEFAULTS.CHOICES.RECURSE
+    return this.wallsBlockCode === SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.RECURSE
       && this.options.level < numRecursions;
   }
 
