@@ -1,5 +1,12 @@
 <fieldset>
   <legend>{{ localize "walledtemplates.MeasuredTemplateConfiguration.LegendTitle" }}</legend>
+    <div class="form-group">
+      <label>{{ localize "walledtemplates.MeasuredTemplateConfiguration.elevation.Name" }}</label>
+      <div class="form-fields">
+        <input type="number" id="elevatedvisionElevationConfig" name="flags.elevatedvision.elevation" class="elevatedvision" value="{{ data.flags.elevatedvision.elevation }}"/>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.elevation.Hint"}}</p>
+    </div>
 
     <div class="form-group">
       <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name"}}</label>

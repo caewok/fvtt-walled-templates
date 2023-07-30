@@ -18,6 +18,7 @@
     "walledtemplates.MeasuredTemplateConfiguration.attach-token.removeToken": "Remove attached token",
 
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevation",
+    "walledtemplates.MeasuredTemplateConfiguration.elevation.Hint": "Elevation of this template",
 
     "walledtemplates.settings.default_circle.Name": "Default Circle",
     "walledtemplates.settings.default_cone.Name": "Default Cone",
