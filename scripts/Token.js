@@ -44,8 +44,6 @@ function controlTokenHook(object, controlled) {
  */
 function preUpdateTokenHook(tokenD, changes, _options, _userId) {
   const token = tokenD.object;
-//   console.debug(`preUpdateToken hook ${changes.x}, ${changes.y}, ${changes.elevation} at elevation ${token.document?.elevation} with elevationD ${tokenD.elevation}`, changes);
-//   console.debug(`preUpdateToken hook moving ${tokenD.x},${tokenD.y} --> ${changes.x ? changes.x : tokenD.x},${changes.y ? changes.y : tokenD.y}`);
 }
 
 /**
@@ -53,8 +51,6 @@ function preUpdateTokenHook(tokenD, changes, _options, _userId) {
  */
 function updateTokenHook(tokenD, changed, _options, _userId) {
   const token = tokenD.object;
-//   console.debug(`updateToken hook ${changed.x}, ${changed.y}, ${changed.elevation} at elevation ${token.document?.elevation} with elevationD ${tokenD.elevation}`, changed);
-//   console.debug(`updateToken hook moving ${tokenD.x},${tokenD.y} --> ${changed.x ? changed.x : tokenD.x},${changed.y ? changed.y : tokenD.y}`);
 
   const attachedTemplates = token.attachedTemplates;
   if ( !attachedTemplates.length ) return;
@@ -65,12 +61,10 @@ function updateTokenHook(tokenD, changed, _options, _userId) {
 
   const updates = [];
   for ( const template of token.attachedTemplates ) {
-//     console.debug(`Updating template ${template.id}. Current: ${template.document.x},${template.document.y}. Token: ${tokenD.x},${tokenD.y}`);
     const templateData = template._calculateAttachedTemplateOffset(changed);
     if ( isEmpty(templateData) ) continue;
     templateData._id = template.id;
     updates.push(templateData);
-//     console.debug(`Updating template ${template.id} to ${updates.at(-1).x},${updates.at(-1).y}`, templateData);
   }
   if ( updates.length ) canvas.scene.updateEmbeddedDocuments("MeasuredTemplate", updates);
 }
@@ -81,17 +75,14 @@ function updateTokenHook(tokenD, changed, _options, _userId) {
 function refreshTokenHook(token, flags) {
   if ( !flags.refreshPosition ) return;
   // TODO: refreshElevation flag?
-  console.debug(`refreshToken for ${token.name} at ${token.position.x},${token.position.y}. Token is ${token._original ? "Clone" : "Original"}. Token is ${token._animation ? "" : "not "}animating.`);
 
   if ( token._original ) {
     // clone
-//     console.debug(`clone of ${token.name} at ${token.position.x},${token.position.y} and document ${token.document.x}, ${token.document.y}`);
 
   }
 
   if ( token._animation ) {
     // animating
-//     console.debug(`${token.name} at ${token.position.x},${token.position.y} and document ${token.document.x}, ${token.document.y}`);
 //     attachedTemplates.map(t => t.document.updateSource({ x: t.x + delta.x, y: t.y + delta.y }));
   }
 }
@@ -153,14 +144,11 @@ async function detachTemplate(templateId, detachFromTemplate = true) {
  * @pram {ReticuleOptions} [reticule] Additional parameters to configure how the targeting reticule is drawn.
  */
 function _refreshCloneTarget(reticule) {
-  console.debug(`_refreshCloneTarget | ${this.name} has ${this.cloneTargeted.size} clone targets.`);
-
   // We don't show the target arrows for a secret token disposition and non-GM users
   const isSecret = (this.document.disposition === CONST.TOKEN_DISPOSITIONS.SECRET) && !this.isOwner;
   if ( !this.cloneTargeted.size || isSecret ) return;
 
   // Clone target overrides the normal target.
-  console.debug(`_refreshCloneTarget | Clearing normal targeting for ${this.name}. ${this.cloneTargeted.size} clone target(s)`);
   this.target.clear();
 
   // Determine whether the current user has target and any other users
@@ -208,20 +196,17 @@ function setCloneTarget(targeted=true, {user=null, releaseOthers=true, groupSele
 
   // Acquire target
   if ( targeted ) {
-    console.debug(`setCloneTarget | ${this.name} acquiring clone target for ${user.name}`);
     this.cloneTargeted.add(user);
     user.cloneTargets.add(this);
   }
 
   // Release target
   else {
-    console.debug(`setCloneTarget | ${this.name} releasing clone target for ${user.name}`);
     this.cloneTargeted.delete(user);
     user.cloneTargets.delete(this);
   }
 
   if ( wasTargeted !== targeted ) {
-    console.debug(`setCloneTarget | ${this.name} refreshing clone targets`);
     // Refresh Token display
     this.renderFlags.set({refreshTarget: true});
 
@@ -231,9 +216,6 @@ function setCloneTarget(targeted=true, {user=null, releaseOthers=true, groupSele
 
   // Broadcast the target change
   if ( !groupSelection ) user.broadcastActivity({cloneTargets: user.cloneTargets.ids});
-
-  console.debug(`setCloneTarget | ${this.name} has ${this.cloneTargeted.size} clone targets and ${user.name} has ${user.cloneTargets.size} clone targets.`);
-
 }
 
 
