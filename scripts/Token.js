@@ -44,8 +44,6 @@ function controlTokenHook(object, controlled) {
  */
 function preUpdateTokenHook(tokenD, changes, _options, _userId) {
   const token = tokenD.object;
-//   console.debug(`preUpdateToken hook ${changes.x}, ${changes.y}, ${changes.elevation} at elevation ${token.document?.elevation} with elevationD ${tokenD.elevation}`, changes);
-//   console.debug(`preUpdateToken hook moving ${tokenD.x},${tokenD.y} --> ${changes.x ? changes.x : tokenD.x},${changes.y ? changes.y : tokenD.y}`);
 }
 
 /**
@@ -53,8 +51,6 @@ function preUpdateTokenHook(tokenD, changes, _options, _userId) {
  */
 function updateTokenHook(tokenD, changed, _options, _userId) {
   const token = tokenD.object;
-//   console.debug(`updateToken hook ${changed.x}, ${changed.y}, ${changed.elevation} at elevation ${token.document?.elevation} with elevationD ${tokenD.elevation}`, changed);
-//   console.debug(`updateToken hook moving ${tokenD.x},${tokenD.y} --> ${changed.x ? changed.x : tokenD.x},${changed.y ? changed.y : tokenD.y}`);
 
   const attachedTemplates = token.attachedTemplates;
   if ( !attachedTemplates.length ) return;
@@ -65,12 +61,10 @@ function updateTokenHook(tokenD, changed, _options, _userId) {
 
   const updates = [];
   for ( const template of token.attachedTemplates ) {
-//     console.debug(`Updating template ${template.id}. Current: ${template.document.x},${template.document.y}. Token: ${tokenD.x},${tokenD.y}`);
     const templateData = template._calculateAttachedTemplateOffset(changed);
     if ( isEmpty(templateData) ) continue;
     templateData._id = template.id;
     updates.push(templateData);
-//     console.debug(`Updating template ${template.id} to ${updates.at(-1).x},${updates.at(-1).y}`, templateData);
   }
   if ( updates.length ) canvas.scene.updateEmbeddedDocuments("MeasuredTemplate", updates);
 }
@@ -81,17 +75,14 @@ function updateTokenHook(tokenD, changed, _options, _userId) {
 function refreshTokenHook(token, flags) {
   if ( !flags.refreshPosition ) return;
   // TODO: refreshElevation flag?
-//   console.debug(`refreshToken for ${token.name} at ${token.position.x},${token.position.y}. Token is ${token._original ? "Clone" : "Original"}. Token is ${token._animation ? "" : "not "}animating.`);
 
   if ( token._original ) {
     // clone
-//     console.debug(`clone of ${token.name} at ${token.position.x},${token.position.y} and document ${token.document.x}, ${token.document.y}`);
 
   }
 
   if ( token._animation ) {
     // animating
-//     console.debug(`${token.name} at ${token.position.x},${token.position.y} and document ${token.document.x}, ${token.document.y}`);
 //     attachedTemplates.map(t => t.document.updateSource({ x: t.x + delta.x, y: t.y + delta.y }));
   }
 }
@@ -153,8 +144,6 @@ async function detachTemplate(templateId, detachFromTemplate = true) {
  * @pram {ReticuleOptions} [reticule] Additional parameters to configure how the targeting reticule is drawn.
  */
 function _refreshCloneTarget(reticule) {
-  this.cloneTarget.clear();
-
   // We don't show the target arrows for a secret token disposition and non-GM users
   const isSecret = (this.document.disposition === CONST.TOKEN_DISPOSITIONS.SECRET) && !this.isOwner;
   if ( !this.cloneTargeted.size || isSecret ) return;
@@ -165,17 +154,20 @@ function _refreshCloneTarget(reticule) {
   // Determine whether the current user has target and any other users
   const [others, user] = Array.from(this.cloneTargeted).partition(u => u === game.user);
 
-  // For the current user, draw the target arrows.
-  if ( user.length ) {
-    // Use half-transparency to distinguish from normal targets.
-    reticule ||= {};
-    reticule.alpha = 0.25;
+  // Use half-transparency to distinguish from normal targets.
+  reticule ||= {};
+  reticule.alpha = 0.25;
 
-    // So we can re-use drawTarget; swap in the clone target graphic.
-    const origTarget = this.target;
-    this.target = this.cloneTarget;
-    this._drawTarget(reticule);
-    this.target = origTarget;
+  // For the current user, draw the target arrows.
+  if ( user.length ) this._drawTarget(reticule);
+
+  // For other users, draw offset pips
+  const hw = (this.w / 2) + (others.length % 2 === 0 ? 8 : 0);
+  for ( let [i, u] of others.entries() ) {
+    const offset = Math.floor((i+1) / 2) * 16;
+    const sign = i % 2 === 0 ? 1 : -1;
+    const x = hw + (sign * offset);
+    this.target.beginFill(Color.from(u.color), 1.0).lineStyle(2, 0x0000000).drawCircle(x, 0, 6);
   }
 }
 
@@ -223,14 +215,13 @@ function setCloneTarget(targeted=true, {user=null, releaseOthers=true, groupSele
   }
 
   // Broadcast the target change
-  // if ( !groupSelection ) user.broadcastActivity({targets: user.targets.ids});
+  if ( !groupSelection ) user.broadcastActivity({cloneTargets: user.cloneTargets.ids});
 }
 
 
 PATCHES.BASIC.METHODS = {
   attachTemplate,
   detachTemplate,
-  cloneTargeted: new Set([]),  // Store targets created when dragging templates.
   _refreshCloneTarget,
   setCloneTarget
 };
@@ -251,6 +242,12 @@ function attachedTemplates() {
 PATCHES.BASIC.GETTERS = { attachedTemplates };
 
 // ----- NOTE: Wraps ----- //
+function _applyRenderFlags(wrapper, flags) {
+  this[MODULE_ID] ??= {};
+  this[MODULE_ID].priorPosition ??= new PIXI.Point();
+  if ( flags.refreshPosition ) this[MODULE_ID].priorPosition.copyFrom(this.position);
+  return wrapper(flags);
+}
 
 /**
  * Wrap Token.prototype.animate
@@ -366,19 +363,19 @@ function _refreshTarget(wrapped, reticule) {
 /**
  * Wrap Token.prototype._draw
  * Add a PIXI.Graphics for the cloneTarget.
+ * Add cloneTarget set
  */
 async function _draw(wrapped) {
   await wrapped();
-  this.cloneTarget ||= this.addChild(new PIXI.Graphics());
+  this.cloneTargeted ||= new Set();
 }
 
 
-
 PATCHES.BASIC.WRAPS = {
+  _applyRenderFlags,
   animate,
   _onDragLeftStart,
   _onDragLeftMove,
   _onDragLeftDrop,
   _onDragLeftCancel,
-  _refreshTarget,
-  _draw };
+  _refreshTarget };
