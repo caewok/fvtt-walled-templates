@@ -41,6 +41,16 @@
       <p class="hint">{{ localize "walledtemplates.settings.diagonal-scaling-circle.Hint"}}</p>
     </div>
 
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.wall-height-type.Name"}}</label>
+      <div class="form-fields">
+        <select name="circle.DEFAULT_HEIGHT">
+          {{ selectOptions walloptions selected=circle.DEFAULT_HEIGHT localize=true }}
+        </select>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-height-type.Hint"}}</p>
+    </div>
+
   </section>
 
   <section class='tab' data-tab='cone'>

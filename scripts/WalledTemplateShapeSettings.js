@@ -46,11 +46,16 @@ export class WalledTemplateShapeSettings extends FormApplication {
   }
 
   static defaultSettings(shapeKey) {
-    return {
-      DEFAULT_WALLS_BLOCK: getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[shapeKey]),
-      DEFAULT_WALL_RESTRICTIONS: getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shapeKey]),
-      DIAGONAL_SCALING: getSetting(SETTINGS.DIAGONAL_SCALING[shapeKey])
-    };
+    const settingsObj = {};
+    const settingKeys = [
+      "DEFAULT_WALLS_BLOCK",
+      "DEFAULT_WALL_RESTRICTIONS",
+      "DIAGONAL_SCALING",
+      "DEFAULT_HEIGHT",
+      "DEFAULT_HEIGHT_TOKEN_OVERRIDE"
+    ];
+    for ( const key of settingKeys ) settingsObj[key] = getSetting(SETTINGS[key][shapeKey]);
+    return settingsObj;
   }
 
   async _updateObject(_, formData) {

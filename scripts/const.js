@@ -51,6 +51,8 @@ export const NOTIFICATIONS = {
     ATTACH_TOKEN_NOT_SELECTED: "walledtemplates.notifications.attach-last-selected-token",
     ATTACH_TOKEN_NOT_TARGETED: "walledtemplates.notifications.attach-last-targeted-token"
   }
-}
+};
 
 export const ACTIVE_EFFECT_ICON = `modules/${MODULE_ID}/assets/ruler-combined-solid-gray.svg`;
+
+export const SHAPE_KEYS = ["circle", "cone", "ray", "rect"];
