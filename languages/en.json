@@ -25,7 +25,7 @@
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevation",
     "walledtemplates.MeasuredTemplateConfiguration.height.Name": "Height",
     "walledtemplates.MeasuredTemplateConfiguration.heightTokenOverride.Name": "Token Overrides Height?",
-    "walledtemplates.MeasuredTemplateConfiguration.heightTokenOverride.Tip": "Should the height of the attached token be used in lieu of the template height setting?",
+    "walledtemplates.MeasuredTemplateConfiguration.heightTokenOverride.Hint": "Should the height of the attached token be used in lieu of the template height setting?",
 
     "walledtemplates.settings.menu.title": "Default Shape Settings",
 

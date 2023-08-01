@@ -1,4 +1,5 @@
 /* globals
+canvas,
 expandObject,
 FormApplication,
 foundry,
@@ -45,8 +46,10 @@ export class WalledTemplateShapeSettings extends FormApplication {
 
     return foundry.utils.mergeObject(data, {
       shapes,
+      gridUnits: canvas.scene.grid.units || game.i18n.localize("GridUnits"),
       blockoptions: LABELS.WALLS_BLOCK,
-      walloptions: LABELS.WALL_RESTRICTION
+      walloptions: LABELS.WALL_RESTRICTION,
+      heightoptions: LABELS.HEIGHT_CHOICES
     });
   }
 
@@ -57,6 +60,7 @@ export class WalledTemplateShapeSettings extends FormApplication {
       "DEFAULT_WALL_RESTRICTIONS",
       "DIAGONAL_SCALING",
       "DEFAULT_HEIGHT",
+      "DEFAULT_HEIGHT_CUSTOM_VALUE",
       "DEFAULT_HEIGHT_TOKEN_OVERRIDE"
     ];
     for ( const key of settingKeys ) settingsObj[key] = getSetting(SETTINGS[key][shapeKey]);
@@ -74,5 +78,26 @@ export class WalledTemplateShapeSettings extends FormApplication {
       });
     });
     await Promise.all(promises);
+  }
+
+  async _onChangeInput(event) {
+    const heightKeys = SHAPE_KEYS.map(shape => `${shape}.DEFAULT_WALL_HEIGHT`);
+    if ( heightKeys.includes(event.currentTarget.name) ) this.#toggleCustomHeightInput();
+  }
+
+  activateListeners(html) {
+    this.#toggleCustomHeightInput();
+    return super.activateListeners(html);
+  }
+
+  // See WallConfig.prototype.#toggleThresholdInputVisibility
+  #toggleCustomHeightInput() {
+    const heightKeys = SHAPE_KEYS.map(shape => `${shape}.DEFAULT_WALL_HEIGHT`);
+    const form = this.form;
+    for ( const shapeInput of heightKeys ) {
+      const select = form[shapeInput];
+      const input = select.parentElement.querySelector(".walledtemplates_customheight");
+      input.hidden = !select.value.includes(SETTINGS.DEFAULT_HEIGHT.CHOICES.CUSTOM);
+    }
   }
 }
