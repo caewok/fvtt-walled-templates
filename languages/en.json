@@ -19,6 +19,8 @@
 
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevation",
 
+    "walledtemplates.settings.menu.title": "Default Shape Settings",
+
     "walledtemplates.settings.default_circle.Name": "Default Circle",
     "walledtemplates.settings.default_cone.Name": "Default Cone",
     "walledtemplates.settings.default_ray.Name": "Default Ray",
