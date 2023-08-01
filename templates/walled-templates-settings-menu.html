@@ -2,7 +2,7 @@
 	<nav class="sheet-tabs tabs">
 	  {{#each shapeKeys}}
       <a class='item' data-tab='{{this}}'>{{localize (concat 'walledtemplates.settings.default_' this '.Name') }}</a>
-		{{/each}}
+    {{/each}}
 	</nav>
 
   <header class="sheet-header flexrow">
@@ -10,6 +10,22 @@
     <hr>
     <br>
   </header>
+
+ {{#each shapeKeys}}
+   <section class='tab' data-tab='{{this}}'>
+     <div class="form-group">
+       <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name"}}</label>
+       <div class="form-fields">
+         <select name={{ concat this ".DEFAULT_WALLS_BLOCK" }}>
+           {{ selectOptions ../blockoptions selected=this.DEFAULT_WALLS_BLOCK localize=true }}
+         </select>
+       </div>
+       <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint"}}</p>
+     </div>
+   </section>
+ {{/each}}
+
+  <!--
 
   <section class='tab' data-tab='circle'>
     <div class="form-group">
@@ -133,6 +149,8 @@
       <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint"}}</p>
     </div>
   </section>
+
+  -->
 
   <footer class="sheet-footer flexrow" style="margin: auto; padding-top: 60px">
     <br>
