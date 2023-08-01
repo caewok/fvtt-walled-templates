@@ -36,8 +36,8 @@
       <div class="form-group">
         <label>{{ localize "walledtemplates.MeasuredTemplateConfiguration.height.Name" }} <span class="units">({{../gridUnits}})</span> </label>
         <div class="form-fields">
-          <select name="{{ concat this.key '.DEFAULT_WALL_HEIGHT' }}">
-            {{ selectOptions ../heightoptions selected=this.DEFAULT_WALL_HEIGHT localize=true }}
+          <select name="{{ concat this.key '.DEFAULT_HEIGHT' }}" class="walledtemplates_heightchoices">
+            {{ selectOptions ../heightoptions selected=this.DEFAULT_HEIGHT localize=true }}
           </select>
           <input type="number" placeholder="{{gridUnits}}" class="walledtemplates_customheight" name="{{ concat this.key '.DEFAULT_HEIGHT_CUSTOM_VALUE' }}" value="{{ this.DEFAULT_HEIGHT_CUSTOM_VALUE }}"/>
         </div>
