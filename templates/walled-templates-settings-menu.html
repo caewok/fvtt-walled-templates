@@ -6,24 +6,127 @@
 		<a class='item' data-tab='rect'>{{localize 'walledtemplates.settings.default_rect.Name'}}</a>
 	</nav>
 
-  <section class='tab' data-tab='circle'>
+  <header class="sheet-header flexrow">
+    <br>
+    <hr>
+    <br>
+  </header>
 
+  <section class='tab' data-tab='circle'>
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name"}}</label>
+      <div class="form-fields">
+        <select name="circle.DEFAULT_WALLS_BLOCK">
+          {{ selectOptions blockoptions selected=data.circle.DEFAULT_WALLS_BLOCK localize=true }}
+        </select>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint"}}</p>
+    </div>
+
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name"}}</label>
+      <div class="form-fields">
+        <select name="circle.DEFAULT_WALL_RESTRICTIONS">
+          {{ selectOptions walloptions selected=data.circle.DEFAULT_WALL_RESTRICTIONS localize=true }}
+        </select>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint"}}</p>
+    </div>
+
+    <div class="form-group">
+      <label>{{localize "walledtemplates.settings.diagonal-scaling-circle.Name"}}</label>
+      <div class="form-fields">
+        <input type="checkbox" name="circle.DIAGONAL_SCALING" {{ checked data.circle.DIAGONAL_SCALING }}>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.settings.diagonal-scaling-circle.Hint"}}</p>
+    </div>
 
   </section>
 
   <section class='tab' data-tab='cone'>
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name"}}</label>
+      <div class="form-fields">
+        <select name="cone.DEFAULT_WALLS_BLOCK">
+          {{ selectOptions blockoptions selected=data.cone.DEFAULT_WALLS_BLOCK localize=true }}
+        </select>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint"}}</p>
+    </div>
 
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name"}}</label>
+      <div class="form-fields">
+        <select name="cone.DEFAULT_WALL_RESTRICTIONS">
+          {{ selectOptions walloptions selected=data.cone.DEFAULT_WALL_RESTRICTIONS localize=true }}
+        </select>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint"}}</p>
+    </div>
+
+    <div class="form-group">
+      <label>{{localize "walledtemplates.settings.diagonal-scaling-cone.Name"}}</label>
+      <div class="form-fields">
+        <input type="checkbox" name="cone.DIAGONAL_SCALING" {{ checked data.cone.DIAGONAL_SCALING }}>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.settings.diagonal-scaling-cone.Hint"}}</p>
+    </div>
   </section>
 
   <section class='tab' data-tab='ray'>
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name"}}</label>
+      <div class="form-fields">
+        <select name="ray.DEFAULT_WALLS_BLOCK">
+          {{ selectOptions blockoptions selected=data.ray.DEFAULT_WALLS_BLOCK localize=true }}
+        </select>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint"}}</p>
+    </div>
 
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name"}}</label>
+      <div class="form-fields">
+        <select name="ray.DEFAULT_WALL_RESTRICTIONS">
+          {{ selectOptions walloptions selected=data.ray.DEFAULT_WALL_RESTRICTIONS localize=true }}
+        </select>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint"}}</p>
+    </div>
+
+    <div class="form-group">
+      <label>{{localize "walledtemplates.settings.diagonal-scaling-ray.Name"}}</label>
+      <div class="form-fields">
+        <input type="checkbox" name="ray.DIAGONAL_SCALING" {{ checked data.ray.DIAGONAL_SCALING }}>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.settings.diagonal-scaling-ray.Hint"}}</p>
+    </div>
   </section>
 
   <section class='tab' data-tab='rect'>
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name"}}</label>
+      <div class="form-fields">
+        <select name="rect.DEFAULT_WALLS_BLOCK">
+          {{ selectOptions blockoptions selected=data.rect.DEFAULT_WALLS_BLOCK localize=true }}
+        </select>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint"}}</p>
+    </div>
 
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name"}}</label>
+      <div class="form-fields">
+        <select name="rect.DEFAULT_WALL_RESTRICTIONS">
+          {{ selectOptions walloptions selected=data.rect.DEFAULT_WALL_RESTRICTIONS localize=true }}
+        </select>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint"}}</p>
+    </div>
   </section>
 
-  <div style="margin: auto; padding-top: 60px">
-	  <button type="button" class="submit" style="width:100%">{{localize 'Save Changes'}}</button>
-	</div>
+  <footer class="sheet-footer flexrow" style="margin: auto; padding-top: 60px">
+    <br>
+    <button type='submit' name='submit' value='1'><i class='far fa-floppy-disk'></i>{{localize 'Save Changes'}}</button>
+  </footer>
 </form>

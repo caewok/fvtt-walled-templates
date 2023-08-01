@@ -79,8 +79,8 @@ export async function setSetting(settingName, value) {
 export function registerSettings() {
   log("Registering walled template switch");
 
-  game.settings.registerMenu(MODULE_ID, 'menu', {
-    name: '',
+  game.settings.registerMenu(MODULE_ID, "menu", {
+    name: "Walled Templates Settings Menu",
     label: `${MODULE_ID}.settings.menu.title`,
     icon: "fas fa-cog",
     type: WalledTemplateShapeSettings,
@@ -145,11 +145,11 @@ export function registerSettings() {
     config: true
   });
 
-  game.settings.register(MODULE_ID, DEFAULT_WALLS_BLOCK.circle, {
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALLS_BLOCK.circle, {
     name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.circle}.Name`),
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.circle}.Hint`),
     scope: "world",
-    config: true,
+    config: false,
     default: SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED,
     type: String,
     choices: {
@@ -163,7 +163,7 @@ export function registerSettings() {
     name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.circle}.Name`),
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.circle}.Hint`),
     scope: "world",
-    config: true,
+    config: false,
     default: SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE,
     type: String,
     choices: {
@@ -179,7 +179,7 @@ export function registerSettings() {
     name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.cone}.Name`),
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.cone}.Hint`),
     scope: "world",
-    config: true,
+    config: false,
     default: SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED,
     type: String,
     choices: {
@@ -193,7 +193,7 @@ export function registerSettings() {
     name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.cone}.Name`),
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.cone}.Hint`),
     scope: "world",
-    config: true,
+    config: false,
     default: SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE,
     type: String,
     choices: {
@@ -209,7 +209,7 @@ export function registerSettings() {
     name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.rect}.Name`),
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.rect}.Hint`),
     scope: "world",
-    config: true,
+    config: false,
     default: SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED,
     type: String,
     choices: {
@@ -223,7 +223,7 @@ export function registerSettings() {
     name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.rect}.Name`),
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.rect}.Hint`),
     scope: "world",
-    config: true,
+    config: false,
     default: SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE,
     type: String,
     choices: {
@@ -239,7 +239,7 @@ export function registerSettings() {
     name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.ray}.Name`),
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.ray}.Hint`),
     scope: "world",
-    config: true,
+    config: false,
     default: SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED,
     type: String,
     choices: {
@@ -253,7 +253,7 @@ export function registerSettings() {
     name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.ray}.Name`),
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.ray}.Hint`),
     scope: "world",
-    config: true,
+    config: false,
     default: SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE,
     type: String,
     choices: {
@@ -271,7 +271,7 @@ export function registerSettings() {
     type: Boolean,
     default: false,
     scope: "world",
-    config: true
+    config: false
   });
 
   game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.cone, {
@@ -280,7 +280,7 @@ export function registerSettings() {
     type: Boolean,
     default: false,
     scope: "world",
-    config: true
+    config: false
   });
 
   game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.circle, {
@@ -289,7 +289,7 @@ export function registerSettings() {
     type: Boolean,
     default: false,
     scope: "world",
-    config: true
+    config: false
   });
 
   game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.rect, {
