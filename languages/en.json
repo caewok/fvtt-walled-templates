@@ -27,6 +27,8 @@
     "walledtemplates.MeasuredTemplateConfiguration.heightTokenOverride.Name": "Token Overrides Height?",
     "walledtemplates.MeasuredTemplateConfiguration.heightTokenOverride.Tip": "Should the height of the attached token be used in lieu of the template height setting?",
 
+    "walledtemplates.settings.menu.title": "Default Shape Settings",
+
     "walledtemplates.settings.default_circle.Name": "Default Circle",
     "walledtemplates.settings.default_cone.Name": "Default Cone",
     "walledtemplates.settings.default_ray.Name": "Default Ray",

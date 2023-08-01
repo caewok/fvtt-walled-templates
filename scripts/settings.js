@@ -7,9 +7,10 @@ game
 import { log } from "./util.js";
 import { MODULE_ID } from "./const.js";
 import { registerAutotargeting } from "./patching.js";
+import { WalledTemplateShapeSettings } from "./WalledTemplateShapeSettings.js";
 
 export const SETTINGS = {
-  DEFAULTS: {
+  DEFAULT_WALLS_BLOCK: {
     circle: "default_circle",
     cone: "default_cone",
     ray: "default_ray",
@@ -78,6 +79,14 @@ export async function setSetting(settingName, value) {
 export function registerSettings() {
   log("Registering walled template switch");
 
+  game.settings.registerMenu(MODULE_ID, "menu", {
+    name: "Walled Templates Settings Menu",
+    label: `${MODULE_ID}.settings.menu.title`,
+    icon: "fas fa-cog",
+    type: WalledTemplateShapeSettings,
+    restricted: true
+  });
+
   game.settings.register(MODULE_ID, SETTINGS.AUTOTARGET.ENABLED, {
     name: "Enable autotargeting",
     config: false,
@@ -136,17 +145,17 @@ export function registerSettings() {
     config: true
   });
 
-  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.circle, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.circle}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.circle}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALLS_BLOCK.circle, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.circle}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.circle}.Hint`),
     scope: "world",
-    config: true,
-    default: SETTINGS.DEFAULTS.CHOICES.UNWALLED,
+    config: false,
+    default: SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED,
     type: String,
     choices: {
-      [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
-      [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
-      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`)
+      [SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED}`),
+      [SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED}`),
+      [SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.RECURSE}`)
     }
   });
 
@@ -154,7 +163,7 @@ export function registerSettings() {
     name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.circle}.Name`),
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.circle}.Hint`),
     scope: "world",
-    config: true,
+    config: false,
     default: SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE,
     type: String,
     choices: {
@@ -166,17 +175,17 @@ export function registerSettings() {
     }
   });
 
-  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.cone, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.cone}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.cone}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALLS_BLOCK.cone, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.cone}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.cone}.Hint`),
     scope: "world",
-    config: true,
-    default: SETTINGS.DEFAULTS.CHOICES.UNWALLED,
+    config: false,
+    default: SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED,
     type: String,
     choices: {
-      [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
-      [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
-      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`)
+      [SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED}`),
+      [SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED}`),
+      [SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.RECURSE}`)
     }
   });
 
@@ -184,7 +193,7 @@ export function registerSettings() {
     name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.cone}.Name`),
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.cone}.Hint`),
     scope: "world",
-    config: true,
+    config: false,
     default: SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE,
     type: String,
     choices: {
@@ -196,17 +205,17 @@ export function registerSettings() {
     }
   });
 
-  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.rect, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.rect}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.rect}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALLS_BLOCK.rect, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.rect}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.rect}.Hint`),
     scope: "world",
-    config: true,
-    default: SETTINGS.DEFAULTS.CHOICES.UNWALLED,
+    config: false,
+    default: SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED,
     type: String,
     choices: {
-      [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
-      [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
-      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`)
+      [SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED}`),
+      [SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED}`),
+      [SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.RECURSE}`)
     }
   });
 
@@ -214,7 +223,7 @@ export function registerSettings() {
     name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.rect}.Name`),
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.rect}.Hint`),
     scope: "world",
-    config: true,
+    config: false,
     default: SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE,
     type: String,
     choices: {
@@ -226,17 +235,17 @@ export function registerSettings() {
     }
   });
 
-  game.settings.register(MODULE_ID, SETTINGS.DEFAULTS.ray, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.ray}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.ray}.Hint`),
+  game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALLS_BLOCK.ray, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.ray}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.ray}.Hint`),
     scope: "world",
-    config: true,
-    default: SETTINGS.DEFAULTS.CHOICES.UNWALLED,
+    config: false,
+    default: SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED,
     type: String,
     choices: {
-      [SETTINGS.DEFAULTS.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.UNWALLED}`),
-      [SETTINGS.DEFAULTS.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.WALLED}`),
-      [SETTINGS.DEFAULTS.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULTS.CHOICES.RECURSE}`)
+      [SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED}`),
+      [SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED}`),
+      [SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.RECURSE}`)
     }
   });
 
@@ -244,7 +253,7 @@ export function registerSettings() {
     name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.ray}.Name`),
     hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS.ray}.Hint`),
     scope: "world",
-    config: true,
+    config: false,
     default: SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE,
     type: String,
     choices: {
@@ -262,7 +271,7 @@ export function registerSettings() {
     type: Boolean,
     default: false,
     scope: "world",
-    config: true
+    config: false
   });
 
   game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.cone, {
@@ -271,7 +280,7 @@ export function registerSettings() {
     type: Boolean,
     default: false,
     scope: "world",
-    config: true
+    config: false
   });
 
   game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.circle, {
@@ -280,7 +289,7 @@ export function registerSettings() {
     type: Boolean,
     default: false,
     scope: "world",
-    config: true
+    config: false
   });
 
   game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING.rect, {
