@@ -18,7 +18,7 @@ export class WalledTemplateShapeSettings extends FormApplication {
     const opts = super.defaultOptions;
     return foundry.utils.mergeObject(opts, {
       template: `modules/${MODULE_ID}/templates/walled-templates-settings-menu.html`,
-      height: 350,
+      height: 390,
       title: game.i18n.localize(`${MODULE_ID}.settings.menu.title`),
       width: 600,
       classes: [MODULE_ID, "settings"],
