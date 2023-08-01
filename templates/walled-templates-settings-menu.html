@@ -1,9 +1,8 @@
 <form class="{{classes}} lib-wrapper" autocomplete="off">
 	<nav class="sheet-tabs tabs">
-		<a class='item' data-tab='circle'>{{localize 'walledtemplates.settings.default_circle.Name'}}</a>
-		<a class='item' data-tab='cone'>{{localize 'walledtemplates.settings.default_cone.Name'}}</a>
-		<a class='item' data-tab='ray'>{{localize 'walledtemplates.settings.default_ray.Name'}}</a>
-		<a class='item' data-tab='rect'>{{localize 'walledtemplates.settings.default_rect.Name'}}</a>
+	  {{#each shapeKeys}}
+      <a class='item' data-tab='{{this}}'>{{localize (concat 'walledtemplates.settings.default_' this '.Name') }}</a>
+		{{/each}}
 	</nav>
 
   <header class="sheet-header flexrow">

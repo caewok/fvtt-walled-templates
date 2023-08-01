@@ -6,7 +6,7 @@ game
 */
 "use strict";
 
-import { MODULE_ID, LABELS } from "./const.js";
+import { MODULE_ID, LABELS, SHAPE_KEYS } from "./const.js";
 import { getSetting, setSetting, SETTINGS } from "./settings.js";
 
 /**
@@ -36,6 +36,7 @@ export class WalledTemplateShapeSettings extends FormApplication {
   getData(options={}) {
     const data = super.getData(options);
     return foundry.utils.mergeObject(data, {
+      shapeKeys: SHAPE_KEYS,
       blockoptions: LABELS.WALLS_BLOCK,
       walloptions: LABELS.WALL_RESTRICTION,
       circle: WalledTemplateShapeSettings.defaultSettings("circle"),
