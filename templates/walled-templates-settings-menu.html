@@ -51,7 +51,7 @@
         <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.heightTokenOverride.Hint" }}</p>
       </div>
 
-      {{#unless (eq this "rect") }}
+      {{#unless (eq this.key "rect") }}
       <div class="form-group">
         <label>{{localize (concat "walledtemplates.settings.diagonal-scaling-" this.key ".Name") }}</label>
         <div class="form-fields">
@@ -64,7 +64,7 @@
     </section>
   {{/each}}
 
-  <footer class="sheet-footer flexrow" style="margin: auto; padding-top: 60px">
+  <footer class="sheet-footer flexrow" style="margin: auto; padding-top: 30px">
     <br>
     <button type='submit' name='submit' value='1'><i class='far fa-floppy-disk'></i>{{localize 'Save Changes'}}</button>
   </footer>
