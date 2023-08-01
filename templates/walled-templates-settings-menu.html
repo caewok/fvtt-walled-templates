@@ -1,7 +1,7 @@
 <form class="{{classes}} lib-wrapper" autocomplete="off">
 	<nav class="sheet-tabs tabs">
-	  {{#each shapeKeys}}
-      <a class='item' data-tab='{{this}}'>{{localize (concat 'walledtemplates.settings.default_' this '.Name') }}</a>
+	  {{#each shapes}}
+      <a class='item' data-tab='{{this.key}}'>{{localize (concat 'walledtemplates.settings.default_' this.key '.Name') }}</a>
     {{/each}}
 	</nav>
 
@@ -11,17 +11,38 @@
     <br>
   </header>
 
- {{#each shapeKeys}}
-   <section class='tab' data-tab='{{this}}'>
+ {{#each shapes}}
+   <section class='tab' data-tab='{{this.key}}'>
      <div class="form-group">
        <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name"}}</label>
        <div class="form-fields">
-         <select name={{ concat this ".DEFAULT_WALLS_BLOCK" }}>
+         <select name="{{ concat this.key '.DEFAULT_WALLS_BLOCK' }}">
            {{ selectOptions ../blockoptions selected=this.DEFAULT_WALLS_BLOCK localize=true }}
          </select>
        </div>
        <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint"}}</p>
      </div>
+
+     <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name"}}</label>
+      <div class="form-fields">
+        <select name="{{ concat this.key '.DEFAULT_WALL_RESTRICTIONS' }}">
+          {{ selectOptions ../walloptions selected=this.DEFAULT_WALL_RESTRICTIONS localize=true }}
+        </select>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint"}}</p>
+    </div>
+
+    {{#unless (eq this "rect") }}
+    <div class="form-group">
+      <label>{{localize (concat "walledtemplates.settings.diagonal-scaling-" this.key ".Name") }}</label>
+      <div class="form-fields">
+        <input type="checkbox" name="{{ concat this.key '.DIAGONAL_SCALING' }}" {{ checked this.DIAGONAL_SCALING }}>
+      </div>
+      <p class="hint">{{ localize (concat "walledtemplates.settings.diagonal-scaling-" this.key ".Hint") }}</p>
+    </div>
+    {{/unless}}
+
    </section>
  {{/each}}
 
@@ -32,7 +53,7 @@
       <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name"}}</label>
       <div class="form-fields">
         <select name="circle.DEFAULT_WALLS_BLOCK">
-          {{ selectOptions blockoptions selected=circle.DEFAULT_WALLS_BLOCK localize=true }}
+          {{ selectOptions blockoptions selected=data.circle.DEFAULT_WALLS_BLOCK localize=true }}
         </select>
       </div>
       <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint"}}</p>

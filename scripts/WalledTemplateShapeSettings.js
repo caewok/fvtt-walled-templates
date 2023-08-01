@@ -35,14 +35,18 @@ export class WalledTemplateShapeSettings extends FormApplication {
 
   getData(options={}) {
     const data = super.getData(options);
+    const shapes = {};
+    for ( const shapeKey of SHAPE_KEYS ) {
+      shapes[shapeKey] = {
+        key: shapeKey,
+        ...WalledTemplateShapeSettings.defaultSettings(shapeKey)
+      };
+    }
+
     return foundry.utils.mergeObject(data, {
-      shapeKeys: SHAPE_KEYS,
+      shapes,
       blockoptions: LABELS.WALLS_BLOCK,
-      walloptions: LABELS.WALL_RESTRICTION,
-      circle: WalledTemplateShapeSettings.defaultSettings("circle"),
-      cone: WalledTemplateShapeSettings.defaultSettings("cone"),
-      ray: WalledTemplateShapeSettings.defaultSettings("ray"),
-      rect: WalledTemplateShapeSettings.defaultSettings("rect")
+      walloptions: LABELS.WALL_RESTRICTION
     });
   }
 
