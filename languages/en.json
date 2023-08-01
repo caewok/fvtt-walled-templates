@@ -77,6 +77,9 @@
     "walledtemplates.settings.diagonal-scaling-circle.Name": "Convert circles to squares",
     "walledtemplates.settings.diagonal-scaling-circle.Hint": "Convert circle templates to squares to better conform with the 5-5-5 diagonal rule.",
 
+    "walledtemplates.settings.diagonal-scaling-rect.Name": "Unused: Diagonal Scaling Rect",
+    "walledtemplates.settings.diagonal-scaling-rect.Hint": "Unused",
+
     "walledtemplates.controls.autotarget.Title": "Autotarget tokens with template",
 
     "walledtemplates.notifications.attach-last-selected-token": "Please select a token to attach.",
