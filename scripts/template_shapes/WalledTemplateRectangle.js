@@ -1,5 +1,6 @@
 /* globals
 canvas,
+CONFIG,
 MeasuredTemplate,
 PIXI
 */
@@ -7,7 +8,7 @@ PIXI
 "use strict";
 
 
-import { ClockwiseSweepShape, pointFromKey } from "../ClockwiseSweepShape.js";
+import { pointFromKey } from "../ClockwiseSweepShape.js";
 import { WalledTemplateCircle } from "./WalledTemplateCircle.js";
 
 export class WalledTemplateRectangle extends WalledTemplateCircle {

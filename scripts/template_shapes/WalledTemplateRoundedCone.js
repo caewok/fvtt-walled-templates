@@ -1,11 +1,8 @@
 /* globals
-LimitedAnglePolygon,
-PIXI
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { MODULE_ID } from "../const.js";
 import { WalledTemplateCone } from "./WalledTemplateCone.js";
 
 export class WalledTemplateRoundedCone extends WalledTemplateCone {

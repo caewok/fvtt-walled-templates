@@ -1,4 +1,5 @@
 /* globals
+CONFIG,
 foundry,
 PIXI,
 Ray
