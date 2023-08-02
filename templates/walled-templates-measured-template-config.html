@@ -10,10 +10,10 @@
     <div class="form-group">
       <label>{{ localize "walledtemplates.MeasuredTemplateConfiguration.height.Name" }} <span class="units">({{gridUnits}})</span> </label>
       <div class="form-fields">
-        <select name="walledtemplates.heightType">
+        <select name="walledtemplates_heightType" class="walledtemplates_heightchoices" id="walledtemplates_heightchoices" {{ disabled walledtemplates.heightOverride }}>
           {{ selectOptions walledtemplates.heightChoices selected=data.flags.walledtemplates.heightType localize=true }}
         </select>
-        <input type="number" placeholder="{{gridUnits}}" min = "1" id="walledtemplates.heightValue" name="walledtemplates.computedHeight" class="walledtemplates" value="{{ data.walledtemplates.computedHeight }}"/>
+        <input type="number" {{ disabled walledtemplates.customDisabled }} placeholder="{{gridUnits}}" min = "1" id="walledtemplates_heightValue" name="walledtemplates.computedHeight" class="walledtemplates_customheight" value="{{ data.walledtemplates.computedHeight }}"/>
       </div>
     </div>
 
@@ -51,9 +51,9 @@
     <div class="form-group">
       <label>{{ localize "walledtemplates.MeasuredTemplateConfiguration.heightTokenOverride.Name"}}&nbsp; <i class="tip fas fa-info-circle" data-tooltip="walledtemplates.MeasuredTemplateConfiguration.heightTokenOverride.Hint"></i> </label>
       <div class="form-fields">
-        <input type="checkbox" name="walledtemplates-tokenOverride" {{ checked data.flags.walledtemplates.heightTokenOverride }}></input>
+        <input type="checkbox" name="walledtemplates-tokenOverride" id="walledtemplates_tokenOverride" {{ checked data.flags.walledtemplates.heightTokenOverride }}></input>
       </div>
-      <p class="hint" name="walledtemplates-tokenHeight">{{ localize "walledtemplates.MeasuredTemplateConfiguration.tokenHeight"}} @nbsp; {{ walledtemplates.tokenHeight }} @nbsp; {{gridUnits}} </p>
+      <p class="hint" name="walledtemplates-tokenHeight">{{ localize "walledtemplates.MeasuredTemplateConfiguration.tokenHeight"}} &nbsp; {{ walledtemplates.tokenHeight }} &nbsp; {{gridUnits}} </p>
     </div>
 
 </fieldset>

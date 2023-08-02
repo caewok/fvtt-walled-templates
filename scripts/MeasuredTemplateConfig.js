@@ -1,35 +1,44 @@
 /* globals
 foundry,
-renderTemplate
+game,
+renderTemplate,
+ui
 */
-
+/* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
 import { log } from "./util.js";
-import { MODULE_ID, FLAGS, LABELS, NOTIFICATIONS, SHAPE_KEYS } from "./const.js";
+import { MODULE_ID, FLAGS, LABELS, NOTIFICATIONS } from "./const.js";
+import { SETTINGS } from "./settings.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
 
 // ----- Note: Hooks ----- //
 function renderMeasuredTemplateConfigHook(app, html, data) {
-  renderMeasuredTemplateConfig(app, html, data);
-  activateListeners(app, html);
-
   // Look up the token. If present in the scene, consider it attached for the config.
   const template = app.object.object;
+  const flags = template.document.flags;
   const attachedToken = template.attachedToken;
+  const heightOverride = Boolean(attachedToken && flags?.[MODULE_ID]?.[FLAGS.HEIGHT_TOKEN_OVERRIDES]);
+  const customDisabled = Boolean(heightOverride
+    || flags?.[MODULE_ID]?.[FLAGS.HEIGHT_ALGORITHM] !== SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.CUSTOM);
   const renderData = {};
   renderData[MODULE_ID] = {
+    tokenHeight: attachedToken?.tokenVisionHeight ?? 0,
     computedHeight: template[MODULE_ID].walledTemplate.height,
     heightChoices: LABELS.HEIGHT_CHOICES,
     blockoptions: LABELS.WALLS_BLOCK,
     walloptions: LABELS.WALL_RESTRICTION,
     attachedTokenName: attachedToken?.name || game.i18n.localize("None"),
-    noAttachedToken: Boolean(attachedToken)
+    noAttachedToken: Boolean(attachedToken),
+    heightOverride,
+    customDisabled
   };
 
   foundry.utils.mergeObject(data, renderData, { inplace: true });
+  renderMeasuredTemplateConfig(app, html, data);
+  activateListeners(app, html);
 }
 
 PATCHES.BASIC.HOOKS = { renderMeasuredTemplateConfig: renderMeasuredTemplateConfigHook };
@@ -60,24 +69,67 @@ PATCHES.BASIC.STATIC_WRAPS = { defaultOptions };
  */
 async function _onChangeInput(wrapped, event) {
   // How to check that the template has an attached token?
-  switch ( event.currentTarget.name ) {
-    case "walledtemplates.heightType": {
-      await this.document.setFlag(MODULE_ID, FLAGS.HEIGHT_ALGORITHM, event.currentTarget.value);
-      this.render();
-      break;
-    }
-
-    case "walledtemplates.heightValue": {
-      await this.document.setFlag(MODULE_ID, FLAGS.HEIGHT_CUSTOM_VALUE, event.currentTarget.value);
-      this.render();
-      break;
-    }
-  }
+//   switch ( event.currentTarget.name ) {
+//     case "walledtemplates_heightType": {
+//       await this.document.setFlag(MODULE_ID, FLAGS.HEIGHT_ALGORITHM, event.currentTarget.value);
+//       this.render();
+//       break;
+//     }
+//
+//     case "walledtemplates_heightValue": {
+//       await this.document.setFlag(MODULE_ID, FLAGS.HEIGHT_CUSTOM_VALUE, event.currentTarget.value);
+//       this.render();
+//       break;
+//     }
+//   }
 
   return wrapped(event);
 }
 
+
+PATCHES.BASIC.WRAPS = { _onChangeInput };
+
 // ----- Note: Helper functions ----- //
+
+/**
+ * Catch when the user clicks a button to attach a token.
+ */
+function activateListeners(app, html) {
+  html.on("click", "#walledtemplates-useSelectedToken", onSelectedTokenButton.bind(app));
+  html.on("click", "#walledtemplates-useTargetedToken", onTargetedTokenButton.bind(app));
+  html.on("click", "#walledtemplates-removeAttachedToken", onRemoveTokenButton.bind(app));
+  html.on("change", ".walledtemplates_heightchoices", onChangeHeightAlgorithm.bind(app));
+  html.on("change", "#walledtemplates_tokenOverride", onChangeTokenOverride.bind(app));
+  //toggleCustomHeightInput.call(app, html);
+}
+
+function onChangeHeightAlgorithm(event) {
+  const elemCustom = document.getElementById("walledtemplates_heightValue");
+  const heightAlgorithm = event.target.value;
+
+  // If switching back to the custom value, use the stored custom value.
+  if ( heightAlgorithm === SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.CUSTOM ) {
+    elemCustom.value = this.document.flags[MODULE_ID]?.[FLAGS.HEIGHT_CUSTOM_VALUE] ?? 1;
+  }
+
+  return onChangeHeightParameter.call(this, event);
+}
+
+function onChangeTokenOverride(event) { return onChangeHeightParameter.call(this, event); }
+
+function onChangeHeightParameter(event) {
+  const elemCustom = document.getElementById("walledtemplates_heightValue");
+  const elemTokenOverride = document.getElementById("walledtemplates_tokenOverride");
+  const elemAlgo = document.getElementById("walledtemplates_heightchoices");
+
+  const wt = this.object.object[MODULE_ID].walledTemplate;
+  const heightAlgorithm = elemAlgo.value;
+  const customHeightValue = elemCustom.value;
+  const tokenOverrides = elemTokenOverride.checked;
+
+  elemCustom.value = wt._calculateHeightForSettings({ tokenOverrides, heightAlgorithm, customHeightValue });
+  elemCustom.disabled = tokenOverrides || heightAlgorithm !== SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.CUSTOM;
+}
 
 /**
  * Inject html to add controls to the measured template configuration:
@@ -96,17 +148,6 @@ async function renderMeasuredTemplateConfig(app, html, data) {
   html.find(".form-group").last().after(myHTML);
 
   app.setPosition(app.position);
-}
-
-
-
-/**
- * Catch when the user clicks a button to attach a token.
- */
-function activateListeners(app, html) {
-  html.on("click", "#walledtemplates-useSelectedToken", onSelectedTokenButton.bind(app));
-  html.on("click", "#walledtemplates-useTargetedToken", onTargetedTokenButton.bind(app));
-  html.on("click", "#walledtemplates-removeAttachedToken", onRemoveTokenButton.bind(app));
 }
 
 /**
@@ -152,7 +193,20 @@ async function onTargetedTokenButton(_event) {
 async function onRemoveTokenButton(_event) {
   await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID);
   this.render();
-  ui.notifications.notify(`Remove attached clicked!`);
+  ui.notifications.notify("Remove attached clicked!");
+}
+
+/**
+ * Handle changes to height input.
+ */
+function toggleCustomHeightInput(html) {
+  const heightElems = this.form.getElementsByClassName("walledtemplates_heightchoices");
+  const customElems = this.form.getElementsByClassName("walledtemplates_customheight");
+  const heightAlgo = `walledtemplates.heightType`;
+  const customHeight = `walledtemplates.computedHeight`;
+  const select = heightElems.namedItem(heightAlgo);
+  const input = customElems.namedItem(customHeight);
+  input.hidden = !select.value.includes(SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.CUSTOM);
 }
 
 

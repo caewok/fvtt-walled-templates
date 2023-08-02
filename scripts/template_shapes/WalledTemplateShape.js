@@ -120,17 +120,22 @@ export class WalledTemplateShape {
   get wallRestriction() { return this.#getSetting("WALL_RESTRICTION"); }
 
   /** @type {number} */
-  get height() {
+  get height() { return this._calculateHeightForSettings(); }
+
+  _calculateHeightForSettings({ tokenOverrides, heightAlgorithm, customHeightValue } = {}) {
     const attachedToken = this.template.attachedToken;
-    if ( attachedToken && this.#getSetting("HEIGHT_TOKEN_OVERRIDES") ) return token.tokenVisionHeight || 1;
+    if ( attachedToken && (tokenOverrides ?? this.#getSetting("HEIGHT_TOKEN_OVERRIDES")) ) {
+      return attachedToken.tokenVisionHeight || 1;
+    }
 
     const heightAlgos = SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES;
-    switch ( this.#getSetting("HEIGHT_ALGORITHM") ) {
+    heightAlgorithm ??= this.#getSetting("HEIGHT_ALGORITHM");
+    switch ( heightAlgorithm ) {
       case heightAlgos.MINOR: return CONFIG.GeometryLib.utils.pixelsToGridUnits(this.minorAxisLength);
       case heightAlgos.MAJOR: return CONFIG.GeometryLib.utils.pixelsToGridUnits(this.majorAxisLength);
-      case heightAlgos.CUSTOM: return this.#getSetting("HEIGHT_CUSTOM_VALUE");
+      case heightAlgos.CUSTOM: return customHeightValue ?? this.#getSetting("HEIGHT_CUSTOM_VALUE");
     }
-    return 1; // Should not happen.
+    return 1; // Should not happen
   }
 
   /** @type {number} */
@@ -177,7 +182,7 @@ export class WalledTemplateShape {
     const setting = this.item?.getFlag(MODULE_ID, flag)
       ?? this.template.document.getFlag(MODULE_ID, flag)
       ?? getSetting(defaultSetting);
-    if ( setting === LABELS.GLOBAL_DEFAULT ) return this.template.document.getFlag(MODULE_ID, flag)
+    if ( setting === LABELS.GLOBAL_DEFAULT ) return this.template.document.getFlag(MODULE_ID, flag);
     return setting;
   }
 
