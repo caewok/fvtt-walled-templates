@@ -49,7 +49,9 @@ function preUpdateTokenHook(tokenD, changes, _options, _userId) {
 /**
  * Hook updateToken
  */
-function updateTokenHook(tokenD, changed, _options, _userId) {
+function updateTokenHook(tokenD, changed, _options, userId) {
+  if ( userId !== game.user.id ) return;
+
   const token = tokenD.object;
 
   const attachedTemplates = token.attachedTemplates;
