@@ -58,10 +58,7 @@ export class WalledTemplateShapeSettings extends FormApplication {
     const settingKeys = [
       "DEFAULT_WALLS_BLOCK",
       "DEFAULT_WALL_RESTRICTION",
-      "DIAGONAL_SCALING",
-      "DEFAULT_HEIGHT_ALGORITHM",
-      "DEFAULT_HEIGHT_CUSTOM_VALUE",
-      "DEFAULT_HEIGHT_TOKEN_OVERRIDES"
+      "DIAGONAL_SCALING"
     ];
     for ( const key of settingKeys ) settingsObj[key] = getSetting(SETTINGS[key][shapeKey]);
     return settingsObj;
@@ -78,28 +75,5 @@ export class WalledTemplateShapeSettings extends FormApplication {
       });
     });
     await Promise.all(promises);
-  }
-
-  async _onChangeInput(event) {
-    const heightKeys = SHAPE_KEYS.map(shape => `${shape}.DEFAULT_HEIGHT_ALGORITHM`);
-    if ( heightKeys.includes(event.currentTarget.name) ) this.#toggleCustomHeightInput();
-  }
-
-  activateListeners(html) {
-    this.#toggleCustomHeightInput();
-    return super.activateListeners(html);
-  }
-
-  // See WallConfig.prototype.#toggleThresholdInputVisibility
-  #toggleCustomHeightInput() {
-    const heightElems = this.form.getElementsByClassName("walledtemplates_heightchoices");
-    const customElems = this.form.getElementsByClassName("walledtemplates_customheight");
-    for ( const shapeKey of SHAPE_KEYS ) {
-      const heightAlgo = `${shapeKey}.DEFAULT_HEIGHT_ALGORITHM`;
-      const customHeight = `${shapeKey}.DEFAULT_HEIGHT_CUSTOM_VALUE`;
-      const select = heightElems.namedItem(heightAlgo);
-      const input = customElems.namedItem(customHeight);
-      input.hidden = !select.value.includes(SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.CUSTOM);
-    }
   }
 }
