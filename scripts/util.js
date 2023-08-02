@@ -53,3 +53,14 @@ export function gridShapeForTopLeft(p) {
   const { h, w } = canvas.grid.grid;
   return Hexagon.fromTopLeft(p, undefined, { width: w, height: h });
 }
+
+/**
+ * Get the token name or id, depending on permissions of the user.
+ */
+export function tokenName(token) {
+  if ( !token ) return undefined;
+  if ( token.document.testUserPermission(game.user, "LIMITED")
+    || token.document.displayName === CONST.TOKEN_DISPLAY_MODES.HOVER
+    || token.document.displayName === CONST.TOKEN_DISPLAY_MODES.ALWAYS ) return token.name;
+  return token.id;
+}
