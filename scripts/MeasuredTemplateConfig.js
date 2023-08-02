@@ -93,7 +93,8 @@ async function onSelectedTokenButton(_event) {
     ui.notifications.notify(game.i18n.localize(NOTIFICATIONS.NOTIFY.ATTACH_TOKEN_NOT_SELECTED));
     return;
   }
-  await this.document.setFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ID, token.id);
+  const template = this.document.object;
+  await template.attachToken(token);
   ui.notifications.notify(`${tokenName(token)} attached!`);
   this.render();
 }
@@ -113,9 +114,8 @@ async function onTargetedTokenButton(_event) {
     ui.notifications.error(`Targeted token for id ${tokenId} not found.`);
     return;
   }
-
-  await this.document.setFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ID, token.id);
-  this.render();
+  const template = this.document.object;
+  await template.attachToken(token);
   ui.notifications.notify(`${tokenName(token)} attached!`);
 }
 
@@ -124,7 +124,8 @@ async function onTargetedTokenButton(_event) {
  * @param {Event} event
  */
 async function onRemoveTokenButton(_event) {
-  await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ID);
+  const template = this.document.object;
+  await template.detachToken();
   this.render();
   ui.notifications.notify("Token detached!");
 }
