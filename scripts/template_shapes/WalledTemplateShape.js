@@ -111,31 +111,43 @@ export class WalledTemplateShape {
   }
 
   /** @type {SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES} */
-  get wallsBlockCode() {
-    let wallsBlock = this.item?.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-      ?? this.template.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)
-      ?? getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[this.t])
-      ?? SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED;
-
-    if ( wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[this.t]);
-    return wallsBlock;
-  }
+  get wallsBlockCode() { return this.#getSetting("WALLS_BLOCK"); }
 
   /** @type {boolean} */
   get doWallsBlock() { return this.wallsBlockCode !== SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED; }
 
-  /** @type {SETTINGS.DEFAULT_WALL_RESTRICTIONS} */
-  get wallRestriction() {
-    let wallRestriction = this.item?.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
-      ?? this.template.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION)
-      ?? getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[this.t])
-      ?? SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE;
+  /** @type {SETTINGS.DEFAULT_WALL_RESTRICTION} */
+  get wallRestriction() { return this.#getSetting("WALL_RESTRICTION"); }
 
-    if ( wallRestriction === LABELS.GLOBAL_DEFAULT ) {
-      wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[this.t]);
+  /** @type {number} */
+  get height() { return this._calculateHeightForSettings(); }
+
+  _calculateHeightForSettings({ tokenOverrides, heightAlgorithm, customHeightValue } = {}) {
+    const attachedToken = this.template.attachedToken;
+    if ( attachedToken && (tokenOverrides ?? this.#getSetting("HEIGHT_TOKEN_OVERRIDES")) ) {
+      return attachedToken.tokenVisionHeight || 1;
     }
 
-    return wallRestriction;
+    const heightAlgos = SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES;
+    heightAlgorithm ??= this.#getSetting("HEIGHT_ALGORITHM");
+    switch ( heightAlgorithm ) {
+      case heightAlgos.MINOR: return CONFIG.GeometryLib.utils.pixelsToGridUnits(this.minorAxisLength);
+      case heightAlgos.MAJOR: return CONFIG.GeometryLib.utils.pixelsToGridUnits(this.majorAxisLength);
+      case heightAlgos.CUSTOM: return customHeightValue ?? this.#getSetting("HEIGHT_CUSTOM_VALUE");
+    }
+    return 1; // Should not happen
+  }
+
+  /** @type {number} */
+  get minorAxisLength() {
+    const bounds = this.getBounds();
+    return Math.min(bounds.width, bounds.height);
+  }
+
+  /** @type {number} */
+  get majorAxisLength() {
+    const bounds = this.getBounds();
+    return Math.min(bounds.width, bounds.height);
   }
 
   /**
@@ -162,6 +174,16 @@ export class WalledTemplateShape {
     const numRecursions = CONFIG[MODULE_ID].recursions[this.t] ?? 0;
     return this.wallsBlockCode === SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.RECURSE
       && this.options.level < numRecursions;
+  }
+
+  #getSetting(flagName) {
+    const flag = FLAGS[flagName];
+    const defaultSetting = SETTINGS[`DEFAULT_${flagName}`][this.t];
+    const setting = this.item?.getFlag(MODULE_ID, flag)
+      ?? this.template.document.getFlag(MODULE_ID, flag)
+      ?? getSetting(defaultSetting);
+    if ( setting === LABELS.GLOBAL_DEFAULT ) return this.template.document.getFlag(MODULE_ID, flag);
+    return setting;
   }
 
   /**

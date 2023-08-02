@@ -17,4 +17,10 @@ export class WalledTemplateRoundedCone extends WalledTemplateCone {
     if ( !this.template._getConeShape ) return super.originalShape; // In case SWADE is not present.
     return this.template._getConeShape(this.direction, this.angle, this.distance);
   }
+
+  /** @type {number} */
+  get minorAxisLength() {
+    // SWADE Cone width
+    return 1.5 * ( this.distance / 9 );
+  }
 }

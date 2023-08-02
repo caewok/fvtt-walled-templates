@@ -13,7 +13,10 @@ export const FLAGS = {
   ATTACHED_TOKEN: {
     ID: "attachedTokenId",
     DELTAS: "attachedTokenDelta"
-  }
+  },
+  HEIGHT_ALGORITHM: "heightAlgorithm",
+  HEIGHT_CUSTOM_VALUE: "heightCustomValue",
+  HEIGHT_TOKEN_OVERRIDES: "attachedTokenOverridesHeight"
 };
 
 export const LABELS = {
@@ -28,6 +31,12 @@ export const LABELS = {
     move: "WALLS.Movement",
     sight: "WALLS.Sight",
     sound: "WALLS.Sound"
+  },
+
+  HEIGHT_CHOICES: {
+    minorAxis: "walledtemplates.MeasuredTemplateConfiguration.minorAxis",
+    majorAxis: "walledtemplates.MeasuredTemplateConfiguration.majorAxis",
+    custom: "walledtemplates.MeasuredTemplateConfiguration.custom"
   },
 
   SPELL_TEMPLATE: {},
@@ -45,6 +54,8 @@ export const NOTIFICATIONS = {
     ATTACH_TOKEN_NOT_SELECTED: "walledtemplates.notifications.attach-last-selected-token",
     ATTACH_TOKEN_NOT_TARGETED: "walledtemplates.notifications.attach-last-targeted-token"
   }
-}
+};
 
 export const ACTIVE_EFFECT_ICON = `modules/${MODULE_ID}/assets/ruler-combined-solid-gray.svg`;
+
+export const SHAPE_KEYS = ["circle", "cone", "ray", "rect"];

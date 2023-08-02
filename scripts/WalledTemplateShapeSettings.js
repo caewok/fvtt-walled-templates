@@ -1,4 +1,5 @@
 /* globals
+canvas,
 expandObject,
 FormApplication,
 foundry,
@@ -6,7 +7,7 @@ game
 */
 "use strict";
 
-import { MODULE_ID, LABELS } from "./const.js";
+import { MODULE_ID, LABELS, SHAPE_KEYS } from "./const.js";
 import { getSetting, setSetting, SETTINGS } from "./settings.js";
 
 /**
@@ -17,7 +18,7 @@ export class WalledTemplateShapeSettings extends FormApplication {
     const opts = super.defaultOptions;
     return foundry.utils.mergeObject(opts, {
       template: `modules/${MODULE_ID}/templates/walled-templates-settings-menu.html`,
-      height: 350,
+      height: 390,
       title: game.i18n.localize(`${MODULE_ID}.settings.menu.title`),
       width: 600,
       classes: [MODULE_ID, "settings"],
@@ -35,22 +36,35 @@ export class WalledTemplateShapeSettings extends FormApplication {
 
   getData(options={}) {
     const data = super.getData(options);
+    const shapes = {};
+    for ( const shapeKey of SHAPE_KEYS ) {
+      shapes[shapeKey] = {
+        key: shapeKey,
+        ...WalledTemplateShapeSettings.defaultSettings(shapeKey)
+      };
+    }
+
     return foundry.utils.mergeObject(data, {
+      shapes,
+      gridUnits: canvas.scene.grid.units || game.i18n.localize("GridUnits"),
       blockoptions: LABELS.WALLS_BLOCK,
       walloptions: LABELS.WALL_RESTRICTION,
-      circle: WalledTemplateShapeSettings.defaultSettings("circle"),
-      cone: WalledTemplateShapeSettings.defaultSettings("cone"),
-      ray: WalledTemplateShapeSettings.defaultSettings("ray"),
-      rect: WalledTemplateShapeSettings.defaultSettings("rect")
+      heightoptions: LABELS.HEIGHT_CHOICES
     });
   }
 
   static defaultSettings(shapeKey) {
-    return {
-      DEFAULT_WALLS_BLOCK: getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[shapeKey]),
-      DEFAULT_WALL_RESTRICTIONS: getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shapeKey]),
-      DIAGONAL_SCALING: getSetting(SETTINGS.DIAGONAL_SCALING[shapeKey])
-    };
+    const settingsObj = {};
+    const settingKeys = [
+      "DEFAULT_WALLS_BLOCK",
+      "DEFAULT_WALL_RESTRICTION",
+      "DIAGONAL_SCALING",
+      "DEFAULT_HEIGHT_ALGORITHM",
+      "DEFAULT_HEIGHT_CUSTOM_VALUE",
+      "DEFAULT_HEIGHT_TOKEN_OVERRIDES"
+    ];
+    for ( const key of settingKeys ) settingsObj[key] = getSetting(SETTINGS[key][shapeKey]);
+    return settingsObj;
   }
 
   async _updateObject(_, formData) {
@@ -64,5 +78,28 @@ export class WalledTemplateShapeSettings extends FormApplication {
       });
     });
     await Promise.all(promises);
+  }
+
+  async _onChangeInput(event) {
+    const heightKeys = SHAPE_KEYS.map(shape => `${shape}.DEFAULT_HEIGHT_ALGORITHM`);
+    if ( heightKeys.includes(event.currentTarget.name) ) this.#toggleCustomHeightInput();
+  }
+
+  activateListeners(html) {
+    this.#toggleCustomHeightInput();
+    return super.activateListeners(html);
+  }
+
+  // See WallConfig.prototype.#toggleThresholdInputVisibility
+  #toggleCustomHeightInput() {
+    const heightElems = this.form.getElementsByClassName("walledtemplates_heightchoices");
+    const customElems = this.form.getElementsByClassName("walledtemplates_customheight");
+    for ( const shapeKey of SHAPE_KEYS ) {
+      const heightAlgo = `${shapeKey}.DEFAULT_HEIGHT_ALGORITHM`;
+      const customHeight = `${shapeKey}.DEFAULT_HEIGHT_CUSTOM_VALUE`;
+      const select = heightElems.namedItem(heightAlgo);
+      const input = customElems.namedItem(customHeight);
+      input.hidden = !select.value.includes(SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.CUSTOM);
+    }
   }
 }

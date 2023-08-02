@@ -38,7 +38,7 @@ function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-
     let wallRestriction = item.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION);
     if ( !wallsBlock || wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[shape]);
     if ( !wallRestriction || wallRestriction === LABELS.GLOBAL_DEFAULT ) {
-      wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape]);
+      wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTION[shape]);
     }
 
     template.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsBlock);

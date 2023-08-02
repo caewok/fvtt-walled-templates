@@ -4,12 +4,17 @@
     "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint": "Circles/Rectangles: Spread; Rays/Cones: Reflect.",
 
     "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name": "Wall Restriction Type",
-    "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint": "Walls that do not block this restriction type will be ignored by the template",
+    "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint": "Template ignores walls that do not block this type.",
 
     "walledtemplates.MeasuredTemplateConfiguration.globalDefault": "Use global default",
     "walledtemplates.MeasuredTemplateConfiguration.unwalled": "Do not block template",
     "walledtemplates.MeasuredTemplateConfiguration.walled": "Block template",
     "walledtemplates.MeasuredTemplateConfiguration.recurse": "Reflect/Spread template",
+
+    "walledtemplates.MeasuredTemplateConfiguration.tokenHeight": "Token height",
+    "walledtemplates.MeasuredTemplateConfiguration.minorAxis": "Minor axis",
+    "walledtemplates.MeasuredTemplateConfiguration.majorAxis": "Major axis",
+    "walledtemplates.MeasuredTemplateConfiguration.custom": "Custom",
 
     "walledtemplates.MeasuredTemplateConfiguration.attach-token.Name": "Attached Token?",
     "walledtemplates.MeasuredTemplateConfiguration.attach-token.Hint": "Connect this template so it moves along with the token.",
@@ -18,6 +23,10 @@
     "walledtemplates.MeasuredTemplateConfiguration.attach-token.removeToken": "Remove attached token",
 
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevation",
+    "walledtemplates.MeasuredTemplateConfiguration.height.Name": "Height",
+    "walledtemplates.MeasuredTemplateConfiguration.heightTokenOverride.Name": "Token Overrides Height?",
+    "walledtemplates.MeasuredTemplateConfiguration.heightTokenOverride.Hint": "Should the height of the attached token be used in lieu of the template height setting?",
+    "walledtemplates.MeasuredTemplateConfiguration.tokenHeight": "Token height:",
 
     "walledtemplates.settings.menu.title": "Default Shape Settings",
 
@@ -68,6 +77,9 @@
 
     "walledtemplates.settings.diagonal-scaling-circle.Name": "Convert circles to squares",
     "walledtemplates.settings.diagonal-scaling-circle.Hint": "Convert circle templates to squares to better conform with the 5-5-5 diagonal rule.",
+
+    "walledtemplates.settings.diagonal-scaling-rect.Name": "Unused: Diagonal Scaling Rect",
+    "walledtemplates.settings.diagonal-scaling-rect.Hint": "Unused",
 
     "walledtemplates.controls.autotarget.Title": "Autotarget tokens with template",
 
