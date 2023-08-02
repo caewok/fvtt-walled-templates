@@ -6,7 +6,7 @@ renderTemplate
 "use strict";
 
 import { log } from "./util.js";
-import { MODULE_ID, FLAGS, LABELS, NOTIFICATIONS } from "./const.js";
+import { MODULE_ID, FLAGS, LABELS, NOTIFICATIONS, SHAPE_KEYS } from "./const.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
@@ -17,9 +17,11 @@ function renderMeasuredTemplateConfigHook(app, html, data) {
   activateListeners(app, html);
 
   // Look up the token. If present in the scene, consider it attached for the config.
-  const attachedToken = app.object?.object?.attachedToken;
+  const template = app.object.object;
+  const attachedToken = template.attachedToken;
   const renderData = {};
   renderData[MODULE_ID] = {
+    computedHeight: template[MODULE_ID].walledTemplate.height,
     heightChoices: LABELS.HEIGHT_CHOICES,
     blockoptions: LABELS.WALLS_BLOCK,
     walloptions: LABELS.WALL_RESTRICTION,
@@ -50,6 +52,31 @@ export function defaultOptions(wrapper) {
 
 PATCHES.BASIC.STATIC_WRAPS = { defaultOptions };
 
+// ----- Note: Wraps ---- //
+
+/**
+ * Wrap MeasuredTemplateConfig.prototype._updateObject
+ * Update the calculated height for the template.
+ */
+async function _onChangeInput(wrapped, event) {
+  // How to check that the template has an attached token?
+  switch ( event.currentTarget.name ) {
+    case "walledtemplates.heightType": {
+      await this.document.setFlag(MODULE_ID, FLAGS.HEIGHT_ALGORITHM, event.currentTarget.value);
+      this.render();
+      break;
+    }
+
+    case "walledtemplates.heightValue": {
+      await this.document.setFlag(MODULE_ID, FLAGS.HEIGHT_CUSTOM_VALUE, event.currentTarget.value);
+      this.render();
+      break;
+    }
+  }
+
+  return wrapped(event);
+}
+
 // ----- Note: Helper functions ----- //
 
 /**
@@ -70,6 +97,8 @@ async function renderMeasuredTemplateConfig(app, html, data) {
 
   app.setPosition(app.position);
 }
+
+
 
 /**
  * Catch when the user clicks a button to attach a token.

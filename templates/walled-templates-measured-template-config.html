@@ -13,7 +13,7 @@
         <select name="walledtemplates.heightType">
           {{ selectOptions walledtemplates.heightChoices selected=data.flags.walledtemplates.heightType localize=true }}
         </select>
-        <input type="number" placeholder="{{gridUnits}}" min = "1" id="walledtemplates.heightValue" name="flags.walledtemplates.heightValue" class="walledtemplates" value="{{ data.flags.walledtemplates.heightValue }}"/>
+        <input type="number" placeholder="{{gridUnits}}" min = "1" id="walledtemplates.heightValue" name="walledtemplates.computedHeight" class="walledtemplates" value="{{ data.walledtemplates.computedHeight }}"/>
       </div>
     </div>
 
@@ -53,6 +53,7 @@
       <div class="form-fields">
         <input type="checkbox" name="walledtemplates-tokenOverride" {{ checked data.flags.walledtemplates.heightTokenOverride }}></input>
       </div>
+      <p class="hint" name="walledtemplates-tokenHeight">{{ localize "walledtemplates.MeasuredTemplateConfiguration.tokenHeight"}} @nbsp; {{ walledtemplates.tokenHeight }} @nbsp; {{gridUnits}} </p>
     </div>
 
 </fieldset>

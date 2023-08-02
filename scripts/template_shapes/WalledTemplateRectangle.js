@@ -16,6 +16,20 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
     return CONFIG.MeasuredTemplate.objectClass.getRectShape(this.direction, this.distance);
   }
 
+  /** @type {number} */
+  get minorAxisLength() {
+    const width = this.width || 1;
+    const distance = this.distance || 1;
+    return Math.min(width, distance);
+  }
+
+  /** @type {number} */
+  get majorAxisLength() {
+    const width = this.width || 1;
+    const distance = this.distance || 1;
+    return Math.min(width, distance);
+  }
+
   /**
    * Generate a new RectangleTemplate based on spreading from a designated corner.
    * @param {PIXI.Point} corner

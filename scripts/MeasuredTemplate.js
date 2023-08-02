@@ -46,7 +46,7 @@ function preCreateMeasuredTemplateHook(templateD, updateData, _opts, _id) {
   }
 
   if ( typeof templateD.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
-    updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[t]);
+    updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTION[t]);
   }
 
   if ( getSetting(SETTINGS.DIAGONAL_SCALING[t]) ) {

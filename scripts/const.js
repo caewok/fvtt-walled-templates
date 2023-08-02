@@ -13,7 +13,10 @@ export const FLAGS = {
   ATTACHED_TOKEN: {
     ID: "attachedTokenId",
     DELTAS: "attachedTokenDelta"
-  }
+  },
+  HEIGHT_ALGORITHM: "heightAlgorithm",
+  HEIGHT_CUSTOM_VALUE: "heightCustomValue",
+  HEIGHT_TOKEN_OVERRIDES: "attachedTokenOverridesHeight"
 };
 
 export const LABELS = {

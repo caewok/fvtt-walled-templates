@@ -26,8 +26,8 @@
       <div class="form-group">
         <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name"}}</label>
         <div class="form-fields">
-          <select name="{{ concat this.key '.DEFAULT_WALL_RESTRICTIONS' }}">
-            {{ selectOptions ../walloptions selected=this.DEFAULT_WALL_RESTRICTIONS localize=true }}
+          <select name="{{ concat this.key '.DEFAULT_WALL_RESTRICTION' }}">
+            {{ selectOptions ../walloptions selected=this.DEFAULT_WALL_RESTRICTION localize=true }}
           </select>
         </div>
         <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint"}}</p>
@@ -36,8 +36,8 @@
       <div class="form-group">
         <label>{{ localize "walledtemplates.MeasuredTemplateConfiguration.height.Name" }} <span class="units">({{../gridUnits}})</span> </label>
         <div class="form-fields">
-          <select name="{{ concat this.key '.DEFAULT_HEIGHT' }}" class="walledtemplates_heightchoices">
-            {{ selectOptions ../heightoptions selected=this.DEFAULT_HEIGHT localize=true }}
+          <select name="{{ concat this.key '.DEFAULT_HEIGHT_ALGORITHM' }}" class="walledtemplates_heightchoices">
+            {{ selectOptions ../heightoptions selected=this.DEFAULT_HEIGHT_ALGORITHM localize=true }}
           </select>
           <input type="number" placeholder="{{gridUnits}}" class="walledtemplates_customheight" name="{{ concat this.key '.DEFAULT_HEIGHT_CUSTOM_VALUE' }}" value="{{ this.DEFAULT_HEIGHT_CUSTOM_VALUE }}"/>
         </div>

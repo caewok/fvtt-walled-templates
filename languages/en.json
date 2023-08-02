@@ -26,6 +26,7 @@
     "walledtemplates.MeasuredTemplateConfiguration.height.Name": "Height",
     "walledtemplates.MeasuredTemplateConfiguration.heightTokenOverride.Name": "Token Overrides Height?",
     "walledtemplates.MeasuredTemplateConfiguration.heightTokenOverride.Hint": "Should the height of the attached token be used in lieu of the template height setting?",
+    "walledtemplates.MeasuredTemplateConfiguration.tokenHeight": "Token height:",
 
     "walledtemplates.settings.menu.title": "Default Shape Settings",
 

@@ -155,7 +155,7 @@ Hooks.once("ready", async function() {
       promises.push(t.document.setFlag(
         MODULE_ID,
         FLAGS.WALL_RESTRICTION,
-        getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape])));
+        getSetting(SETTINGS.DEFAULT_WALL_RESTRICTION[shape])));
     }
   }
   if ( promises.length ) await Promise.all(promises);

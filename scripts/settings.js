@@ -11,11 +11,11 @@ import { WalledTemplateShapeSettings } from "./WalledTemplateShapeSettings.js";
 
 export const SETTINGS = {
   DEFAULT_WALLS_BLOCK: {},
-  DEFAULT_WALL_RESTRICTIONS: {},
+  DEFAULT_WALL_RESTRICTION: {},
   DIAGONAL_SCALING: {},
-  DEFAULT_HEIGHT: {},
+  DEFAULT_HEIGHT_ALGORITHM: {},
   DEFAULT_HEIGHT_CUSTOM_VALUE: {},
-  DEFAULT_HEIGHT_TOKEN_OVERRIDE: {},
+  DEFAULT_HEIGHT_TOKEN_OVERRIDES: {},
 
   AUTOTARGET: {},
 
@@ -46,14 +46,14 @@ SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES = {
   RECURSE: "recurse"
 };
 
-SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES = {
+SETTINGS.DEFAULT_WALL_RESTRICTION.CHOICES = {
   LIGHT: "light",
   MOVE: "move",
   SIGHT: "sight",
   SOUND: "sound"
 };
 
-SETTINGS.DEFAULT_HEIGHT.CHOICES = {
+SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES = {
   MINOR: "minor-axis",
   MAJOR: "major-axis",
   CUSTOM: "custom"
@@ -61,11 +61,11 @@ SETTINGS.DEFAULT_HEIGHT.CHOICES = {
 
 for ( const shapeKey of SHAPE_KEYS ) {
   SETTINGS.DEFAULT_WALLS_BLOCK[shapeKey] = `default_${shapeKey}`;
-  SETTINGS.DEFAULT_WALL_RESTRICTIONS[shapeKey] = `default-${shapeKey}-wall-restriction`;
+  SETTINGS.DEFAULT_WALL_RESTRICTION[shapeKey] = `default-${shapeKey}-wall-restriction`;
   SETTINGS.DIAGONAL_SCALING[shapeKey] = `diagonal-scaling-${shapeKey}`;
-  SETTINGS.DEFAULT_HEIGHT[shapeKey] = `default-height-${shapeKey}`;
+  SETTINGS.DEFAULT_HEIGHT_ALGORITHM[shapeKey] = `default-height-${shapeKey}`;
   SETTINGS.DEFAULT_HEIGHT_CUSTOM_VALUE[shapeKey] = `default-height-custom-${shapeKey}`;
-  SETTINGS.DEFAULT_HEIGHT_TOKEN_OVERRIDE[shapeKey] = `default-height-token-override-${shapeKey}`;
+  SETTINGS.DEFAULT_HEIGHT_TOKEN_OVERRIDES[shapeKey] = `default-height-token-override-${shapeKey}`;
 }
 
 export function getSetting(settingName) {
@@ -165,19 +165,19 @@ export function registerSettings() {
       }
     });
 
-    game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape], {
-      name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape]}.Name`),
-      hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape]}.Hint`),
+    game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALL_RESTRICTION[shape], {
+      name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTION[shape]}.Name`),
+      hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTION[shape]}.Hint`),
       scope: "world",
       config: false,
-      default: SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE,
+      default: SETTINGS.DEFAULT_WALL_RESTRICTION.CHOICES.MOVE,
       type: String,
       choices: {
         // Use the default Foundry en.json WALLS version
-        [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.LIGHT]: game.i18n.localize("WALLS.Light"),
-        [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE]: game.i18n.localize("WALLS.Movement"),
-        [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.SIGHT]: game.i18n.localize("WALLS.Sight"),
-        [SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.SOUND]: game.i18n.localize("WALLS.Sound")
+        [SETTINGS.DEFAULT_WALL_RESTRICTION.CHOICES.LIGHT]: game.i18n.localize("WALLS.Light"),
+        [SETTINGS.DEFAULT_WALL_RESTRICTION.CHOICES.MOVE]: game.i18n.localize("WALLS.Movement"),
+        [SETTINGS.DEFAULT_WALL_RESTRICTION.CHOICES.SIGHT]: game.i18n.localize("WALLS.Sight"),
+        [SETTINGS.DEFAULT_WALL_RESTRICTION.CHOICES.SOUND]: game.i18n.localize("WALLS.Sound")
       }
     });
 
@@ -190,18 +190,18 @@ export function registerSettings() {
       config: false
     });
 
-    game.settings.register(MODULE_ID, SETTINGS.DEFAULT_HEIGHT[shape], {
-      name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape]}.Name`),
-      hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape]}.Hint`),
+    game.settings.register(MODULE_ID, SETTINGS.DEFAULT_HEIGHT_ALGORITHM[shape], {
+      name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTION[shape]}.Name`),
+      hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTION[shape]}.Hint`),
       scope: "world",
       config: false,
-      default: SETTINGS.DEFAULT_WALL_RESTRICTIONS.CHOICES.MOVE,
+      default: SETTINGS.DEFAULT_WALL_RESTRICTION.CHOICES.MOVE,
       type: String,
       choices: {
         // Use the default Foundry en.json WALLS version
-        [SETTINGS.DEFAULT_HEIGHT.CHOICES.MINOR]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT.CHOICES.MINOR}`),
-        [SETTINGS.DEFAULT_HEIGHT.CHOICES.MAJOR]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT.CHOICES.MAJOR}`),
-        [SETTINGS.DEFAULT_HEIGHT.CHOICES.CUSTOM]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT.CHOICES.CUSTOM}`)
+        [SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.MINOR]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.MINOR}`),
+        [SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.MAJOR]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.MAJOR}`),
+        [SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.CUSTOM]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.CUSTOM}`)
       }
     });
 
@@ -214,9 +214,9 @@ export function registerSettings() {
       config: false
     });
 
-    game.settings.register(MODULE_ID, SETTINGS.DEFAULT_HEIGHT_TOKEN_OVERRIDE[shape], {
-      name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT_TOKEN_OVERRIDE[shape]}.Name`),
-      hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT_TOKEN_OVERRIDE[shape]}.Hint`),
+    game.settings.register(MODULE_ID, SETTINGS.DEFAULT_HEIGHT_TOKEN_OVERRIDES[shape], {
+      name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT_TOKEN_OVERRIDES[shape]}.Name`),
+      hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT_TOKEN_OVERRIDES[shape]}.Hint`),
       type: Boolean,
       default: false,
       scope: "world",
