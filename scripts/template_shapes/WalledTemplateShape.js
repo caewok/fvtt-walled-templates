@@ -119,37 +119,6 @@ export class WalledTemplateShape {
   /** @type {SETTINGS.DEFAULT_WALL_RESTRICTION} */
   get wallRestriction() { return this.#getSetting("WALL_RESTRICTION"); }
 
-  /** @type {number} */
-  get height() { return this._calculateHeightForSettings(); }
-
-  _calculateHeightForSettings({ tokenOverrides, heightAlgorithm, customHeightValue } = {}) {
-    const attachedToken = this.template.attachedToken;
-    if ( attachedToken && (tokenOverrides ?? this.#getSetting("HEIGHT_TOKEN_OVERRIDES")) ) {
-      return attachedToken.tokenVisionHeight || 1;
-    }
-
-    const heightAlgos = SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES;
-    heightAlgorithm ??= this.#getSetting("HEIGHT_ALGORITHM");
-    switch ( heightAlgorithm ) {
-      case heightAlgos.MINOR: return CONFIG.GeometryLib.utils.pixelsToGridUnits(this.minorAxisLength);
-      case heightAlgos.MAJOR: return CONFIG.GeometryLib.utils.pixelsToGridUnits(this.majorAxisLength);
-      case heightAlgos.CUSTOM: return customHeightValue ?? this.#getSetting("HEIGHT_CUSTOM_VALUE");
-    }
-    return 1; // Should not happen
-  }
-
-  /** @type {number} */
-  get minorAxisLength() {
-    const bounds = this.getBounds();
-    return Math.min(bounds.width, bounds.height);
-  }
-
-  /** @type {number} */
-  get majorAxisLength() {
-    const bounds = this.getBounds();
-    return Math.min(bounds.width, bounds.height);
-  }
-
   /**
    * Fetch the item for a given template, which may be system-dependent.
    * @type {object|undefined}

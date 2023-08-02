@@ -1,4 +1,5 @@
 /* globals
+canvas,
 foundry,
 game,
 renderTemplate,
@@ -9,7 +10,6 @@ ui
 
 import { log } from "./util.js";
 import { MODULE_ID, FLAGS, LABELS, NOTIFICATIONS } from "./const.js";
-import { SETTINGS } from "./settings.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
@@ -18,22 +18,13 @@ PATCHES.BASIC = {};
 function renderMeasuredTemplateConfigHook(app, html, data) {
   // Look up the token. If present in the scene, consider it attached for the config.
   const template = app.object.object;
-  const flags = template.document.flags;
   const attachedToken = template.attachedToken;
-  const heightOverride = Boolean(attachedToken && flags?.[MODULE_ID]?.[FLAGS.HEIGHT_TOKEN_OVERRIDES]);
-  const customDisabled = Boolean(heightOverride
-    || flags?.[MODULE_ID]?.[FLAGS.HEIGHT_ALGORITHM] !== SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.CUSTOM);
   const renderData = {};
   renderData[MODULE_ID] = {
-    tokenHeight: attachedToken?.tokenVisionHeight ?? 0,
-    computedHeight: template[MODULE_ID].walledTemplate.height,
-    heightChoices: LABELS.HEIGHT_CHOICES,
     blockoptions: LABELS.WALLS_BLOCK,
     walloptions: LABELS.WALL_RESTRICTION,
     attachedTokenName: attachedToken?.name || game.i18n.localize("None"),
-    noAttachedToken: Boolean(attachedToken),
-    heightOverride,
-    customDisabled
+    noAttachedToken: Boolean(attachedToken)
   };
 
   foundry.utils.mergeObject(data, renderData, { inplace: true });
@@ -61,33 +52,6 @@ export function defaultOptions(wrapper) {
 
 PATCHES.BASIC.STATIC_WRAPS = { defaultOptions };
 
-// ----- Note: Wraps ---- //
-
-/**
- * Wrap MeasuredTemplateConfig.prototype._updateObject
- * Update the calculated height for the template.
- */
-async function _onChangeInput(wrapped, event) {
-  // How to check that the template has an attached token?
-//   switch ( event.currentTarget.name ) {
-//     case "walledtemplates_heightType": {
-//       await this.document.setFlag(MODULE_ID, FLAGS.HEIGHT_ALGORITHM, event.currentTarget.value);
-//       this.render();
-//       break;
-//     }
-//
-//     case "walledtemplates_heightValue": {
-//       await this.document.setFlag(MODULE_ID, FLAGS.HEIGHT_CUSTOM_VALUE, event.currentTarget.value);
-//       this.render();
-//       break;
-//     }
-//   }
-
-  return wrapped(event);
-}
-
-
-PATCHES.BASIC.WRAPS = { _onChangeInput };
 
 // ----- Note: Helper functions ----- //
 
@@ -98,37 +62,6 @@ function activateListeners(app, html) {
   html.on("click", "#walledtemplates-useSelectedToken", onSelectedTokenButton.bind(app));
   html.on("click", "#walledtemplates-useTargetedToken", onTargetedTokenButton.bind(app));
   html.on("click", "#walledtemplates-removeAttachedToken", onRemoveTokenButton.bind(app));
-  html.on("change", ".walledtemplates_heightchoices", onChangeHeightAlgorithm.bind(app));
-  html.on("change", "#walledtemplates_tokenOverride", onChangeTokenOverride.bind(app));
-  //toggleCustomHeightInput.call(app, html);
-}
-
-function onChangeHeightAlgorithm(event) {
-  const elemCustom = document.getElementById("walledtemplates_heightValue");
-  const heightAlgorithm = event.target.value;
-
-  // If switching back to the custom value, use the stored custom value.
-  if ( heightAlgorithm === SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.CUSTOM ) {
-    elemCustom.value = this.document.flags[MODULE_ID]?.[FLAGS.HEIGHT_CUSTOM_VALUE] ?? 1;
-  }
-
-  return onChangeHeightParameter.call(this, event);
-}
-
-function onChangeTokenOverride(event) { return onChangeHeightParameter.call(this, event); }
-
-function onChangeHeightParameter(event) {
-  const elemCustom = document.getElementById("walledtemplates_heightValue");
-  const elemTokenOverride = document.getElementById("walledtemplates_tokenOverride");
-  const elemAlgo = document.getElementById("walledtemplates_heightchoices");
-
-  const wt = this.object.object[MODULE_ID].walledTemplate;
-  const heightAlgorithm = elemAlgo.value;
-  const customHeightValue = elemCustom.value;
-  const tokenOverrides = elemTokenOverride.checked;
-
-  elemCustom.value = wt._calculateHeightForSettings({ tokenOverrides, heightAlgorithm, customHeightValue });
-  elemCustom.disabled = tokenOverrides || heightAlgorithm !== SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.CUSTOM;
 }
 
 /**
@@ -195,18 +128,3 @@ async function onRemoveTokenButton(_event) {
   this.render();
   ui.notifications.notify("Remove attached clicked!");
 }
-
-/**
- * Handle changes to height input.
- */
-function toggleCustomHeightInput(html) {
-  const heightElems = this.form.getElementsByClassName("walledtemplates_heightchoices");
-  const customElems = this.form.getElementsByClassName("walledtemplates_customheight");
-  const heightAlgo = `walledtemplates.heightType`;
-  const customHeight = `walledtemplates.computedHeight`;
-  const select = heightElems.namedItem(heightAlgo);
-  const input = customElems.namedItem(customHeight);
-  input.hidden = !select.value.includes(SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.CUSTOM);
-}
-
-

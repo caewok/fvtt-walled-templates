@@ -2,7 +2,6 @@
 canvas,
 CONST,
 flattenObject,
-game,
 getProperty,
 isEmpty,
 PIXI
@@ -225,7 +224,7 @@ function _onDragLeftDrop(wrapped, event) {
 function destroy(wrapped, options) {
   if ( this._original ) {
     this.releaseTargets();
-    this._original.autotargetTokens()
+    this._original.autotargetTokens();
   }
   return wrapped(options);
 }

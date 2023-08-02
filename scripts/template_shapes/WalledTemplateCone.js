@@ -1,4 +1,5 @@
 /* globals
+CONFIG,
 foundry,
 PIXI,
 Ray
@@ -33,20 +34,6 @@ export class WalledTemplateCone extends WalledTemplateRay {
   /** @type {PIXI.Polygon} */
   get originalShape() {
     return CONFIG.MeasuredTemplate.objectClass.getConeShape(this.direction, this.angle, this.distance);
-  }
-
-  /** @type {number} */
-  get minorAxisLength() {
-    // Cone width
-    const angles = [(this.angle/-2), (this.angle/2)];
-    const rays = angles.map(a => Ray.fromAngle(0, 0, this.direction + Math.toRadians(a), this.distance+1));
-    return PIXI.Point.distanceBetween(rays[0].B, rays[1].B);
-  }
-
-  /** @type {number} */
-  get majorAxisLength() {
-    // Cone distance
-    return CONFIG.GeometryLib.utils.gridUnitsToPixels(this.distance || 1);
   }
 
   /**

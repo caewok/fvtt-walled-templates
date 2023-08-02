@@ -8,7 +8,7 @@ PIXI
 
 import { MODULE_ID } from "../const.js";
 import { Point3d } from "../geometry/3d/Point3d.js";
-import { ClockwiseSweepShape, pointFromKey } from "../ClockwiseSweepShape.js";
+import { pointFromKey } from "../ClockwiseSweepShape.js";
 import { WalledTemplateShape } from "./WalledTemplateShape.js";
 
 export class WalledTemplateCircle extends WalledTemplateShape {

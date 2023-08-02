@@ -1,5 +1,6 @@
 /* globals
 canvas,
+CONFIG,
 MeasuredTemplate,
 PIXI
 */
@@ -7,7 +8,7 @@ PIXI
 "use strict";
 
 
-import { ClockwiseSweepShape, pointFromKey } from "../ClockwiseSweepShape.js";
+import { pointFromKey } from "../ClockwiseSweepShape.js";
 import { WalledTemplateCircle } from "./WalledTemplateCircle.js";
 
 export class WalledTemplateRectangle extends WalledTemplateCircle {
@@ -15,12 +16,6 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
   get originalShape() {
     return CONFIG.MeasuredTemplate.objectClass.getRectShape(this.direction, this.distance);
   }
-
-  /** @type {number} */
-  get minorAxisLength() { return wt.getBounds().height; }
-
-  /** @type {number} */
-  get majorAxisLength() { return wt.getBounds().width; }
 
   /**
    * Generate a new RectangleTemplate based on spreading from a designated corner.

@@ -1,4 +1,5 @@
 /* globals
+CONFIG,
 foundry,
 PIXI,
 Ray
@@ -29,16 +30,6 @@ export class WalledTemplateRay extends WalledTemplateShape {
   /** @type {PIXI.Polygon} */
   get originalShape() {
     return CONFIG.MeasuredTemplate.objectClass.getRayShape(this.direction, this.distance, this.width);
-  }
-
-  /** @type {number} */
-  get minorAxisLength() {
-    return CONFIG.GeometryLib.utils.gridUnitsToPixels(this.width || 1);
-  }
-
-  /** @type {number} */
-  get majorAxisLength() {
-    return CONFIG.GeometryLib.utils.gridUnitsToPixels(this.distance);
   }
 
   /**
