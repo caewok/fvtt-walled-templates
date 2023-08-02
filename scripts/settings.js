@@ -13,12 +13,7 @@ export const SETTINGS = {
   DEFAULT_WALLS_BLOCK: {},
   DEFAULT_WALL_RESTRICTION: {},
   DIAGONAL_SCALING: {},
-  DEFAULT_HEIGHT_ALGORITHM: {},
-  DEFAULT_HEIGHT_CUSTOM_VALUE: {},
-  DEFAULT_HEIGHT_TOKEN_OVERRIDES: {},
-
   AUTOTARGET: {},
-
   CHANGELOG: "changelog"
 };
 
@@ -53,19 +48,10 @@ SETTINGS.DEFAULT_WALL_RESTRICTION.CHOICES = {
   SOUND: "sound"
 };
 
-SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES = {
-  MINOR: "minor-axis",
-  MAJOR: "major-axis",
-  CUSTOM: "custom"
-};
-
 for ( const shapeKey of SHAPE_KEYS ) {
   SETTINGS.DEFAULT_WALLS_BLOCK[shapeKey] = `default_${shapeKey}`;
   SETTINGS.DEFAULT_WALL_RESTRICTION[shapeKey] = `default-${shapeKey}-wall-restriction`;
   SETTINGS.DIAGONAL_SCALING[shapeKey] = `diagonal-scaling-${shapeKey}`;
-  SETTINGS.DEFAULT_HEIGHT_ALGORITHM[shapeKey] = `default-height-${shapeKey}`;
-  SETTINGS.DEFAULT_HEIGHT_CUSTOM_VALUE[shapeKey] = `default-height-custom-${shapeKey}`;
-  SETTINGS.DEFAULT_HEIGHT_TOKEN_OVERRIDES[shapeKey] = `default-height-token-override-${shapeKey}`;
 }
 
 export function getSetting(settingName) {
@@ -189,40 +175,6 @@ export function registerSettings() {
       scope: "world",
       config: false
     });
-
-    game.settings.register(MODULE_ID, SETTINGS.DEFAULT_HEIGHT_ALGORITHM[shape], {
-      name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTION[shape]}.Name`),
-      hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTION[shape]}.Hint`),
-      scope: "world",
-      config: false,
-      default: SETTINGS.DEFAULT_WALL_RESTRICTION.CHOICES.MOVE,
-      type: String,
-      choices: {
-        // Use the default Foundry en.json WALLS version
-        [SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.MINOR]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.MINOR}`),
-        [SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.MAJOR]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.MAJOR}`),
-        [SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.CUSTOM]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT_ALGORITHM.CHOICES.CUSTOM}`)
-      }
-    });
-
-    game.settings.register(MODULE_ID, SETTINGS.DEFAULT_HEIGHT_CUSTOM_VALUE[shape], {
-      name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT_CUSTOM_VALUE[shape]}.Name`),
-      hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT_CUSTOM_VALUE[shape]}.Hint`),
-      type: Number,
-      default: 1,
-      scope: "world",
-      config: false
-    });
-
-    game.settings.register(MODULE_ID, SETTINGS.DEFAULT_HEIGHT_TOKEN_OVERRIDES[shape], {
-      name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT_TOKEN_OVERRIDES[shape]}.Name`),
-      hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_HEIGHT_TOKEN_OVERRIDES[shape]}.Hint`),
-      type: Boolean,
-      default: false,
-      scope: "world",
-      config: false
-    });
-
   }
 
   log("Done registering settings.");
