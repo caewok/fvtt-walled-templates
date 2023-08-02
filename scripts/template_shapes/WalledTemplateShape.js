@@ -128,7 +128,7 @@ export class WalledTemplateShape {
     switch ( this.#getSetting("HEIGHT_ALGORITHM") ) {
       case heightAlgos.MINOR: return CONFIG.GeometryLib.utils.pixelsToGridUnits(this.minorAxisLength);
       case heightAlgos.MAJOR: return CONFIG.GeometryLib.utils.pixelsToGridUnits(this.majorAxisLength);
-      case heightAlgos.CUSTOM: return this.#getSetting("DEFAULT_HEIGHT_CUSTOM_VALUE");
+      case heightAlgos.CUSTOM: return this.#getSetting("HEIGHT_CUSTOM_VALUE");
     }
     return 1; // Should not happen.
   }
