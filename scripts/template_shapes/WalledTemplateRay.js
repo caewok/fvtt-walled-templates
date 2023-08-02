@@ -31,16 +31,6 @@ export class WalledTemplateRay extends WalledTemplateShape {
     return CONFIG.MeasuredTemplate.objectClass.getRayShape(this.direction, this.distance, this.width);
   }
 
-  /** @type {number} */
-  get minorAxisLength() {
-    return CONFIG.GeometryLib.utils.gridUnitsToPixels(this.width || 1);
-  }
-
-  /** @type {number} */
-  get majorAxisLength() {
-    return CONFIG.GeometryLib.utils.gridUnitsToPixels(this.distance);
-  }
-
   /**
    * Generate a new WalledTemplateRay based on reflecting off the first wall encountered
    * from this WalledTemplateRay.
