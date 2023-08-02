@@ -8,7 +8,7 @@ ui
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { log } from "./util.js";
+import { log, tokenName } from "./util.js";
 import { MODULE_ID, FLAGS, LABELS, NOTIFICATIONS } from "./const.js";
 
 export const PATCHES = {};
@@ -23,8 +23,8 @@ function renderMeasuredTemplateConfigHook(app, html, data) {
   renderData[MODULE_ID] = {
     blockoptions: LABELS.WALLS_BLOCK,
     walloptions: LABELS.WALL_RESTRICTION,
-    attachedTokenName: attachedToken?.name || game.i18n.localize("None"),
-    noAttachedToken: Boolean(attachedToken)
+    attachedTokenName: tokenName(attachedToken) || game.i18n.localize("None"),
+    hasAttachedToken: Boolean(attachedToken)
   };
 
   foundry.utils.mergeObject(data, renderData, { inplace: true });
@@ -93,8 +93,9 @@ async function onSelectedTokenButton(_event) {
     ui.notifications.notify(game.i18n.localize(NOTIFICATIONS.NOTIFY.ATTACH_TOKEN_NOT_SELECTED));
     return;
   }
-  await this.document.setFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID, token.id);
-  ui.notifications.notify(`${token.name} attached!`);
+  const template = this.document.object;
+  await template.attachToken(token);
+  ui.notifications.notify(`${tokenName(token)} attached!`);
   this.render();
 }
 
@@ -113,10 +114,9 @@ async function onTargetedTokenButton(_event) {
     ui.notifications.error(`Targeted token for id ${tokenId} not found.`);
     return;
   }
-
-  await this.document.setFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID, token.id);
-  this.render();
-  ui.notifications.notify(`${token.name} attached!`);
+  const template = this.document.object;
+  await template.attachToken(token);
+  ui.notifications.notify(`${tokenName(token)} attached!`);
 }
 
 /**
@@ -124,7 +124,8 @@ async function onTargetedTokenButton(_event) {
  * @param {Event} event
  */
 async function onRemoveTokenButton(_event) {
-  await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN_ID);
+  const template = this.document.object;
+  await template.detachToken();
   this.render();
-  ui.notifications.notify("Remove attached clicked!");
+  ui.notifications.notify("Token detached!");
 }
