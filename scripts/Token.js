@@ -273,7 +273,6 @@ async function animate(wrapped, updateData, opts) {
 }
 
 function doTemplateAnimation(template, _dt, _anim, documentData, _config) {
-  console.debug(`Animating template ${template.id}. Current: ${template.document.x},${template.document.y}. Token: ${documentData.x},${documentData.y}`);
   const templateData = template._calculateAttachedTemplateOffset(documentData);
 
   // Update the document
