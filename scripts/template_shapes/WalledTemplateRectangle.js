@@ -17,18 +17,10 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
   }
 
   /** @type {number} */
-  get minorAxisLength() {
-    const width = this.width || 1;
-    const distance = this.distance || 1;
-    return Math.min(width, distance);
-  }
+  get minorAxisLength() { return wt.getBounds().height; }
 
   /** @type {number} */
-  get majorAxisLength() {
-    const width = this.width || 1;
-    const distance = this.distance || 1;
-    return Math.min(width, distance);
-  }
+  get majorAxisLength() { return wt.getBounds().width; }
 
   /**
    * Generate a new RectangleTemplate based on spreading from a designated corner.
