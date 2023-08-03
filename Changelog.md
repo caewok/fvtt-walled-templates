@@ -1,3 +1,18 @@
+## 0.6.3
+Add the ability to connect a token to a template, syncing template movement and elevation to the token. If the template origin is at the token center, rotation is also synced. Templates are added to tokens as active effects. Methods for token/template attachment:
+- `Token.prototype.attachTemplate`
+- `Token.prototype.attachedTemplates`
+- `Token.prototype.detachTemplate`
+- `MeasuredTemplate.prototype.attachToken`
+- `MeasuredTemplate.prototype.attachedToken`
+- `MeasuredTemplate.prototype.detachToken`
+
+For dnd5e, added setting in the spell configuration to attach a spell template to the caster or to the last targeted token.
+
+Moved the default template settings to a tabbed submenu to make the settings configuration more manageable. Some cleanup of configuration labels and use of tooltips to conserve space in certain places. Improvements to the `WalledTemplateShape` class to facilitate subclassing of different shapes. Improvements to patching and adding methods.
+
+Update geometry lib to v0.2.3.
+
 ## 0.6.2
 Update geometry lib to v0.2.2.
 Use `MeasuredTemplate.getCircleShape`, etc. static methods introduced in v11.302.
