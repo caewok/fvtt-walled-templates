@@ -1,3 +1,8 @@
+## 0.6.4
+Fix conversion of circles to equivalent square templates, for 5-5-5 diagonal rule. Closes issue #33.
+
+Fix error when an active effect has no origin. Closes issue #34.
+
 ## 0.6.3
 Add the ability to connect a token to a template, syncing template movement and elevation to the token. If the template origin is at the token center, rotation is also synced. Templates are added to tokens as active effects. Methods for token/template attachment:
 - `Token.prototype.attachTemplate`
