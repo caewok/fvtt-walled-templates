@@ -1,10 +1,9 @@
 /* globals
-CONFIG
+CONFIG,
+fromUuid
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
-
-import { MODULE_ID, FLAGS, ACTIVE_EFFECT_ICON } from "./const.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
