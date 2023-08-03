@@ -115,13 +115,15 @@ function initializeWalledTemplates(systemId) {
   switch ( systemId ) {
     case "swade": reg.set("cone", WalledTemplateRoundedCone); break;
   }
-
 }
 
 Hooks.once("setup", function() {
   log("Setup...");
   registerSettings();
   registerAutotargeting();
+
+  const reg = WalledTemplateShape.shapeCodeRegister;
+  if ( getSetting(SETTINGS.DIAGONAL_SCALING.circle) ) reg.set("circle", WalledTemplateSquare);
 });
 
 
