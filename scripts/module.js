@@ -36,6 +36,7 @@ import { WalledTemplateRectangle } from "./template_shapes/WalledTemplateRectang
 import { WalledTemplateCone } from "./template_shapes/WalledTemplateCone.js";
 import { WalledTemplateRay } from "./template_shapes/WalledTemplateRay.js";
 import { WalledTemplateRoundedCone } from "./template_shapes/WalledTemplateRoundedCone.js";
+import { WalledTemplateSquare } from "./template_shapes/WalledTemplateSquare.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -52,7 +53,6 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 
 Hooks.once("init", function() {
   log("Initializing...");
-  initializeWalledTemplates(game.system.id);
 
   // Set CONFIGS used by this module.
   CONFIG[MODULE_ID] = {
@@ -89,6 +89,7 @@ Hooks.once("init", function() {
     WalledTemplateCone,
     WalledTemplateRay,
     WalledTemplateRoundedCone,
+    WalledTemplateSquare,
 
     PATCHER
   };
@@ -114,13 +115,15 @@ function initializeWalledTemplates(systemId) {
   switch ( systemId ) {
     case "swade": reg.set("cone", WalledTemplateRoundedCone); break;
   }
-
 }
 
 Hooks.once("setup", function() {
   log("Setup...");
   registerSettings();
   registerAutotargeting();
+
+  const reg = WalledTemplateShape.shapeCodeRegister;
+  if ( getSetting(SETTINGS.DIAGONAL_SCALING.circle) ) reg.set("circle", WalledTemplateSquare);
 });
 
 
