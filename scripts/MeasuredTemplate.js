@@ -99,11 +99,20 @@ function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
   });
 }
 
+/**
+ * Hook destroyMeasuredTemplate to remove attached token
+ * @param {PlaceableObject} object    The object instance being destroyed
+ */
+async function destroyMeasuredTemplateHook(template) {
+  if ( template._original ) return;
+  await template.detachToken();
+}
 
 PATCHES.BASIC.HOOKS = {
   refreshMeasuredTemplate: refreshMeasuredTemplateHook,
   preCreateMeasuredTemplate: preCreateMeasuredTemplateHook,
-  updateMeasuredTemplate: updateMeasuredTemplateHook
+  updateMeasuredTemplate: updateMeasuredTemplateHook,
+  destroyMeasuredTemplate: destroyMeasuredTemplateHook
 };
 
 // ----- NOTE: Wraps ----- //
@@ -312,8 +321,13 @@ async function attachToken(token, effectData, attachToToken = true) {
  */
 async function detachToken(detachFromToken = true) {
   const attachedToken = this.attachedToken;
-  await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ID);
-  await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.DELTAS);
+  if ( !attachedToken ) return;
+
+  // It is possible that the document gets destroyed while we are waiting around for the flag.
+  try { await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ID);
+  } catch(error ) {}
+  try { await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.DELTAS);
+  } catch(error) {}
 
   if ( detachFromToken && attachedToken ) await attachedToken.detachTemplate(this, false);
 }

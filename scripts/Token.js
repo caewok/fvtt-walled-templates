@@ -89,11 +89,22 @@ function refreshTokenHook(token, flags) {
   }
 }
 
+/**
+ * Hook destroyToken to remove attached template
+ * @param {PlaceableObject} object    The object instance being destroyed
+ */
+async function destroyTokenHook(token) {
+  if ( token._original ) return;
+  const promises = token.attachedTemplates.map(t => token.detachTemplate(t));
+  await Promise.all(promises);
+}
+
 PATCHES.AUTOTARGET.HOOKS = { controlToken: controlTokenHook };
 PATCHES.BASIC.HOOKS = {
   preUpdateToken: preUpdateTokenHook,
   updateToken: updateTokenHook,
-  refreshToken: refreshTokenHook };
+  refreshToken: refreshTokenHook,
+  destroyToken: destroyTokenHook };
 
 
 // ----- NOTE: Methods ----- //
@@ -240,7 +251,8 @@ PATCHES.BASIC.METHODS = {
 function attachedTemplates() {
   return this.actor.effects
     .filter(e => e.origin && e.origin.includes(CONFIG.MeasuredTemplate.objectClass.name))
-    .map(e => fromUuidSync(e.origin)?.object);
+    .map(e => fromUuidSync(e.origin)?.object)
+    .filter(t => Boolean(t)); // Drop undefined templates
 }
 
 PATCHES.BASIC.GETTERS = { attachedTemplates };
@@ -253,7 +265,7 @@ PATCHES.BASIC.GETTERS = { attachedTemplates };
  */
 async function animate(wrapped, updateData, opts) {
   const attachedTemplates = this.attachedTemplates;
-  if ( !attachedTemplates.length ) return wrapped(updateData, opts);
+  if ( !attachedTemplates || !attachedTemplates.length ) return wrapped(updateData, opts);
 
   const props = (new Set(["x", "y", "elevation", "rotation"])).intersection(new Set(Object.keys(updateData)));
   if ( !props.size ) return wrapped(updateData, opts);
