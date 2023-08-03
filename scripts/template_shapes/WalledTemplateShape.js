@@ -24,7 +24,7 @@ import { Draw } from "../geometry/Draw.js";
 export class WalledTemplateShape {
   /**
    * Register storing different shape codes.
-   * Key is the shape code. Typically Foundry defaults: "rect", "cir", "ray", "cone"
+   * Key is the shape code. Typically Foundry defaults: "rect", "circle", "ray", "cone"
    * Others are possible if the template document has some other code set.
    * Value is the shape class.
    * Used in wrap of _computeShape to call the relevant shape.
@@ -90,7 +90,7 @@ export class WalledTemplateShape {
     // Should not reach this, but...
     console.debug("WalledTemplateShape no original shape defined.");
     switch ( this.t ) {
-      case "cir": return CONFIG.MeasuredTemplate.objectClass.getCircleShape(this.distance);
+      case "circle": return CONFIG.MeasuredTemplate.objectClass.getCircleShape(this.distance);
       case "rect": return CONFIG.MeasuredTemplate.objectClass.getRectShape(this.direction, this.distance);
       case "cone": return CONFIG.MeasuredTemplate.objectClass.getConeShape(this.direction, this.angle, this.distance);
       case "ray": return CONFIG.MeasuredTemplate.objectClass.getRayShape(this.direction, this.distance, this.width);

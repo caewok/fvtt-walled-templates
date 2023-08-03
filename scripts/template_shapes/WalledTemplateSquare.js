@@ -9,12 +9,15 @@ import { WalledTemplateCircle } from "./WalledTemplateCircle.js";
 export class WalledTemplateSquare extends WalledTemplateCircle {
   /**
    * Square centered on an origin point.
-   * https://gitlab.com/peginc/swade/-/blob/develop/src/module/canvas/SwadeMeasuredTemplate.ts
+   * See dndHelpers for original:
+   * https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L91
+   * Conforms with 5-5-5 diagonal rule.
    */
   get originalShape() {
-    const { distance, origin } = this;
-    const xMinMax = Math.minMax(origin.x - distance, origin.x + distance);
-    const yMinMax = Math.minMax(origin.y - distance, origin.y + distance);
-    return new PIXI.Rectangle(xMinMax.min, yMinMax.min, xMinMax.max - xMinMax.min, yMinMax.max - yMinMax.min);
+    // Based on 5-5-5, the square's width should equate to the circle's diameter.
+    // (Consider the diameter of the circle in the X-Y directions.)
+    const distance = this.distance;
+    const dist2 = distance * 2;
+    return new PIXI.Rectangle(-distance, -distance, dist2, dist2);
   }
 }
