@@ -39,12 +39,6 @@ function controlTokenHook(object, controlled) {
   else if ( user.lastSelected === object ) user._lastDeselected = object;
 }
 
-/**
- * Hook preUpdateToken
- */
-function preUpdateTokenHook(tokenD, changes, _options, _userId) {
-  const token = tokenD.object;
-}
 
 /**
  * Hook updateToken
@@ -72,24 +66,6 @@ function updateTokenHook(tokenD, changed, _options, userId) {
 }
 
 /**
- * Hook Token refresh
- */
-function refreshTokenHook(token, flags) {
-  if ( !flags.refreshPosition ) return;
-  // TODO: refreshElevation flag?
-
-  if ( token._original ) {
-    // clone
-
-  }
-
-  if ( token._animation ) {
-    // animating
-//     attachedTemplates.map(t => t.document.updateSource({ x: t.x + delta.x, y: t.y + delta.y }));
-  }
-}
-
-/**
  * Hook destroyToken to remove attached template
  * @param {PlaceableObject} object    The object instance being destroyed
  */
@@ -101,9 +77,7 @@ async function destroyTokenHook(token) {
 
 PATCHES.AUTOTARGET.HOOKS = { controlToken: controlTokenHook };
 PATCHES.BASIC.HOOKS = {
-  preUpdateToken: preUpdateTokenHook,
   updateToken: updateTokenHook,
-  refreshToken: refreshTokenHook,
   destroyToken: destroyTokenHook };
 
 
