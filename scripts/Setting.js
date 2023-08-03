@@ -5,6 +5,7 @@
 "use strict";
 
 import { SETTINGS } from "./settings.js";
+import { MODULE_ID } from "./const.js";
 
 import { WalledTemplateShape } from "./template_shapes/WalledTemplateShape.js";
 import { WalledTemplateCircle } from "./template_shapes/WalledTemplateCircle.js";
@@ -23,7 +24,7 @@ PATCHES.BASIC = {};
  */
 function updateSettingHook(setting, _change, _opts, _id) {
   const reg = WalledTemplateShape.shapeCodeRegister;
-  if ( setting.key === SETTINGS.DIAGONAL_SCALING.circle ) {
+  if ( setting.key === `${MODULE_ID}.${SETTINGS.DIAGONAL_SCALING.circle}` ) {
     if ( setting.value ) reg.set("circle", WalledTemplateSquare);
     else reg.set("circle", WalledTemplateCircle);
   }
