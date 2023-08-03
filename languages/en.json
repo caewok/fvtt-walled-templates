@@ -3,13 +3,28 @@
     "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name": "Walls",
     "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint": "Circles/Rectangles: Spread; Rays/Cones: Reflect.",
 
-    "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name": "Wall Restriction Type",
-    "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint": "Walls that do not block this restriction type will be ignored by the template",
+    "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name": "Wall Type",
+    "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint": "Template ignores walls that do not block this type.",
 
     "walledtemplates.MeasuredTemplateConfiguration.globalDefault": "Use global default",
     "walledtemplates.MeasuredTemplateConfiguration.unwalled": "Do not block template",
     "walledtemplates.MeasuredTemplateConfiguration.walled": "Block template",
     "walledtemplates.MeasuredTemplateConfiguration.recurse": "Reflect/Spread template",
+
+    "walledtemplates.MeasuredTemplateConfiguration.attach-token.Name": "Attached Token?",
+    "walledtemplates.MeasuredTemplateConfiguration.attach-token.Hint": "Connect this template so it moves along with the token.",
+    "walledtemplates.MeasuredTemplateConfiguration.attach-token.useSelectedToken": "Attach last selected token",
+    "walledtemplates.MeasuredTemplateConfiguration.attach-token.useTargetedToken": "Attach last targeted token",
+    "walledtemplates.MeasuredTemplateConfiguration.attach-token.removeToken": "Remove attached token",
+
+    "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevation",
+
+    "walledtemplates.dnd5e-spell-config.attach-token.Name": "Attach to?",
+    "walledtemplates.dnd5e-spell-config.attach-token.na": "N/A",
+    "walledtemplates.dnd5e-spell-config.attach-token.caster": "Caster",
+    "walledtemplates.dnd5e-spell-config.attach-token.target": "Last Targeted",
+
+    "walledtemplates.settings.menu.title": "Default Shape Settings",
 
     "walledtemplates.settings.default_circle.Name": "Default Circle",
     "walledtemplates.settings.default_cone.Name": "Default Cone",
@@ -42,13 +57,13 @@
     "walledtemplates.settings.autotarget-menu.Choice.toggle-on": "Display toggle button; default on",
     "walledtemplates.settings.autotarget-menu.Choice.yes": "Always autotarget",
 
-    "walledtemplates.settings.autotarget-method.Name": "Autotargeting and highlighting",
-    "walledtemplates.settings.autotarget-method.Hint": "Method to auto-target tokens with templates. Also controls how grid highlighting works for templates.",
+    "walledtemplates.settings.autotarget-method.Name": "Highlight/Autotarget method",
+    "walledtemplates.settings.autotarget-method.Hint": "How to highlight grid squares and autotarget tokens under templates.",
     "walledtemplates.settings.autotarget-method.Method.center": "Token center inside template",
     "walledtemplates.settings.autotarget-method.Method.overlap": "Token area overlaps template",
 
-    "walledtemplates.settings.autotarget-area.Name": "Autotargeting and highlighting area",
-    "walledtemplates.settings.autotarget-area.Hint": "For overlap method only. The percent of the token bounds or grid area that must overlap the template to count. 0 means any overlap counts. (Hint: use the arrow keys after clicking the square to increment by steps of 0.01.)",
+    "walledtemplates.settings.autotarget-area.Name": "Highlight/Autotarget percentage",
+    "walledtemplates.settings.autotarget-area.Hint": "For overlap highlight/autotarget method only. Percent token bounds or grid area that must overlap the template to count. 0 means any overlap counts. (Hint: use the arrow keys after clicking the square to increment by steps of 0.01.)",
 
     "walledtemplates.settings.diagonal-scaling-ray.Name": "Scale diagonal rays",
     "walledtemplates.settings.diagonal-scaling-ray.Hint": "Scale ray templates to conform with the 5-5-5 diagonal rule.",
@@ -59,7 +74,11 @@
     "walledtemplates.settings.diagonal-scaling-circle.Name": "Convert circles to squares",
     "walledtemplates.settings.diagonal-scaling-circle.Hint": "Convert circle templates to squares to better conform with the 5-5-5 diagonal rule.",
 
+    "walledtemplates.settings.diagonal-scaling-rect.Name": "Unused: Diagonal Scaling Rect",
+    "walledtemplates.settings.diagonal-scaling-rect.Hint": "Unused",
+
     "walledtemplates.controls.autotarget.Title": "Autotarget tokens with template",
 
-    "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevation"
+    "walledtemplates.notifications.attach-last-selected-token": "Please select a token to attach.",
+    "walledtemplates.notifications.attach-last-targeted-token": "Please target a token to attach."
 }

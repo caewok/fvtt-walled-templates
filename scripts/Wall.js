@@ -9,13 +9,18 @@ import { MODULE_ID } from "./const.js";
 
 // Hook wall modification to enable template shape changes.
 
+export const PATCHES = {};
+PATCHES.BASIC = {};
+
+// ----- NOTE: Hooks ----- //
+
 /**
  * createWall Hook
  * @param {WallDocument} document
  * @param {Object} options { temporary: Boolean, renderSheet: Boolean, render: Boolean }
  * @param {string} userId
  */
-export function createWallHook(document, options, _userId) {
+function createWallHook(document, options, _userId) {
   if (options.temporary) return;
 
   const A = document._object.A;
@@ -41,7 +46,7 @@ export function createWallHook(document, options, _userId) {
  * @param {Object} options { diff: Boolean, render: Boolean }
  * @param {string} userId
  */
-export async function preUpdateWallHook(document, change, _options, _userId) {
+async function preUpdateWallHook(document, change, _options, _userId) {
   const A = { x: document.c[0], y: document.c[1] };
   const B = { x: document.c[2], y: document.c[3] };
 
@@ -71,7 +76,7 @@ export async function preUpdateWallHook(document, change, _options, _userId) {
  * @param {Object} options { diff: Boolean, render: Boolean }
  * @param {string} userId
  */
-export function updateWallHook(document, change, options, _userId) {
+function updateWallHook(document, change, options, _userId) {
   if (!options.diff) return;
 
   const A = { x: document.c[0], y: document.c[1] };
@@ -101,7 +106,7 @@ export function updateWallHook(document, change, options, _userId) {
  * @param {Object} options { render: Boolean }
  * @param {string} userId
  */
-export function deleteWallHook(document, _options, _userId) {
+function deleteWallHook(document, _options, _userId) {
   const A = { x: document.c[0], y: document.c[1] };
   const B = { x: document.c[2], y: document.c[3] };
   log(`Refreshing templates on deleteWall ${A.x},${A.y}|${B.x},${B.y}.`);
@@ -116,3 +121,10 @@ export function deleteWallHook(document, _options, _userId) {
     }
   });
 }
+
+PATCHES.BASIC.HOOKS = {
+  createWallHook,
+  preUpdateWallHook,
+  updateWallHook,
+  deleteWallHook
+};

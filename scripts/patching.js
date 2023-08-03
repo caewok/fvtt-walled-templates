@@ -1,84 +1,47 @@
 /* globals
-CONFIG,
-game,
-libWrapper
+canvas,
+game
 */
-
+/* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { MODULE_ID } from "./const.js";
-import { defaultOptionsMeasuredTemplateConfig } from "./renderMeasuredTemplateConfig.js";
-import { _computeShapeMeasuredTemplate } from "./getShape.js";
-import {
-  boundsOverlap,
-  autotargetToken } from "./targeting.js";
-import { getGridHighlightPositionsMeasuredTemplate } from "./highlighting/Foundry_highlighting.js";
+import { SETTINGS, getSetting } from "./settings.js";
+import { Patcher } from "./Patcher.js";
 
-// Disable for now until PF2 and PF1 are updated for v10; may not need these
-// import { WalledTemplatesPF1eGetHighlightedSquares } from "./highlighting/PF1e_highlighting.js";
-// import { WalledTemplatesPF2eHighlightGrid } from "./highlighting/PF2e_highlighting.js";
+import { PATCHES as PATCHES_MeasuredTemplate } from "./MeasuredTemplate.js";
+import { PATCHES as PATCHES_MeasuredTemplateConfig } from "./MeasuredTemplateConfig.js";
+import { PATCHES as PATCHES_Token } from "./Token.js";
+import { PATCHES as PATCHES_Wall } from "./Wall.js";
+import { PATCHES_dnd5e } from "./dnd5e.js";
+import { PATCHES as PATCHES_ActiveEffect } from "./ActiveEffect.js";
 
-/**
- * Helper to wrap methods.
- * @param {string} method       Method to wrap
- * @param {function} fn         Function to use for the wrap
- * @param {object} [options]    Options passed to libWrapper.register. E.g., { perf_mode: libWrapper.PERF_FAST}
- */
-function wrap(method, fn, options = {}) { libWrapper.register(MODULE_ID, method, fn, libWrapper.WRAPPER, options); }
+export const PATCHES = {
+  ActiveEffect: PATCHES_ActiveEffect,
+  MeasuredTemplate: PATCHES_MeasuredTemplate,
+  MeasuredTemplateConfig: PATCHES_MeasuredTemplateConfig,
+  Token: PATCHES_Token,
+  Wall: PATCHES_Wall,
+  dnd5e: PATCHES_dnd5e // Only works b/c these are all hooks. Otherwise, would need class breakdown.
+};
 
-/**
- * Helper to add a method to a class.
- * @param {class} cl      Either Class.prototype or Class
- * @param {string} name   Name of the method
- * @param {function} fn   Function to use for the method
- */
-function addClassMethod(cl, name, fn) {
-  Object.defineProperty(cl, name, {
-    value: fn,
-    writable: true,
-    configurable: true
-  });
+export const PATCHER = new Patcher(PATCHES);
+
+export function initializePatching() {
+  PATCHER.registerGroup("BASIC");
+  PATCHER.registerGroup(game.system.id);
 }
 
-export function registerWalledTemplates() {
-  // ----- MeasuredTemplate ----- //
-  wrap("CONFIG.MeasuredTemplate.objectClass.prototype._computeShape", _computeShapeMeasuredTemplate);
-  wrap("CONFIG.MeasuredTemplate.objectClass.prototype._getGridHighlightPositions", getGridHighlightPositionsMeasuredTemplate);
+/**
+ * Register the autotargeting patches. Must be done after settings are enabled.
+ */
+export function registerAutotargeting() {
+  const autotarget = getSetting(SETTINGS.AUTOTARGET.MENU) !== SETTINGS.AUTOTARGET.CHOICES.NO;
 
-  // ----- MeasuredTemplateConfig ----- //
-  wrap("MeasuredTemplateConfig.defaultOptions", defaultOptionsMeasuredTemplateConfig);
-
-
-  // TODO: Reenable swade fix
-//   if ( game.system.id === "swade" ) {
-//     libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype._getConeShape", _getConeShapeSwadeMeasuredTemplate, libWrapper.WRAPPER);
-//   }
-
-  // Disable for now until PF2 and PF1 are updated for v10; may not need these
-  //   if ( game.system.id === "pf2e" ) {
-  //     // Override how the grid is highlighted for cones and rays
-  //     libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype.highlightGrid",
-  //  WalledTemplatesPF2eHighlightGrid, libWrapper.MIXED);
-  //   }
-  //
-  //   if ( game.system.id === "pf1" ) {
-  //     libWrapper.register(MODULE_ID, "CONFIG.MeasuredTemplate.objectClass.prototype.getHighlightedSquares",
-  // WalledTemplatesPF1eGetHighlightedSquares, libWrapper.WRAPPER);
-  //   }
-
-  // For debugging
-  if ( game.modules.get("_dev-mode")?.api?.getPackageDebugValue(MODULE_ID) ) {
-    wrap("ClockwiseSweepPolygon.prototype._executeSweep", executeSweepClockwiseSweepPolygon, { perf_mode: libWrapper.PERF_FAST});
+  // Disable existing targeting before completely removing autotarget patches
+  if ( PATCHER.groupIsRegistered("AUTOTARGET") && !autotarget ) {
+    canvas.templates.placeables.forEach(t => t.autotargetTokens());
   }
 
-  // ----- New methods ----- //
-  addClassMethod(CONFIG.MeasuredTemplate.objectClass.prototype, "autotargetToken", autotargetToken);
-  addClassMethod(CONFIG.MeasuredTemplate.objectClass.prototype, "boundsOverlap", boundsOverlap);
+  PATCHER.deregisterGroup("AUTOTARGET");
+  if ( autotarget ) PATCHER.registerGroup("AUTOTARGET");
 }
-
-// For debugging
-function executeSweepClockwiseSweepPolygon(wrapper) {
-  wrapper();
-  this._preWApoints = [...this.points];
-}
-

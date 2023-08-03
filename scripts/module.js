@@ -24,20 +24,18 @@ import { SETTINGS, registerSettings, getSetting, toggleSetting } from "./setting
 import { MODULE_ID, FLAGS } from "./const.js";
 
 // Patches
-import { registerWalledTemplates } from "./patching.js";
+import { initializePatching, registerAutotargeting, PATCHER } from "./patching.js";
 import { registerGeometry } from "./geometry/registration.js";
 
 // API
 import { ClockwiseSweepShape } from "./ClockwiseSweepShape.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
-import * as WalledTemplateClasses from "./WalledTemplate.js";
-
-// Hooks
-import { createWallHook, preUpdateWallHook, updateWallHook, deleteWallHook } from "./walls.js";
-import { dnd5eUseItemHook, renderItemSheet5eHook } from "./dnd5e.js";
-import { renderMeasuredTemplateConfigHook } from "./renderMeasuredTemplateConfig.js";
-import { refreshMeasuredTemplateHook, controlTokenHook } from "./targeting.js";
-import { preCreateMeasuredTemplateHook, updateMeasuredTemplateHook } from "./templates.js";
+import { WalledTemplateShape } from "./template_shapes/WalledTemplateShape.js";
+import { WalledTemplateCircle } from "./template_shapes/WalledTemplateCircle.js";
+import { WalledTemplateRectangle } from "./template_shapes/WalledTemplateRectangle.js";
+import { WalledTemplateCone } from "./template_shapes/WalledTemplateCone.js";
+import { WalledTemplateRay } from "./template_shapes/WalledTemplateRay.js";
+import { WalledTemplateRoundedCone } from "./template_shapes/WalledTemplateRoundedCone.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -54,6 +52,7 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 
 Hooks.once("init", function() {
   log("Initializing...");
+  initializeWalledTemplates(game.system.id);
 
   // Set CONFIGS used by this module.
   CONFIG[MODULE_ID] = {
@@ -78,27 +77,50 @@ Hooks.once("init", function() {
   };
 
   registerGeometry();
-  registerWalledTemplates();
+  initializeWalledTemplates(game.system.id);
+  initializePatching();
 
   game.modules.get(MODULE_ID).api = {
     ClockwiseSweepShape,
     LightWallSweep,
-    WalledTemplateClasses
+    WalledTemplateShape,
+    WalledTemplateCircle,
+    WalledTemplateRectangle,
+    WalledTemplateCone,
+    WalledTemplateRay,
+    WalledTemplateRoundedCone,
+
+    PATCHER
   };
 
   CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.retarget = {};
-  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate.push("retarget");
+  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refresh.propagate = ["refreshState", "refreshPosition"];
+  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshShape.propagate = ["refreshGrid", "refreshText"];
+  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate = ["retarget", "refreshShape"];
+
+  // Tell modules that the module is set up
+  Hooks.callAll(`${MODULE_ID}Ready`);
 });
+
+function initializeWalledTemplates(systemId) {
+  const reg = WalledTemplateShape.shapeCodeRegister;
+
+  // Set the defaults.
+  reg.set("circle", WalledTemplateCircle);
+  reg.set("rect", WalledTemplateRectangle);
+  reg.set("cone", WalledTemplateCone);
+  reg.set("ray", WalledTemplateRay);
+
+  switch ( systemId ) {
+    case "swade": reg.set("cone", WalledTemplateRoundedCone); break;
+  }
+
+}
 
 Hooks.once("setup", function() {
   log("Setup...");
   registerSettings();
-
-  // If using dnd5e, hook the actor item sheet to add config options for spells.
-  if (game.system.id === "dnd5e") {
-    Hooks.on("renderItemSheet5e", renderItemSheet5eHook);
-    Hooks.on("dnd5e.useItem", dnd5eUseItemHook);
-  }
+  registerAutotargeting();
 });
 
 
@@ -121,9 +143,9 @@ Hooks.once("ready", async function() {
       const enabled = t.document.getFlag(MODULE_ID, "enabled");
       if ( typeof enabled !== "undefined" ) {
         promises.push(t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, enabled
-          ? SETTINGS.DEFAULTS.CHOICES.WALLED : SETTINGS.DEFAULTS.CHOICES.UNWALLED));
+          ? SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED : SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED));
       } else {
-        promises.push(t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULTS[shape])));
+        promises.push(t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[shape])));
       }
     }
 
@@ -131,7 +153,7 @@ Hooks.once("ready", async function() {
       promises.push(t.document.setFlag(
         MODULE_ID,
         FLAGS.WALL_RESTRICTION,
-        getSetting(SETTINGS.DEFAULT_WALL_RESTRICTIONS[shape])));
+        getSetting(SETTINGS.DEFAULT_WALL_RESTRICTION[shape])));
     }
   }
   if ( promises.length ) await Promise.all(promises);
@@ -158,27 +180,7 @@ Hooks.on("getSceneControlButtons", controls => {
     active: getSetting(SETTINGS.AUTOTARGET.ENABLED),
     onClick: toggle => { // eslint-disable-line no-unused-vars
       toggleSetting(SETTINGS.AUTOTARGET.ENABLED);
-      if ( getSetting(SETTINGS.AUTOTARGET.ENABLED) ) {
-        canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
-      }
+      canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
     }
   });
 });
-
-// Note: Render hooks
-Hooks.on("renderMeasuredTemplateConfig", renderMeasuredTemplateConfigHook);
-Hooks.on("refreshMeasuredTemplate", refreshMeasuredTemplateHook);
-
-// Note: Wall hooks
-Hooks.on("createWall", createWallHook);
-Hooks.on("preUpdateWall", preUpdateWallHook);
-Hooks.on("updateWall", updateWallHook);
-Hooks.on("deleteWall", deleteWallHook);
-
-// Note: Template hooks
-Hooks.on("updateMeasuredTemplate", updateMeasuredTemplateHook);
-Hooks.on("preCreateMeasuredTemplate", preCreateMeasuredTemplateHook);
-
-// Note: Token hooks
-// Hook token control to track the current user for targeting.
-Hooks.on("controlToken", controlTokenHook);
