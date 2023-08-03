@@ -7,7 +7,7 @@ Add the ability to connect a token to a template, syncing template movement and 
 - `MeasuredTemplate.prototype.attachedToken`
 - `MeasuredTemplate.prototype.detachToken`
 
-For dnd5e, added setting in the spell configuration to attach a spell template to the caster or to the last targeted token.
+Tokens can be attached to templates in the template configuration. For dnd5e, a setting in the spell configuration will attach a spell template to the caster or to the last targeted token.
 
 Moved the default template settings to a tabbed submenu to make the settings configuration more manageable. Some cleanup of configuration labels and use of tooltips to conserve space in certain places. Improvements to the `WalledTemplateShape` class to facilitate subclassing of different shapes. Improvements to patching and adding methods.
 
