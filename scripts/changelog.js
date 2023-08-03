@@ -75,7 +75,7 @@ Hooks.once("ready", () => {
     })
 
     .addEntry({
-      version: "0.6.2",
+      version: "0.6.3",
       title: "Token Attachment",
       body: `\
           - **Attach Tokens to Template:** In the template configuration, you can now choose to attach a
