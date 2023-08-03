@@ -16,7 +16,7 @@ PATCHES.BASIC = {};
  * @param {string} id
  */
 async function deleteActiveEffectHook(activeEffect, _opts, _id) {
-  if ( !activeEffect.origin.includes(CONFIG.MeasuredTemplate.objectClass.name) ) return;
+  if ( !activeEffect.origin || !activeEffect.origin.includes(CONFIG.MeasuredTemplate.objectClass.name) ) return;
   const t = await fromUuid(activeEffect.origin);
   if ( t ) t.object?.detachToken();
 }
