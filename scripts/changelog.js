@@ -74,6 +74,27 @@ Hooks.once("ready", () => {
             template is better able to move around walls but does not exceed the original template shape.`
     })
 
+    .addEntry({
+      version: "0.6.2",
+      title: "Token Attachment",
+      body: `\
+          - **Attach Tokens to Template:** In the template configuration, you can now choose to attach a
+            token to a template! When attached, the template can no longer be dragged but instead moves
+            in sync with the token. The template is linked via adding an active effect to the token. Deleting
+            the active effect, the token, or the template will sever the link. Or detach the token in the template
+            configuration. For dnd5e, I have added a configuration in the spell template to link the template with
+            either the caster or the last targeted token (prior to spell casting).
+
+          - **Dragging No Longer Autotargets:** If a template is dragged (or dragged via an attached token), it no
+            longer autotargets tokens during the drag. Instead, a more transparent "target" is indicated, to show
+            what would be targeted if the template were dropped at that point (or the dragged token was dropped).
+            This is meant to avoid inadvertent autotargeting that might trigger active effects during a template drag.
+
+          - **Future Efforts:** If you have ideas for how to better integrate the active effect used for token/template
+            attachment, feel free to reach out to me on Discord or on my Github issues page. You may also notice that
+            templates have an elevation configuration now—--I am considering options to provide some handling of 3d templates.`
+    })
+
     .build()
     ?.render(true);
 });
