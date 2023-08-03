@@ -12,7 +12,7 @@ import { PATCHES as PATCHES_MeasuredTemplate } from "./MeasuredTemplate.js";
 import { PATCHES as PATCHES_MeasuredTemplateConfig } from "./MeasuredTemplateConfig.js";
 import { PATCHES as PATCHES_Token } from "./Token.js";
 import { PATCHES as PATCHES_Wall } from "./Wall.js";
-import { PATCHES as PATCHES_dnd5e } from "./dnd5e.js";
+import { PATCHES_dnd5e } from "./dnd5e.js";
 import { PATCHES as PATCHES_ActiveEffect } from "./ActiveEffect.js";
 
 export const PATCHES = {

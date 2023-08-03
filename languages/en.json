@@ -19,6 +19,11 @@
 
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevation",
 
+    "walledtemplates.dnd5e-spell-config.attach-token.Name": "Attach to?",
+    "walledtemplates.dnd5e-spell-config.attach-token.na": "N/A",
+    "walledtemplates.dnd5e-spell-config.attach-token.caster": "Caster",
+    "walledtemplates.dnd5e-spell-config.attach-token.target": "Target",
+
     "walledtemplates.settings.menu.title": "Default Shape Settings",
 
     "walledtemplates.settings.default_circle.Name": "Default Circle",

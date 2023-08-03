@@ -18,5 +18,15 @@
       </div>
       <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint"}}</p>
     </div>
+
+    <div class="form-group">
+      <label>{{localize "walledtemplates.dnd5e-spell-config.attach-token.Name"}}</label>
+      <div class="form-fields">
+        <select name="flags.walledtemplates.attachToken">
+          {{ selectOptions walledtemplates.attachtokenoptions selected=item.flags.walledtemplates.attachToken localize=true }}
+        </select>
+      </div>
+      <p class="hint">{{ localize "walledtemplates.MeasuredTemplateConfiguration.attach-token.Hint"}}</p>
+    </div>
 {{/if}}
 

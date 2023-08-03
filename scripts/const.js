@@ -12,7 +12,8 @@ export const FLAGS = {
   RECURSE_DATA: "recurseData",
   ATTACHED_TOKEN: {
     ID: "attachedTokenId",
-    DELTAS: "attachedTokenDelta"
+    DELTAS: "attachedTokenDelta",
+    SPELL_TEMPLATE: "attachToken"
   },
   HEIGHT_ALGORITHM: "heightAlgorithm",
   HEIGHT_CUSTOM_VALUE: "heightCustomValue",
@@ -33,12 +34,6 @@ export const LABELS = {
     sound: "WALLS.Sound"
   },
 
-  HEIGHT_CHOICES: {
-    minorAxis: "walledtemplates.MeasuredTemplateConfiguration.minorAxis",
-    majorAxis: "walledtemplates.MeasuredTemplateConfiguration.majorAxis",
-    custom: "walledtemplates.MeasuredTemplateConfiguration.custom"
-  },
-
   SPELL_TEMPLATE: {},
 
   GLOBAL_DEFAULT: "globalDefault"
@@ -48,6 +43,11 @@ LABELS.SPELL_TEMPLATE.WALLS_BLOCK = duplicate(LABELS.WALLS_BLOCK);
 LABELS.SPELL_TEMPLATE.WALL_RESTRICTION = duplicate(LABELS.WALL_RESTRICTION);
 LABELS.SPELL_TEMPLATE.WALLS_BLOCK.globalDefault = "walledtemplates.MeasuredTemplateConfiguration.globalDefault";
 LABELS.SPELL_TEMPLATE.WALL_RESTRICTION.globalDefault = "walledtemplates.MeasuredTemplateConfiguration.globalDefault";
+LABELS.SPELL_TEMPLATE.ATTACH_TOKEN = {
+  na: "walledtemplates.dnd5e-spell-config.attach-token.na",
+  caster: "walledtemplates.dnd5e-spell-config.attach-token.caster",
+  target: "walledtemplates.dnd5e-spell-config.attach-token.target"
+};
 
 export const NOTIFICATIONS = {
   NOTIFY: {
