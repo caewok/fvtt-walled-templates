@@ -1,7 +1,7 @@
 /* globals
 game
 */
-
+/* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
 import { log } from "./util.js";
@@ -53,6 +53,8 @@ for ( const shapeKey of SHAPE_KEYS ) {
   SETTINGS.DEFAULT_WALL_RESTRICTION[shapeKey] = `default-${shapeKey}-wall-restriction`;
   SETTINGS.DIAGONAL_SCALING[shapeKey] = `diagonal-scaling-${shapeKey}`;
 }
+
+// ---- NOTE: Exported functions ----- //
 
 export function getSetting(settingName) {
   return game.settings.get(MODULE_ID, settingName);

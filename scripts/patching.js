@@ -14,11 +14,13 @@ import { PATCHES as PATCHES_Token } from "./Token.js";
 import { PATCHES as PATCHES_Wall } from "./Wall.js";
 import { PATCHES_dnd5e } from "./dnd5e.js";
 import { PATCHES as PATCHES_ActiveEffect } from "./ActiveEffect.js";
+import { PATCHES as PATCHES_Setting } from "./Setting.js";
 
 export const PATCHES = {
   ActiveEffect: PATCHES_ActiveEffect,
   MeasuredTemplate: PATCHES_MeasuredTemplate,
   MeasuredTemplateConfig: PATCHES_MeasuredTemplateConfig,
+  Setting: PATCHES_Setting,
   Token: PATCHES_Token,
   Wall: PATCHES_Wall,
   dnd5e: PATCHES_dnd5e // Only works b/c these are all hooks. Otherwise, would need class breakdown.
