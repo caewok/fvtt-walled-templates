@@ -52,7 +52,6 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 
 Hooks.once("init", function() {
   log("Initializing...");
-  initializeWalledTemplates(game.system.id);
 
   // Set CONFIGS used by this module.
   CONFIG[MODULE_ID] = {
