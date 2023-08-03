@@ -71,7 +71,6 @@ export class WalledTemplateShapeSettings extends FormApplication {
       Object.entries(value).forEach(([settingName, settingValue]) => {
         let settingKey = SETTINGS[settingName][shape];
         promises.push(setSetting(settingKey, settingValue));
-        console.debug(`WalledTemplateShapeSettings|_updateObject|${shape}: ${settingName}: ${settingValue}`);
       });
     });
     await Promise.all(promises);
