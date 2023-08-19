@@ -489,8 +489,9 @@ function targetsWithinShape({ onlyVisible = false } = {}) {
     if ( onlyVisible && !token.visible ) return false;
     if ( !token.hitArea ) return false; // Token not yet drawn. See Token.prototype._draw.
 
-    // Midi-qol; Walled Templates issue #28.
-    if ( getProperty(token, "actor.system.details.type.custom")?.includes("NoTarget") ) return false;
+    // Midi-qol; Walled Templates issue #28, issue #37.
+    if ( getProperty(token, "actor.flags.midi-qol.neverTarget")
+      || getProperty(token, "actor.system.details.type.custom")?.includes("NoTarget") ) return false;
 
     const tBounds = tokenBounds(token);
     return this.boundsOverlap(tBounds);
