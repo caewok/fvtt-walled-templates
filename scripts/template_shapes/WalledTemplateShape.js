@@ -232,6 +232,10 @@ export class WalledTemplateShape {
     cfg.source.object.b ??= Number.POSITIVE_INFINITY;
     cfg.source.object.t ??= Number.NEGATIVE_INFINITY;
 
+    // Need to also set origin, for reasons.
+    this.origin.b = Number.POSITIVE_INFINITY;
+    this.origin.t = Number.NEGATIVE_INFINITY;
+
     let sweepClass = this.sweepClass;
     if ( sweepClass === LightWallSweep && !this.options.lastReflectedEdge) sweepClass = ClockwiseSweepShape;
 
