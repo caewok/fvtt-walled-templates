@@ -123,8 +123,8 @@ function deleteWallHook(document, _options, _userId) {
 }
 
 PATCHES.BASIC.HOOKS = {
-  createWallHook,
-  preUpdateWallHook,
-  updateWallHook,
-  deleteWallHook
+  createWall: createWallHook,
+  preUpdateWall: preUpdateWallHook,
+  updateWall: updateWallHook,
+  deleteWall: deleteWallHook
 };
