@@ -1,6 +1,8 @@
 ## 0.6.5
 Fix for template attaching not working in SWADE, possibly other systems. Closes issue #35.
+Fix for midi no-targe flag. Closes issue #37.
 
+Update to geometry lib v0.2.4.
 
 ## 0.6.4
 Fix conversion of circles to equivalent square templates, for 5-5-5 diagonal rule. Closes issue #33.
