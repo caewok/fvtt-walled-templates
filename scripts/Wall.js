@@ -1,11 +1,11 @@
 /* globals
-canvas
+canvas,
+PIXI
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
 import { log } from "./util.js";
-import { MODULE_ID } from "./const.js";
 
 // Hook wall modification to enable template shape changes.
 
@@ -46,26 +46,26 @@ function createWallHook(document, options, _userId) {
  * @param {Object} options { diff: Boolean, render: Boolean }
  * @param {string} userId
  */
-async function preUpdateWallHook(document, change, _options, _userId) {
-  const A = { x: document.c[0], y: document.c[1] };
-  const B = { x: document.c[2], y: document.c[3] };
+function preUpdateWallHook(document, change, options, _userId) {
+  const A = new PIXI.Point(document.c[0], document.c[1]);
+  const B = new PIXI.Point(document.c[2], document.c[3]);
 
   // Issue #19: Door open/close passes a change.ds but not a change.c
-  const new_A = change.c ? { x: change.c[0], y: change.c[1] } : A;
-  const new_B = change.c ? { x: change.c[2], y: change.c[3] } : B;
-  log(`Refreshing templates on preUpdateWall ${A.x},${A.y}|${B.x},${B.y} --> ${new_A.x},${new_A.y}|${new_B.x},${new_B.y}`);
+  const newA = change.c ? new PIXI.Point(change.c[0], change.c[1]) : A;
+  const newB = change.c ? new PIXI.Point(change.c[2], change.c[3]) : B;
+  log(`Refreshing templates on preUpdateWall ${A.x},${A.y}|${B.x},${B.y} --> ${newA},${newA.y}|${newB.x},${newB.y}`);
 
-  // We want to update the template if this wall is within the template, but
-  // hold until updateWall is called.
-  const promises = [];
+  // We want to update the template if this wall was within the template or will be
+  // within the template, but hold until updateWall is called.
+  // Cannot pass the templates but can pass uuids.
+  const coordinatesChanged = !(A.equals(newA) && B.equals(newB));
+  const templatesToUpdate = options.templatesToUpdate = [];
   canvas.templates.placeables.forEach(t => {
     const bbox = t.shape.getBounds().translate(t.x, t.y);
-    if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
-      log(`Wall ${document.id} intersects ${t.id}`);
-      promises.push(t.document.setFlag(MODULE_ID, "redraw", true)); // Async
-    }
+    if ( bbox.lineSegmentIntersects(A, B, { inside: true })
+      || (coordinatesChanged
+        && bbox.lineSegmentIntersects(newA, newB, { inside: true })) ) templatesToUpdate.push(t.document.uuid);
   });
-  promises.length && ( Promise.all(promises) ); // eslint-disable-line no-unused-expressions
 }
 
 /**
@@ -77,26 +77,11 @@ async function preUpdateWallHook(document, change, _options, _userId) {
  * @param {string} userId
  */
 function updateWallHook(document, change, options, _userId) {
-  if (!options.diff) return;
-
-  const A = { x: document.c[0], y: document.c[1] };
-  const B = { x: document.c[2], y: document.c[3] };
-
-  canvas.templates.placeables.forEach(t => {
-    if ( t.document.getFlag(MODULE_ID, "redraw") ) {
-      t.document.setFlag(MODULE_ID, "redraw", false);
-      t.renderFlags.set({
-        refreshShape: true
-      });
-      return;
-    }
-    const bbox = t.shape.getBounds().translate(t.x, t.y);
-    if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
-      log(`Wall ${document.id} intersects ${t.id}`);
-      t.renderFlags.set({
-        refreshShape: true
-      });
-    }
+  if ( !options.templatesToUpdate || !options.templatesToUpdate.length ) return;
+  const renderOpts = { refreshShape: true };
+  options.templatesToUpdate.forEach(uuid => {
+    const tDoc = fromUuidSync(uuid);
+    tDoc.object.renderFlags.set(renderOpts);
   });
 }
 
