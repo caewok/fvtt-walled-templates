@@ -210,13 +210,13 @@ function _onDragLeftDrop(wrapped, event) {
 
 function destroy(wrapped, options) {
   if ( this._original ) {
-    this.releaseTargets();
-    this._original.autotargetTokens();
+    if ( this.releaseTargets ) this.releaseTargets();
+    if ( this._original?.autotargetTokens ) this._original.autotargetTokens();
   }
   return wrapped(options);
 }
 
-PATCHES.AUTOTARGET.WRAPS = {
+PATCHES.BASIC.WRAPS = {
   _onDragLeftStart,
   _onDragLeftMove,
   _onDragLeftCancel,
@@ -370,7 +370,7 @@ PATCHES.BASIC.GETTERS = { attachedToken, wallsBlock };
  * @param {RenderFlags} flags
  */
 function refreshMeasuredTemplateHook(template, flags) {
-  if ( flags.retarget ) template.autotargetTokens();
+  if ( flags.retarget && template.autotargetTokens ) template.autotargetTokens();
 }
 
 PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook };
