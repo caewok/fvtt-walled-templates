@@ -192,11 +192,11 @@ function clone(wrapped) {
  * If the setting is set to hide, don't highlight grid unless hovering.
  */
 function highlightGrid(wrapped) {
-  console.debug(`highlightGrid hover: ${this.hover} mouse: ${this.interactionState}`);
-
+  const interactionState = this._original?.mouseInteractionManager?.state ?? this.mouseInteractionManager?.state;
   if ( !this.visible
    || this.hover
-   || this.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
+   || typeof interactionState === "undefined"
+   || interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
    || !getSetting(SETTINGS.HIDE.HIGHLIGHTING) ) return wrapped();
 
   // Clear the existing highlight layer
@@ -211,10 +211,10 @@ function highlightGrid(wrapped) {
  * If the setting is set to hide, don't draw the border.
  */
 function _refreshTemplate(wrapped) {
-  console.debug(`_refreshTemplate hover: ${this.hover} mouse: ${this.interactionState}`);
-
+  const interactionState = this._original?.mouseInteractionManager?.state ?? this.mouseInteractionManager?.state;
   if ( this.hover
-    || this.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
+    || typeof interactionState === "undefined"
+    || interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
     || !getSetting(SETTINGS.HIDE.BORDER) ) return wrapped();
 
   // Clear the existing layer and draw the texture but not the outline or origin/destination points.
