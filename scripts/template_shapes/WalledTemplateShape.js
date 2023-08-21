@@ -68,7 +68,7 @@ export class WalledTemplateShape {
     this.origin.roundDecimals(); // Avoid annoying issues with precision.
     this.distance = distance ?? this.template.ray.distance;
     this.direction = direction ?? this.template.ray.angle;
-    this.options.level = level || 0; // For recursion, what level of recursion are we at?
+    this.options.level = level ??  0; // For recursion, what level of recursion are we at?
     this.options.padding = padding || 0;
     this._boundaryWalls = new Set([...canvas.walls.outerBounds, ...canvas.walls.innerBounds]);
   }
@@ -86,10 +86,7 @@ export class WalledTemplateShape {
   /** @type {PIXI.Circle|PIXI.Rectangle|PIXI.Polygon} */
   get originalShape() {
     if ( this.options.padding ) return this.calculatePaddedShape();
-    else {
-      const wt = this.template[MODULE_ID];
-      return wt.originalShape ?? (wt.originalShape = this.calculateOriginalShape());
-    }
+    else return this.calculateOriginalShape();
   }
 
   get translatedShape() { return this.originalShape.translate(this.origin.x, this.origin.y); }
@@ -156,7 +153,7 @@ export class WalledTemplateShape {
    * @param {number} [padding]    Optional padding value, if not using the one for this instance.
    * @returns {PIXI.Circle|PIXI.Rectangle|PIXI.Polygon}
    */
-  padShape(padding) {
+  calculatePaddedShape(padding) {
     console.error("calculateOriginalShape must be implemented by subclass.");
   }
 
@@ -200,20 +197,18 @@ export class WalledTemplateShape {
     const sweep = this.computeSweep();
     let shape = sweep;
     let recurseData;
+    let polys;
 
     if ( this.doRecursion ) {
       const res = this._recurse(sweep, new Map());
       recurseData = res.recurseData;
-      const polys = res.polys;
+      polys = res.polys;
       polys.push(sweep);
       const paths = ClipperPaths.fromPolygons(polys);
       const combined = paths.combine();
       combined.clean();
       shape = combined.toPolygons()[0]; // TODO: Can there ever be more than 1?
       if ( !shape ) shape = sweep; // Rare but it is possible due to some obscure bug.
-
-      shape.polys = polys;
-
       // TODO: Need to deal with storing the recurse data.
       // if ( this.id ) this.document.setFlag(MODULE_ID, FLAGS.RECURSE_DATA, recurseData);
     }
@@ -223,6 +218,7 @@ export class WalledTemplateShape {
     poly._sweep = sweep; // For debugging
     poly._shape = shape; // For debugging
     poly._recurseData = recurseData;
+    poly.polys = polys;
     return poly;
   }
 
