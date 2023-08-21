@@ -2,6 +2,8 @@
 Fix for template attaching not working in SWADE, possibly other systems. Closes issue #35.
 Fix for midi no-targe flag. Closes issue #37.
 Fix for limited height walls ignoring templates. Closes issue #39. Needs additional thought on how to properly handle template elevation with limited height walls in a reasonable way.
+Fix for templates not updating when walls updated. Closes issue #40.
+Fix for attached template token dragging failing (completely) when autotarget is off. Closes issue #38.
 
 Update to geometry lib v0.2.4.
 
