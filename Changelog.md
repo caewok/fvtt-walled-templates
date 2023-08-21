@@ -4,8 +4,10 @@ Fix for midi no-targe flag. Closes issue #37.
 Fix for limited height walls ignoring templates. Closes issue #39. Needs additional thought on how to properly handle template elevation with limited height walls in a reasonable way.
 Fix for templates not updating when walls updated. Closes issue #40.
 Fix for attached template token dragging failing (completely) when autotarget is off. Closes issue #38.
+Possible fix for template highlighting to better follow targeting/area rules. Closes issue #36.
+Added methods for padding a given template shape. Closes issue #41.
 
-Update to geometry lib v0.2.4.
+Update to geometry lib v0.2.5.
 
 ## 0.6.4
 Fix conversion of circles to equivalent square templates, for 5-5-5 diagonal rule. Closes issue #33.
