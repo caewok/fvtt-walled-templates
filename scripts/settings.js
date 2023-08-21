@@ -1,4 +1,5 @@
 /* globals
+canvas,
 game
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -14,6 +15,10 @@ export const SETTINGS = {
   DEFAULT_WALL_RESTRICTION: {},
   DIAGONAL_SCALING: {},
   AUTOTARGET: {},
+  HIDE: {
+    BORDER: "hideBorder",
+    HIGHLIGHTING: "hideHighlighting"
+  },
   CHANGELOG: "changelog"
 };
 
@@ -138,6 +143,26 @@ export function registerSettings() {
     config: true
   });
 
+  game.settings.register(MODULE_ID, SETTINGS.HIDE.BORDER, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.HIDE.BORDER}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.HIDE.BORDER}.Hint`),
+    type: Boolean,
+    default: false,
+    scope: "world",
+    config: true,
+    onChange: _value => canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshTemplate: true }))
+  });
+
+  game.settings.register(MODULE_ID, SETTINGS.HIDE.HIGHLIGHTING, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.HIDE.HIGHLIGHTING}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.HIDE.HIGHLIGHTING}.Hint`),
+    type: Boolean,
+    default: false,
+    scope: "world",
+    config: true,
+    onChange: _value => canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshGrid: true }))
+  });
+
   for ( const shape of SHAPE_KEYS ) {
     game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALLS_BLOCK[shape], {
       name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK[shape]}.Name`),
@@ -177,6 +202,8 @@ export function registerSettings() {
       scope: "world",
       config: false
     });
+
+
   }
 
   log("Done registering settings.");
