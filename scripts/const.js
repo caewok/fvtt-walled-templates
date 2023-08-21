@@ -15,6 +15,10 @@ export const FLAGS = {
     DELTAS: "attachedTokenDelta",
     SPELL_TEMPLATE: "attachToken"
   },
+  HIDE: {
+    BORDER: "hideBorder",
+    HIGHLIGHTING: "hideHighlighting"
+  },
   HEIGHT_ALGORITHM: "heightAlgorithm",
   HEIGHT_CUSTOM_VALUE: "heightCustomValue",
   HEIGHT_TOKEN_OVERRIDES: "attachedTokenOverridesHeight"
