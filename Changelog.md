@@ -1,3 +1,7 @@
+## 0.6.6
+Add setting to hide template border or highlighting. Closes issue #43.
+Fix for sequencer animations of rectangle shapes. Closes issue #44.
+
 ## 0.6.5
 Fix for template attaching not working in SWADE, possibly other systems. Closes issue #35.
 Fix for midi no-targe flag. Closes issue #37.

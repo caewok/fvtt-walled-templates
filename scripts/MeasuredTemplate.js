@@ -85,11 +85,23 @@ async function destroyMeasuredTemplateHook(template) {
   await template.detachToken();
 }
 
+/**
+ * Hook hoverMeasuredTemplate to trigger template hiding
+ * @param {MeasuredTemplate} template
+ * @param {boolean} hovering
+ */
+function hoverMeasuredTemplateHook(template, hovering) {
+  if ( getSetting(SETTINGS.HIDE.BORDER) ) template.renderFlags.set({ refreshTemplate: true });
+  if ( getSetting(SETTINGS.HIDE.HIGHLIGHTING) ) template.renderFlags.set({ refreshGrid: true });
+}
+
+
 PATCHES.BASIC.HOOKS = {
   refreshMeasuredTemplate: refreshMeasuredTemplateHook,
   preCreateMeasuredTemplate: preCreateMeasuredTemplateHook,
   updateMeasuredTemplate: updateMeasuredTemplateHook,
-  destroyMeasuredTemplate: destroyMeasuredTemplateHook
+  destroyMeasuredTemplate: destroyMeasuredTemplateHook,
+  hoverMeasuredTemplate: hoverMeasuredTemplateHook
 };
 
 // ----- NOTE: Wraps ----- //
@@ -175,8 +187,48 @@ function clone(wrapped) {
   return clone;
 }
 
+/**
+ * Mixed wrap of MeasuredTemplate.prototype.highlightGrid
+ * If the setting is set to hide, don't highlight grid unless hovering.
+ */
+function highlightGrid(wrapped) {
+  const interactionState = this._original?.mouseInteractionManager?.state ?? this.mouseInteractionManager?.state;
+  if ( !this.visible
+   || this.hover
+   || typeof interactionState === "undefined"
+   || interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
+   || !getSetting(SETTINGS.HIDE.HIGHLIGHTING) ) return wrapped();
 
-PATCHES.BASIC.MIXES = { _getGridHighlightPositions };
+  // Clear the existing highlight layer
+  const grid = canvas.grid;
+  const hl = grid.getHighlightLayer(this.highlightId);
+  hl.clear();
+  return;
+}
+
+/**
+ * Mixed wrap of MeasuredTemplate.prototype._refreshTemplate
+ * If the setting is set to hide, don't draw the border.
+ */
+function _refreshTemplate(wrapped) {
+  const interactionState = this._original?.mouseInteractionManager?.state ?? this.mouseInteractionManager?.state;
+  if ( this.hover
+    || typeof interactionState === "undefined"
+    || interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
+    || !getSetting(SETTINGS.HIDE.BORDER) ) return wrapped();
+
+  // Clear the existing layer and draw the texture but not the outline or origin/destination points.
+  const t = this.template.clear();
+
+  // Fill Color or Texture
+  if ( this.texture ) t.beginTextureFill({texture: this.texture});
+  else t.beginFill(0x000000, 0.0);
+
+  // Draw the shape
+  t.drawShape(this.shape);
+}
+
+PATCHES.BASIC.MIXES = { _getGridHighlightPositions, highlightGrid, _refreshTemplate };
 
 // ----- Autotarget Wraps ----- //
 
@@ -395,6 +447,7 @@ PATCHES.BASIC.GETTERS = { attachedToken, wallsBlock };
  */
 function refreshMeasuredTemplateHook(template, flags) {
   if ( flags.retarget && template.autotargetTokens ) template.autotargetTokens();
+  if ( flags.refreshTemplate ) template._refreshTemplate();
 }
 
 PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook };

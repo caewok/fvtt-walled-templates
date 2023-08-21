@@ -95,6 +95,16 @@ Hooks.once("ready", () => {
             templates have an elevation configuration now—--I am considering options to provide some handling of 3d templates.`
     })
 
+    .addEntry({
+      version: "0.6.6",
+      title: "Template hiding",
+      body: `\
+          The GM can now hide template highlighting or template borders in the game settings.
+          Hovering over the template control icon will still show the highlighting and border. Animations
+          continue to display regardless of this setting. This is mostly intended to facilitate better-looking
+          animations used with templates. Thanks to @TMinz for the idea!`
+    })
+
     .build()
     ?.render(true);
 });

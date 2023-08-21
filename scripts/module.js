@@ -98,6 +98,7 @@ Hooks.once("init", function() {
   CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refresh.propagate = ["refreshState", "refreshPosition"];
   CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshShape.propagate = ["refreshGrid", "refreshText"];
   CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate = ["retarget", "refreshShape"];
+  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshTemplate = {};
 
   // Tell modules that the module is set up
   Hooks.callAll(`${MODULE_ID}Ready`);
@@ -148,7 +149,10 @@ Hooks.once("ready", async function() {
         promises.push(t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, enabled
           ? SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED : SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED));
       } else {
-        promises.push(t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[shape])));
+        promises.push(t.document.setFlag(
+          MODULE_ID,
+          FLAGS.WALLS_BLOCK,
+          getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[shape])));
       }
     }
 
