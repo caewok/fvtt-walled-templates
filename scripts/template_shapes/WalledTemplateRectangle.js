@@ -45,6 +45,23 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
   }
 
   /**
+   * Compute the shape to be used for this template.
+   * Output depends on the specific template settings.
+   * @returns {PIXI.Polygon|PIXI.Circle}
+   */
+  computeShape() {
+    const shape = super.computeShape();
+
+    // Set values that Sequencer or other modules may use from the rectangle.
+    if ( !poly.width || !poly.height ) {
+      const origShape = this.originalShape;
+      poly.width ??= origShape.width;
+      poly.height ??= origShape.height;
+    }
+    return poly;
+  }
+
+  /**
    * Generate a new RectangleTemplate based on spreading from a designated corner.
    * @param {PIXI.Point} corner
    * @returns {WalledTemplateRectangle[]|null}
