@@ -53,12 +53,12 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
     const shape = super.computeShape();
 
     // Set values that Sequencer or other modules may use from the rectangle.
-    if ( !poly.width || !poly.height ) {
+    if ( !shape.width || !shape.height ) {
       const origShape = this.originalShape;
-      poly.width ??= origShape.width;
-      poly.height ??= origShape.height;
+      shape.width ??= origShape.width;
+      shape.height ??= origShape.height;
     }
-    return poly;
+    return shape;
   }
 
   /**

@@ -105,8 +105,8 @@ export class WalledTemplateCircle extends WalledTemplateShape {
     const shape = super.computeShape();
 
     // Set values that Sequencer or other modules may use.
-    poly.radius ??= this.distance;
-    return poly;
+    shape.radius ??= this.distance;
+    return shape;
   }
 }
 
