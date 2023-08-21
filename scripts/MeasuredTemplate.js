@@ -175,11 +175,6 @@ function clone(wrapped) {
   return clone;
 }
 
-PATCHES.BASIC.WRAPS = {
-  _computeShape,
-  _canDrag,
-  clone
-};
 
 PATCHES.BASIC.MIXES = { _getGridHighlightPositions };
 
@@ -242,12 +237,17 @@ function destroy(wrapped, options) {
 }
 
 PATCHES.BASIC.WRAPS = {
+  _getGridHighlightPositions,
+  _computeShape,
+  _canDrag,
+  clone,
   _onDragLeftStart,
   _onDragLeftMove,
   _onDragLeftCancel,
   _onDragLeftDrop,
   destroy
 };
+
 
 // ----- NOTE: Methods ----- //
 
