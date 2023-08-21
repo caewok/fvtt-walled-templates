@@ -22,14 +22,30 @@ export class WalledTemplateCircle extends WalledTemplateShape {
     this.options.corner = opts.corner;
   }
 
-  /** @type {PIXI.Circle} */
-  get originalShape() {
-    const cir = CONFIG.MeasuredTemplate.objectClass.getCircleShape(this.distance);
-
-    // Pad the circle by one pixel so it better covers expected grid spaces.
+  /**
+   * Calculate the original template shape from base Foundry.
+   * Implemented by subclass.
+   * @param {object} [opts]     Optional values to temporarily override the ones in this instance.
+   * @returns {PIXI.Circle}
+   */
+  calculateOriginalShape({ distance } = {}) {
+    distance ??= this.distance;
+    return CONFIG.MeasuredTemplate.objectClass.getCircleShape(distance);
+    // Pad the circle by one pixel so it better covers expected grid spaces?
     // (Rounding tends to drop spaces on the edge.)
-    if ( cir instanceof PIXI.Circle ) cir.radius += 1;
-    return cir;
+    // if ( cir instanceof PIXI.Circle ) cir.radius += 1;
+  }
+
+  /**
+   * Keeping the origin in the same place, pad the shape by adding (or subtracting) to it
+   * in a border all around it, including the origin (for cones, rays, rectangles).
+   * Implemented by subclass.
+   * @param {number} [padding]    Optional padding value, if not using the one for this instance.
+   * @returns {PIXI.Circle}
+   */
+  calculatePaddedShape(padding) {
+    padding ??= this.options.padding;
+    return this.calculateOriginalShape({ distance: this.distance + padding });
   }
 
   /**

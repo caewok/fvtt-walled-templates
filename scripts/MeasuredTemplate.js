@@ -33,8 +33,7 @@ PATCHES.AUTOTARGET = {};
 function preCreateMeasuredTemplateHook(templateD, updateData, _opts, _id) {
   log("Hooking preCreateMeasuredTemplate", templateD, updateData);
 
-  const { distance: gridDist, size: gridSize } = canvas.scene.grid;
-  const { t, distance, direction, x, y } = templateD;
+  const { t, distance, direction } = templateD;
   const updates = {};
 
   // Only create if the id does not already exist
@@ -100,11 +99,36 @@ PATCHES.BASIC.HOOKS = {
  * @returns {Points[]}
  */
 function _getGridHighlightPositions(wrapper) {
-  const positions = wrapper();
+  if ( getSetting(SETTINGS.AUTOTARGET.METHOD) === SETTINGS.AUTOTARGET.METHODS.CENTER ) return wrapper();
 
-  const enabled = this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) !== SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED;
-  const need_targeting = !getSetting(SETTINGS.AUTOTARGET.METHOD) === SETTINGS.AUTOTARGET.METHODS.CENTER;
-  if ( !(enabled || need_targeting) ) return positions;
+  // Replicate most of _getGridHighlightPositions but include all.
+  const grid = canvas.grid.grid;
+  const d = canvas.dimensions;
+  const {x, y, distance} = this.document;
+
+  // Get number of rows and columns
+  const [maxRow, maxCol] = grid.getGridPositionFromPixels(d.width, d.height);
+  const gridDistance = (distance * 1.5) / d.distance;
+  let nRows = Math.ceil(gridDistance / (d.size / grid.h));
+  let nCols = Math.ceil(gridDistance / (d.size / grid.w));
+  [nRows, nCols] = [Math.min(nRows, maxRow), Math.min(nCols, maxCol)];
+
+  // Get the offset of the template origin relative to the top-left grid space
+  const [tx, ty] = grid.getTopLeft(x, y);
+  const [row0, col0] = grid.getGridPositionFromPixels(tx, ty);
+
+  // Identify grid coordinates covered by the template Graphics
+  const positions = [];
+  for ( let r = -nRows; r < nRows; r++ ) {
+    for ( let c = -nCols; c < nCols; c++ ) {
+      const [gx, gy] = grid.getPixelsFromGridPosition(row0 + r, col0 + c);
+      positions.push({x: gx, y: gy});
+    }
+  }
+
+  // Debug
+  // positions.forEach(p => Draw.point(p))
+  // positions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.5 }))
 
   return positions.filter(p => {
     const shape = gridShapeForTopLeft(p);
@@ -151,12 +175,8 @@ function clone(wrapped) {
   return clone;
 }
 
-PATCHES.BASIC.WRAPS = {
-  _getGridHighlightPositions,
-  _computeShape,
-  _canDrag,
-  clone
-};
+
+PATCHES.BASIC.MIXES = { _getGridHighlightPositions };
 
 // ----- Autotarget Wraps ----- //
 
@@ -210,19 +230,23 @@ function _onDragLeftDrop(wrapped, event) {
 
 function destroy(wrapped, options) {
   if ( this._original ) {
-    this.releaseTargets();
-    this._original.autotargetTokens();
+    if ( this.releaseTargets ) this.releaseTargets();
+    if ( this._original?.autotargetTokens ) this._original.autotargetTokens();
   }
   return wrapped(options);
 }
 
-PATCHES.AUTOTARGET.WRAPS = {
+PATCHES.BASIC.WRAPS = {
+  _computeShape,
+  _canDrag,
+  clone,
   _onDragLeftStart,
   _onDragLeftMove,
   _onDragLeftCancel,
   _onDragLeftDrop,
   destroy
 };
+
 
 // ----- NOTE: Methods ----- //
 
@@ -370,7 +394,7 @@ PATCHES.BASIC.GETTERS = { attachedToken, wallsBlock };
  * @param {RenderFlags} flags
  */
 function refreshMeasuredTemplateHook(template, flags) {
-  if ( flags.retarget ) template.autotargetTokens();
+  if ( flags.retarget && template.autotargetTokens ) template.autotargetTokens();
 }
 
 PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook };
@@ -489,8 +513,9 @@ function targetsWithinShape({ onlyVisible = false } = {}) {
     if ( onlyVisible && !token.visible ) return false;
     if ( !token.hitArea ) return false; // Token not yet drawn. See Token.prototype._draw.
 
-    // Midi-qol; Walled Templates issue #28.
-    if ( getProperty(token, "actor.system.details.type.custom")?.includes("NoTarget") ) return false;
+    // Midi-qol; Walled Templates issue #28, issue #37.
+    if ( getProperty(token, "actor.flags.midi-qol.neverTarget")
+      || getProperty(token, "actor.system.details.type.custom")?.includes("NoTarget") ) return false;
 
     const tBounds = tokenBounds(token);
     return this.boundsOverlap(tBounds);

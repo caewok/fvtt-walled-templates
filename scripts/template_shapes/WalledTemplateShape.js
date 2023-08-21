@@ -62,13 +62,14 @@ export class WalledTemplateShape {
    * @param {MeasuredTemplate} template   The underlying measured template
    * @param {WalledTemplateOptions} [opts]
    */
-  constructor(template, { origin, distance, direction, level } = {}) {
+  constructor(template, { origin, distance, direction, level, padding } = {}) {
     this.template = template;
     this.origin.copyFrom(origin ?? { x: template.x, y: template.y, z: template.elevationZ });
     this.origin.roundDecimals(); // Avoid annoying issues with precision.
     this.distance = distance ?? this.template.ray.distance;
     this.direction = direction ?? this.template.ray.angle;
-    this.options.level = level ?? 0; // For recursion, what level of recursion are we at?
+    this.options.level = level ??  0; // For recursion, what level of recursion are we at?
+    this.options.padding = padding || 0;
     this._boundaryWalls = new Set([...canvas.walls.outerBounds, ...canvas.walls.innerBounds]);
   }
 
@@ -84,18 +85,8 @@ export class WalledTemplateShape {
 
   /** @type {PIXI.Circle|PIXI.Rectangle|PIXI.Polygon} */
   get originalShape() {
-    const wt = this.template[MODULE_ID];
-    if ( wt?.originalShape ) return wt.originalShape;
-
-    // Should not reach this, but...
-    console.debug("WalledTemplateShape no original shape defined.");
-    switch ( this.t ) {
-      case "circle": return CONFIG.MeasuredTemplate.objectClass.getCircleShape(this.distance);
-      case "rect": return CONFIG.MeasuredTemplate.objectClass.getRectShape(this.direction, this.distance);
-      case "cone": return CONFIG.MeasuredTemplate.objectClass.getConeShape(this.direction, this.angle, this.distance);
-      case "ray": return CONFIG.MeasuredTemplate.objectClass.getRayShape(this.direction, this.distance, this.width);
-    }
-    return undefined;
+    if ( this.options.padding ) return this.calculatePaddedShape();
+    else return this.calculateOriginalShape();
   }
 
   get translatedShape() { return this.originalShape.translate(this.origin.x, this.origin.y); }
@@ -145,6 +136,27 @@ export class WalledTemplateShape {
       && this.options.level < numRecursions;
   }
 
+  /**
+   * Calculate the original template shape from base Foundry.
+   * Implemented by subclass.
+   * @param {object} [opts]     Optional values to temporarily override the ones in this instance.
+   * @returns {PIXI.Circle|PIXI.Rectangle|PIXI.Polygon}
+   */
+  calculateOriginalShape({ distance, angle, direction, width } = {}) {
+    console.error("calculateOriginalShape must be implemented by subclass.");
+  }
+
+  /**
+   * Keeping the origin in the same place, pad the shape by adding (or subtracting) to it
+   * in a border all around it, including the origin (for cones, rays, rectangles).
+   * Implemented by subclass.
+   * @param {number} [padding]    Optional padding value, if not using the one for this instance.
+   * @returns {PIXI.Circle|PIXI.Rectangle|PIXI.Polygon}
+   */
+  calculatePaddedShape(padding) {
+    console.error("calculateOriginalShape must be implemented by subclass.");
+  }
+
   #getSetting(flagName) {
     const flag = FLAGS[flagName];
     const defaultSetting = SETTINGS[`DEFAULT_${flagName}`][this.t];
@@ -185,20 +197,18 @@ export class WalledTemplateShape {
     const sweep = this.computeSweep();
     let shape = sweep;
     let recurseData;
+    let polys;
 
     if ( this.doRecursion ) {
       const res = this._recurse(sweep, new Map());
       recurseData = res.recurseData;
-      const polys = res.polys;
+      polys = res.polys;
       polys.push(sweep);
       const paths = ClipperPaths.fromPolygons(polys);
       const combined = paths.combine();
       combined.clean();
       shape = combined.toPolygons()[0]; // TODO: Can there ever be more than 1?
       if ( !shape ) shape = sweep; // Rare but it is possible due to some obscure bug.
-
-      shape.polys = polys;
-
       // TODO: Need to deal with storing the recurse data.
       // if ( this.id ) this.document.setFlag(MODULE_ID, FLAGS.RECURSE_DATA, recurseData);
     }
@@ -208,6 +218,7 @@ export class WalledTemplateShape {
     poly._sweep = sweep; // For debugging
     poly._shape = shape; // For debugging
     poly._recurseData = recurseData;
+    poly.polys = polys;
     return poly;
   }
 
@@ -231,6 +242,10 @@ export class WalledTemplateShape {
     cfg.source.object ??= {};
     cfg.source.object.b ??= Number.POSITIVE_INFINITY;
     cfg.source.object.t ??= Number.NEGATIVE_INFINITY;
+
+    // Need to also set origin, for reasons.
+    this.origin.b = Number.POSITIVE_INFINITY;
+    this.origin.t = Number.NEGATIVE_INFINITY;
 
     let sweepClass = this.sweepClass;
     if ( sweepClass === LightWallSweep && !this.options.lastReflectedEdge) sweepClass = ClockwiseSweepShape;

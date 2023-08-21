@@ -12,9 +12,36 @@ import { pointFromKey } from "../ClockwiseSweepShape.js";
 import { WalledTemplateCircle } from "./WalledTemplateCircle.js";
 
 export class WalledTemplateRectangle extends WalledTemplateCircle {
-  /** @type {PIXI.Rectangle} */
-  get originalShape() {
-    return CONFIG.MeasuredTemplate.objectClass.getRectShape(this.direction, this.distance);
+
+  /**
+   * Calculate the original template shape from base Foundry.
+   * Implemented by subclass.
+   * @param {object} [opts]     Optional values to temporarily override the ones in this instance.
+   * @returns {PIXI.Rectangle}
+   */
+  calculateOriginalShape({ direction, distance } = {}) {
+    direction ??= this.direction;
+    distance ??= this.distance;
+    return CONFIG.MeasuredTemplate.objectClass.getRectShape(direction, distance);
+  }
+
+  /**
+   * Keeping the origin in the same place, pad the shape by adding (or subtracting) to it
+   * in a border all around it, including the origin (for cones, rays, rectangles).
+   * Implemented by subclass.
+   * @param {number} [padding]    Optional padding value, if not using the one for this instance.
+   * @returns {PIXI.Polygon}
+   */
+  calculatePaddedShape(padding) {
+    padding ??= this.options.padding;
+    const direction = this.direction;
+    const rect = this.calculateOriginalShape({ distance: this.distance + (padding * 2), direction });
+    if ( !padding ) return rect;
+
+    // In order to shift the rectangle origin, must convert to a polygon.
+    // The delta between the old (0, 0) and new origins is the translation required.
+    const delta = PIXI.Point.fromAngle({x: 0, y: 0}, direction + Math.PI, padding);
+    return rect.toPolygon().translate(delta.x, delta.y);
   }
 
   /**

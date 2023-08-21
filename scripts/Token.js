@@ -224,7 +224,7 @@ PATCHES.BASIC.METHODS = {
  */
 function attachedTemplates() {
   return this.actor.effects
-    .filter(e => e.origin && e.origin.includes(CONFIG.MeasuredTemplate.objectClass.name))
+    .filter(e => e.origin && e.origin.includes("MeasuredTemplate"))
     .map(e => fromUuidSync(e.origin)?.object)
     .filter(t => Boolean(t)); // Drop undefined templates
 }
