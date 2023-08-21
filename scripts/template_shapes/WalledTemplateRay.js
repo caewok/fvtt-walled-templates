@@ -27,9 +27,40 @@ export class WalledTemplateRay extends WalledTemplateShape {
     this.options.Rr = opts.Rr;
   }
 
-  /** @type {PIXI.Polygon} */
-  get originalShape() {
-    return CONFIG.MeasuredTemplate.objectClass.getRayShape(this.direction, this.distance, this.width);
+  /**
+   * Calculate the original template shape from base Foundry.
+   * Implemented by subclass.
+   * @param {object} [opts]     Optional values to temporarily override the ones in this instance.
+   * @returns {PIXI.Polygon}
+   */
+  calculateOriginalShape({ direction, distance, width } = {}) {
+    direction ??= this.direction;
+    distance ??= this.distance;
+    width ??= this.width;
+    return CONFIG.MeasuredTemplate.objectClass.getRayShape(direction, distance, width);
+  }
+
+  /**
+   * Keeping the origin in the same place, pad the shape by adding (or subtracting) to it
+   * in a border all around it, including the origin (for cones, rays, rectangles).
+   * Implemented by subclass.
+   * @param {number} [padding]    Optional padding value, if not using the one for this instance.
+   * @returns {PIXI.Polygon}
+   */
+  calculatePaddedShape(padding) {
+    padding ??= this.options.padding;
+    const direction = this.direction;
+    if ( !padding ) return this.calculateOriginalShape({ direction });
+
+    const ray = this.calculateOriginalShape({
+      distance: this.distance + (padding * 2),
+      direction,
+      width: this.width + (padding * 2) });
+
+    // Shift the ray origin opposite of direction, thereby expanding the ray forwards and backwards.
+    // The delta between the old (0, 0) and new origins is the translation required.
+    const delta = PIXI.Point.fromAngle({x: 0, y: 0}, direction + Math.PI, padding);
+    return ray.translate(delta.x, delta.y);
   }
 
   /**

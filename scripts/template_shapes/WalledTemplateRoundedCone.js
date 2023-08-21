@@ -6,12 +6,19 @@
 import { WalledTemplateCone } from "./WalledTemplateCone.js";
 
 export class WalledTemplateRoundedCone extends WalledTemplateCone {
+
   /**
    * Original cone SWADE shape
    * https://gitlab.com/peginc/swade/-/blob/develop/src/module/canvas/SwadeMeasuredTemplate.ts
+   * @param {object} [opts]     Optional values to temporarily override the ones in this instance.
+   * @returns {PIXI.Polygon}
    */
-  get originalShape() {
-    if ( !this.template._getConeShape ) return super.originalShape; // In case SWADE is not present.
-    return this.template._getConeShape(this.direction, this.angle, this.distance);
+  calculateOriginalShape({ direction, angle, distance } = {}) {
+    direction ??= this.direction;
+    angle ??= this.angle;
+    distance ??= this.distance;
+    if ( this.template._getConeShape ) return this.template._getConeShape(direction, angle, distance);
+    return super.originalShape({ direction, angle, distance }); // In case SWADE is not present.
   }
+
 }
