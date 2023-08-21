@@ -31,9 +31,36 @@ export class WalledTemplateCone extends WalledTemplateRay {
     this.options.lastReflectedEdge = opts.lastReflectedEdge;
   }
 
-  /** @type {PIXI.Polygon} */
-  get originalShape() {
-    return CONFIG.MeasuredTemplate.objectClass.getConeShape(this.direction, this.angle, this.distance);
+  /**
+   * Calculate the original template shape from base Foundry.
+   * Implemented by subclass.
+   * @param {object} [opts]     Optional values to temporarily override the ones in this instance.
+   * @returns {PIXI.Polygon}
+   */
+  calculateOriginalShape({ direction, angle, distance } = {}) {
+    direction ??= this.direction;
+    angle ??= this.angle;
+    distance ??= this.distance;
+    return CONFIG.MeasuredTemplate.objectClass.getConeShape(direction, angle, distance);
+  }
+
+  /**
+   * Keeping the origin in the same place, pad the shape by adding (or subtracting) to it
+   * in a border all around it, including the origin (for cones, rays, rectangles).
+   * Implemented by subclass.
+   * @param {number} [padding]    Optional padding value, if not using the one for this instance.
+   * @returns {PIXI.Polygon}
+   */
+  calculatePaddedShape(padding) {
+    padding ??= this.options.padding;
+    const direction = this.direction;
+    const cone = this.calculateOriginalShape({ distance: this.distance + (padding * 2), direction });
+    if ( !padding ) return cone;
+
+    // Move the shape relative to the actual origin, to pad in all directions. Reverse direction.
+    // The delta between the old (0, 0) and new origins is the translation required.
+    const delta = PIXI.Point.fromAngle({x: 0, y: 0}, direction + Math.PI, padding);
+    return cone.translate(delta.x, delta.y);
   }
 
   /**
