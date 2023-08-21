@@ -95,6 +95,19 @@ export class WalledTemplateCircle extends WalledTemplateShape {
 
     return [new this.constructor(this.template, opts)];
   }
+
+  /**
+   * Compute the shape to be used for this template.
+   * Output depends on the specific template settings.
+   * @returns {PIXI.Polygon|PIXI.Circle}
+   */
+  computeShape() {
+    const shape = super.computeShape();
+
+    // Set values that Sequencer or other modules may use.
+    poly.radius ??= this.distance;
+    return poly;
+  }
 }
 
 // NOTE: Set the recursion types to spread or reflect, accordingly.
