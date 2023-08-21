@@ -237,7 +237,6 @@ function destroy(wrapped, options) {
 }
 
 PATCHES.BASIC.WRAPS = {
-  _getGridHighlightPositions,
   _computeShape,
   _canDrag,
   clone,
