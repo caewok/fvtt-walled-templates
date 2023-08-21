@@ -86,10 +86,7 @@ export class WalledTemplateShape {
   /** @type {PIXI.Circle|PIXI.Rectangle|PIXI.Polygon} */
   get originalShape() {
     if ( this.options.padding ) return this.calculatePaddedShape();
-    else {
-      const wt = this.template[MODULE_ID];
-      return wt.originalShape ?? (wt.originalShape = this.calculateOriginalShape());
-    }
+    else return this.calculateOriginalShape();
   }
 
   get translatedShape() { return this.originalShape.translate(this.origin.x, this.origin.y); }
@@ -156,7 +153,7 @@ export class WalledTemplateShape {
    * @param {number} [padding]    Optional padding value, if not using the one for this instance.
    * @returns {PIXI.Circle|PIXI.Rectangle|PIXI.Polygon}
    */
-  padShape(padding) {
+  calculatePaddedShape(padding) {
     console.error("calculateOriginalShape must be implemented by subclass.");
   }
 
