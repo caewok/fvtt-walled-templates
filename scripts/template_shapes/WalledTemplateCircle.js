@@ -28,7 +28,7 @@ export class WalledTemplateCircle extends WalledTemplateShape {
 
     // Pad the circle by one pixel so it better covers expected grid spaces.
     // (Rounding tends to drop spaces on the edge.)
-    if ( cir instanceof PIXI.Circle ) cir.radius += 1;
+    // if ( cir instanceof PIXI.Circle ) cir.radius += 1;
     return cir;
   }
 
