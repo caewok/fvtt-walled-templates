@@ -71,7 +71,10 @@ function updateTokenHook(tokenD, changed, _options, userId) {
  */
 async function destroyTokenHook(token) {
   if ( token._original ) return;
-  const promises = token.attachedTemplates.map(t => token.detachTemplate(t));
+
+  // Issue #50: Don't remove the active effect for a deleted unlinked token.
+  const isLinked = token.document.isLinked;
+  const promises = token.attachedTemplates.map(t => token.detachTemplate(t, true, isLinked));
   await Promise.all(promises);
 }
 
@@ -111,7 +114,7 @@ async function attachTemplate(template, effectData = {}, attachToTemplate = true
  * Detach a given template from this token.
  * @param {MeasuredTemplate|string} templateId    Template to detach or its id.
  */
-async function detachTemplate(templateId, detachFromTemplate = true) {
+async function detachTemplate(templateId, detachFromTemplate = true, removeActiveEffect = true) {
   let template;
   if ( templateId instanceof CONFIG.MeasuredTemplate.objectClass ) {
     template = templateId;
@@ -119,7 +122,7 @@ async function detachTemplate(templateId, detachFromTemplate = true) {
   } else template = canvas.templates.documentCollection.get(templateId);
 
   // Remove the active effect associated with this template (if any).
-  await this.document.toggleActiveEffect({ id: templateId }, { active: false });
+  if ( removeActiveEffect ) await this.document.toggleActiveEffect({ id: templateId }, { active: false });
 
   // Remove this token from the template
   if ( detachFromTemplate && template ) await template.detachToken(false);
