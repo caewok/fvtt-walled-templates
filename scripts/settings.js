@@ -19,6 +19,7 @@ export const SETTINGS = {
     BORDER: "hideBorder",
     HIGHLIGHTING: "hideHighlighting"
   },
+  SNAP_GRID: "snapGrid",
   CHANGELOG: "changelog"
 };
 
@@ -163,6 +164,15 @@ export function registerSettings() {
     onChange: _value => canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshGrid: true }))
   });
 
+  game.settings.register(MODULE_ID, SETTINGS.SNAP_GRID, {
+    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.SNAP_GRID}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.SNAP_GRID}.Hint`),
+    type: Boolean,
+    default: false,
+    scope: "world",
+    config: true,
+  });
+
   for ( const shape of SHAPE_KEYS ) {
     game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALLS_BLOCK[shape], {
       name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK[shape]}.Name`),
@@ -202,8 +212,6 @@ export function registerSettings() {
       scope: "world",
       config: false
     });
-
-
   }
 
   log("Done registering settings.");
