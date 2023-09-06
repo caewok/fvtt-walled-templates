@@ -1,5 +1,5 @@
 ## 0.6.7
-
+Add setting to snap-to-grid when dragging templates. Closes issue #53.
 
 ## 0.6.6
 Add setting to hide template border or highlighting. Closes issue #43.
