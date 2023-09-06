@@ -1,5 +1,6 @@
 ## 0.6.7
-
+Add setting to snap-to-grid when dragging templates. Closes issue #53.
+Avoid errors when removing a token with an attached template or when attaching a token that was immediately attached and then removed previously. Closes issue #50.
 
 ## 0.6.6
 Add setting to hide template border or highlighting. Closes issue #43.
