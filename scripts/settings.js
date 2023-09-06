@@ -166,6 +166,7 @@ export function registerSettings() {
 
   game.settings.register(MODULE_ID, SETTINGS.SNAP_GRID, {
     name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.SNAP_GRID}.Name`),
+    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.SNAP_GRID}.Hint`),
     type: Boolean,
     default: false,
     scope: "world",

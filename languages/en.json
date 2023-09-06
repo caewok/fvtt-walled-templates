@@ -66,6 +66,7 @@
     "walledtemplates.settings.autotarget-area.Hint": "For overlap highlight/autotarget method only. Percent token bounds or grid area that must overlap the template to count. 0 means any overlap counts. (Hint: use the arrow keys after clicking the square to increment by steps of 0.01.)",
 
     "walledtemplates.settings.snapGrid.Name": "Snap to grid intersections",
+    "walledtemplates.settings.snapGrid.Hint": "Hold shift when dragging templates to snap to half-grid increments, such as a grid square center.",
 
     "walledtemplates.settings.diagonal-scaling-ray.Name": "Scale diagonal rays",
     "walledtemplates.settings.diagonal-scaling-ray.Hint": "Scale ray templates to conform with the 5-5-5 diagonal rule.",
