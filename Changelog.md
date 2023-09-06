@@ -1,3 +1,6 @@
+## 0.6.7
+
+
 ## 0.6.6
 Add setting to hide template border or highlighting. Closes issue #43.
 Fix for sequencer animations of rectangle shapes. Closes issue #44.
