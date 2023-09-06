@@ -2,16 +2,16 @@
 canvas,
 CONFIG,
 CONST,
+Color,
 foundry,
 fromUuidSync,
 game,
-isEmpty,
-PIXI
+isEmpty
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { MODULE_ID, ACTIVE_EFFECT_ICON } from "./const.js";
+import { ACTIVE_EFFECT_ICON } from "./const.js";
 import { UserCloneTargets } from "./UserCloneTargets.js";
 
 export const PATCHES = {};
@@ -35,8 +35,8 @@ PATCHES.AUTOTARGET = {};
 function controlTokenHook(object, controlled) {
   const user = game.user;
 
-  if ( controlled ) user._lastSelected = object;
-  else if ( user.lastSelected === object ) user._lastDeselected = object;
+  if ( controlled ) user._lastSelected = object.document.uuid;
+  else if ( user._lastSelected === object.document.uuid ) user._lastDeselected = object.document.uuid;
 }
 
 
@@ -348,10 +348,10 @@ function _refreshTarget(wrapped, reticule) {
  * Add a PIXI.Graphics for the cloneTarget.
  * Add cloneTarget set
  */
-async function _draw(wrapped) {
-  await wrapped();
-  this.cloneTargeted ||= new Set();
-}
+// async function _draw(wrapped) {
+//   await wrapped();
+//   this.cloneTargeted ||= new Set();
+// }
 
 
 PATCHES.BASIC.WRAPS = {
