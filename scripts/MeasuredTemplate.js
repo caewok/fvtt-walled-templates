@@ -497,7 +497,6 @@ PATCHES.BASIC.GETTERS = { attachedToken, wallsBlock };
  */
 function refreshMeasuredTemplateHook(template, flags) {
   if ( flags.retarget && template.autotargetTokens ) template.autotargetTokens();
-  if ( flags.refreshTemplate ) template._refreshTemplate();
 }
 
 PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook };
