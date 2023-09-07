@@ -1,6 +1,9 @@
 ## 0.6.7
 Add setting to snap-to-grid when dragging templates. Closes issue #53.
 Avoid errors when removing a token with an attached template or when attaching a token that was immediately attached and then removed previously. Closes issue #50.
+Address change in Foundry v11.308 that caused the border to disappear. Closes issue #51. As a result, weirdness may ensue if a version lower than v11.308 is used.
+Allow non-owners of templates to see the control icon when in the template layer, and when hovering over the control icon, the hidden template border and highlight will appear. Closes issue #46.
+As a result of addressing #51 and by switching to hiding the highlight layer by setting alpha to 0, improved compatibility with Token Magic FX. Closes issue #49.
 
 ## 0.6.6
 Add setting to hide template border or highlighting. Closes issue #43.
