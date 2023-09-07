@@ -1,6 +1,7 @@
 /* globals
 canvas,
 foundry,
+fromUuidSync,
 game,
 renderTemplate,
 ui
@@ -88,7 +89,7 @@ async function renderMeasuredTemplateConfig(app, html, data) {
  * @param {Event} event
  */
 async function onSelectedTokenButton(_event) {
-  const token = game.user._lastSelected;
+  const token = fromUuidSync(game.user._lastSelected)?.object;
   if ( !token ) {
     ui.notifications.notify(game.i18n.localize(NOTIFICATIONS.NOTIFY.ATTACH_TOKEN_NOT_SELECTED));
     return;

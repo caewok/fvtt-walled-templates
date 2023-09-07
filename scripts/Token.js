@@ -2,16 +2,16 @@
 canvas,
 CONFIG,
 CONST,
+Color,
 foundry,
 fromUuidSync,
 game,
-isEmpty,
-PIXI
+isEmpty
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { MODULE_ID, ACTIVE_EFFECT_ICON } from "./const.js";
+import { ACTIVE_EFFECT_ICON } from "./const.js";
 import { UserCloneTargets } from "./UserCloneTargets.js";
 
 export const PATCHES = {};
@@ -35,8 +35,8 @@ PATCHES.AUTOTARGET = {};
 function controlTokenHook(object, controlled) {
   const user = game.user;
 
-  if ( controlled ) user._lastSelected = object;
-  else if ( user.lastSelected === object ) user._lastDeselected = object;
+  if ( controlled ) user._lastSelected = object.document.uuid;
+  else if ( user._lastSelected === object.document.uuid ) user._lastDeselected = object.document.uuid;
 }
 
 
@@ -71,7 +71,10 @@ function updateTokenHook(tokenD, changed, _options, userId) {
  */
 async function destroyTokenHook(token) {
   if ( token._original ) return;
-  const promises = token.attachedTemplates.map(t => token.detachTemplate(t));
+
+  // Issue #50: Don't remove the active effect for a deleted unlinked token.
+  const isLinked = token.document.isLinked;
+  const promises = token.attachedTemplates.map(t => token.detachTemplate(t, true, isLinked));
   await Promise.all(promises);
 }
 
@@ -111,7 +114,7 @@ async function attachTemplate(template, effectData = {}, attachToTemplate = true
  * Detach a given template from this token.
  * @param {MeasuredTemplate|string} templateId    Template to detach or its id.
  */
-async function detachTemplate(templateId, detachFromTemplate = true) {
+async function detachTemplate(templateId, detachFromTemplate = true, removeActiveEffect = true) {
   let template;
   if ( templateId instanceof CONFIG.MeasuredTemplate.objectClass ) {
     template = templateId;
@@ -119,7 +122,7 @@ async function detachTemplate(templateId, detachFromTemplate = true) {
   } else template = canvas.templates.documentCollection.get(templateId);
 
   // Remove the active effect associated with this template (if any).
-  await this.document.toggleActiveEffect({ id: templateId }, { active: false });
+  if ( removeActiveEffect ) await this.document.toggleActiveEffect({ id: templateId }, { active: false });
 
   // Remove this token from the template
   if ( detachFromTemplate && template ) await template.detachToken(false);
@@ -348,10 +351,10 @@ function _refreshTarget(wrapped, reticule) {
  * Add a PIXI.Graphics for the cloneTarget.
  * Add cloneTarget set
  */
-async function _draw(wrapped) {
-  await wrapped();
-  this.cloneTargeted ||= new Set();
-}
+// async function _draw(wrapped) {
+//   await wrapped();
+//   this.cloneTargeted ||= new Set();
+// }
 
 
 PATCHES.BASIC.WRAPS = {

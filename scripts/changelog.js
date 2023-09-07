@@ -105,6 +105,22 @@ Hooks.once("ready", () => {
           animations used with templates. Thanks to @TMinz for the idea!`
     })
 
+    .addEntry({
+      version: "0.6.7",
+      title: "Grid snapping",
+      body: `\
+          - **Grid Snapping Setting:** New setting added that will force dragged templates to snap-to-grid. Hold
+            shift to get half-snapping, which allows templates to still be centered on grid squares.
+
+          - **Improvements to hiding:** Changes to template highlight and border hiding. Non-owners can now go to the
+            template layer and hover over the template control icon to reveal highlighting and border.
+            Non-owners cannot control the template (the control icon is partially transparent to indicate this) and if the template is
+            hidden, nothing will appear in the template layer, as expected in default Foundry.
+
+          - **Requires Foundry v11.308:** Walled Templates does not currently force you to use Foundry v11.308, but certain changes
+            in v11.308 mean that older versions of Foundry may not play nicely with Walled Templates from now on.`
+    })
+
     .build()
     ?.render(true);
 });

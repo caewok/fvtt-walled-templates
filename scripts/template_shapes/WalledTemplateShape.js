@@ -170,11 +170,12 @@ export class WalledTemplateShape {
   /**
    * Compute the shape to be used for this template.
    * Output depends on the specific template settings.
+   * @param {boolean} recurse   True if recursion should be done if applicable.
    * @returns {PIXI.Polygon|PIXI.Circle|PIXI.Rectangle}
    */
-  computeShape() {
+  computeShape(recurse = true) {
     if ( !this.doWallsBlock ) return this.originalShape;
-    const poly = this.computeSweepPolygon();
+    const poly = this.computeSweepPolygon(recurse);
 
     if ( !poly || isNaN(poly.points[0]) ) {
       console.error("_computeShapeMeasuredTemplate poly is broken.");
@@ -190,15 +191,16 @@ export class WalledTemplateShape {
   /**
    * Compute the shape for this polygon with walls blocking.
    * This may be recursively applied depending on template settings.
+   * @param {boolean} recurse   True if recursion should be done if applicable.
    * @returns {PIXI.Polygon}
    */
-  computeSweepPolygon() {
+  computeSweepPolygon(recurse = true) {
     const sweep = this.computeSweep();
     let shape = sweep;
     let recurseData;
     let polys;
 
-    if ( this.doRecursion ) {
+    if ( recurse && this.doRecursion ) {
       const res = this._recurse(sweep, new Map());
       recurseData = res.recurseData;
       polys = res.polys;

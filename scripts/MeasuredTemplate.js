@@ -4,6 +4,7 @@ CONST,
 flattenObject,
 getProperty,
 isEmpty,
+MouseInteractionManager,
 PIXI
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -90,7 +91,7 @@ async function destroyMeasuredTemplateHook(template) {
  * @param {MeasuredTemplate} template
  * @param {boolean} hovering
  */
-function hoverMeasuredTemplateHook(template, hovering) {
+function hoverMeasuredTemplateHook(template, _hovering) {
   if ( getSetting(SETTINGS.HIDE.BORDER) ) template.renderFlags.set({ refreshTemplate: true });
   if ( getSetting(SETTINGS.HIDE.HIGHLIGHTING) ) template.renderFlags.set({ refreshGrid: true });
 }
@@ -203,7 +204,6 @@ function highlightGrid(wrapped) {
   const grid = canvas.grid;
   const hl = grid.getHighlightLayer(this.highlightId);
   hl.clear();
-  return;
 }
 
 /**
@@ -228,7 +228,7 @@ function _refreshTemplate(wrapped) {
   t.drawShape(this.shape);
 }
 
-PATCHES.BASIC.MIXES = { _getGridHighlightPositions, highlightGrid, _refreshTemplate };
+PATCHES.BASIC.MIXES = { _getGridHighlightPositions };
 
 // ----- Autotarget Wraps ----- //
 
@@ -253,15 +253,31 @@ function _onDragLeftStart(wrapped, event) {
 }
 
 function _onDragLeftMove(wrapped, event) {
-  if ( !this.attachedToken ) return wrapped(event);
+  if ( this.attachedToken ) {
+    // Temporarily set the event clones to this template clone.
+    const tokenClones = event.interactionData.clones;
+    event.interactionData.clones = [event.interactionData.attachedTemplateClones.get(this.id)];
+    wrapped(event);
 
-  // Temporarily set the event clones to this template clone.
-  const tokenClones = event.interactionData.clones;
-  event.interactionData.clones = [event.interactionData.attachedTemplateClones.get(this.id)];
+    // Restore the token clones.
+    event.interactionData.clones = tokenClones;
+    return;
+  }
+
   wrapped(event);
+  if ( !getSetting(SETTINGS.SNAP_GRID) ) return;
 
-  // Restore the token clones.
-  event.interactionData.clones = tokenClones;
+  // Move the clones to snapped locations.
+  // Mimics MeasuredTemplate.prototype._onDragLeftMove
+  const precision = event.shiftKey ? 2 : 1;
+  const { origin, destination } = event.interactionData;
+  for ( let c of event.interactionData.clones || [] ) {
+    const snapped = canvas.grid.getSnappedPosition(c.document.x, c.document.y, precision);
+    console.debug(`Clone Origin: ${origin.x},${origin.y} Destination: ${destination.x},${destination.y}; Snapped: ${snapped.x},${snapped.y} Doc: ${c.document.x},${c.document.y}`);
+    c.document.x = snapped.x;
+    c.document.y = snapped.y;
+    c.renderFlags.set({refresh: true});
+  }
 }
 
 function _onDragLeftCancel(wrapped, event) {
@@ -288,6 +304,57 @@ function destroy(wrapped, options) {
   return wrapped(options);
 }
 
+
+/**
+ * Control display of border when rendering the template.
+ */
+function _applyRenderFlags(wrapped, flags) {
+  const interactionState = this.interactionState;
+  const canHide = !(this.hover
+    || this.isPreview
+    || !this.visible
+    || typeof interactionState === "undefined"
+    || interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG);
+
+  // Control the border visibility by changing its thickness.
+  if ( flags.refreshTemplate ) {
+    if ( canHide && getSetting(SETTINGS.HIDE.BORDER) ) {
+      if ( this._borderThickness ) this._oldBorderThickness = this._borderThickness;
+      this._borderThickness = 0;
+    } else {
+      this._borderThickness = this._oldBorderThickness || 3;
+    }
+  }
+
+  wrapped(flags);
+
+  // Control the highlight visibility by changing its alpha.
+  if ( flags.refreshGrid || flags.refreshState ) {
+    const hl = canvas.grid.getHighlightLayer(this.highlightId);
+    if ( canHide && getSetting(SETTINGS.HIDE.HIGHLIGHTING) ) {
+      hl.alpha = 0;
+    } else {
+      hl.alpha = this.document.hidden ? 0.5 : 1;
+    }
+  }
+
+  // Make the control icon visible to non-owners.
+  if ( flags.refreshState && !this.document.isOwner ) {
+    this.controlIcon.refresh({
+      visible: this.visible && this.layer.active && !this.document.hidden,
+    });
+    this.controlIcon.alpha = 0.5;
+  }
+}
+
+/**
+ * Allow non-owners to hover over a template icon.
+ */
+function _canHover(wrapped, user, event) {
+  if ( wrapped(user, event) ) return true;
+  return this.controlIcon.visible;
+}
+
 PATCHES.BASIC.WRAPS = {
   _computeShape,
   _canDrag,
@@ -296,7 +363,9 @@ PATCHES.BASIC.WRAPS = {
   _onDragLeftMove,
   _onDragLeftCancel,
   _onDragLeftDrop,
-  destroy
+  destroy,
+  _applyRenderFlags,
+  _canHover
 };
 
 
@@ -447,7 +516,6 @@ PATCHES.BASIC.GETTERS = { attachedToken, wallsBlock };
  */
 function refreshMeasuredTemplateHook(template, flags) {
   if ( flags.retarget && template.autotargetTokens ) template.autotargetTokens();
-  if ( flags.refreshTemplate ) template._refreshTemplate();
 }
 
 PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook };
