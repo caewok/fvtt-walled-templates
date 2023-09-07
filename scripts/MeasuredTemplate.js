@@ -337,6 +337,22 @@ function _applyRenderFlags(wrapped, flags) {
       hl.alpha = this.document.hidden ? 0.5 : 1;
     }
   }
+
+  // Make the control icon visible to non-owners.
+  if ( flags.refreshState && !this.document.isOwner ) {
+    this.controlIcon.refresh({
+      visible: this.visible && this.layer.active && !this.document.hidden,
+    });
+    this.controlIcon.alpha = 0.5;
+  }
+}
+
+/**
+ * Allow non-owners to hover over a template icon.
+ */
+function _canHover(wrapped, user, event) {
+  if ( wrapped(user, event) ) return true;
+  return this.controlIcon.visible;
 }
 
 PATCHES.BASIC.WRAPS = {
@@ -348,7 +364,8 @@ PATCHES.BASIC.WRAPS = {
   _onDragLeftCancel,
   _onDragLeftDrop,
   destroy,
-  _applyRenderFlags
+  _applyRenderFlags,
+  _canHover
 };
 
 
