@@ -6,6 +6,7 @@ Allow non-owners of templates to see the control icon when in the template layer
 As a result of addressing #51 and by switching to hiding the highlight layer by setting alpha to 0, improved compatibility with Token Magic FX. Closes issue #49.
 Add option to compute the shape without recursion, for use by modules like Sequencer.
 Possible fix for #47 (Drag Ruler compatibility) by fixing issue #50.
+Merged PR to close #52 (SVG dimensions). Thanks @morepurplemorebetter!
 
 ## 0.6.6
 Add setting to hide template border or highlighting. Closes issue #43.
