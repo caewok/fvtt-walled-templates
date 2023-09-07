@@ -309,8 +309,6 @@ function destroy(wrapped, options) {
  * Control display of border when rendering the template.
  */
 function _applyRenderFlags(wrapped, flags) {
-  // if ( !flags.refreshTemplate ) return wrapped(flags);
-
   const interactionState = this.interactionState;
   const canHide = !(this.hover
     || this.isPreview
@@ -319,21 +317,25 @@ function _applyRenderFlags(wrapped, flags) {
     || interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG);
 
   // Control the border visibility by changing its thickness.
-  if ( canHide && getSetting(SETTINGS.HIDE.BORDER) ) {
-    if ( this._borderThickness ) this._oldBorderThickness = this._borderThickness;
-    this._borderThickness = 0;
-  } else {
-    this._borderThickness = this._oldBorderThickness || 3;
+  if ( flags.refreshTemplate ) {
+    if ( canHide && getSetting(SETTINGS.HIDE.BORDER) ) {
+      if ( this._borderThickness ) this._oldBorderThickness = this._borderThickness;
+      this._borderThickness = 0;
+    } else {
+      this._borderThickness = this._oldBorderThickness || 3;
+    }
   }
 
   wrapped(flags);
 
   // Control the highlight visibility by changing its alpha.
-  const hl = canvas.grid.getHighlightLayer(this.highlightId);
-  if ( canHide && getSetting(SETTINGS.HIDE.HIGHLIGHTING) ) {
-    hl.alpha = 0;
-  } else {
-    hl.alpha = this.document.hidden ? 0.5 : 1;
+  if ( flags.refreshGrid || flags.refreshState ) {
+    const hl = canvas.grid.getHighlightLayer(this.highlightId);
+    if ( canHide && getSetting(SETTINGS.HIDE.HIGHLIGHTING) ) {
+      hl.alpha = 0;
+    } else {
+      hl.alpha = this.document.hidden ? 0.5 : 1;
+    }
   }
 }
 
