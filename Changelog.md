@@ -5,6 +5,7 @@ Address change in Foundry v11.308 that caused the border to disappear. Closes is
 Allow non-owners of templates to see the control icon when in the template layer, and when hovering over the control icon, the hidden template border and highlight will appear. Closes issue #46.
 As a result of addressing #51 and by switching to hiding the highlight layer by setting alpha to 0, improved compatibility with Token Magic FX. Closes issue #49.
 Add option to compute the shape without recursion, for use by modules like Sequencer.
+Possible fix for #47 (Drag Ruler compatibility) by fixing issue #50.
 
 ## 0.6.6
 Add setting to hide template border or highlighting. Closes issue #43.
