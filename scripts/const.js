@@ -21,7 +21,8 @@ export const FLAGS = {
   },
   HEIGHT_ALGORITHM: "heightAlgorithm",
   HEIGHT_CUSTOM_VALUE: "heightCustomValue",
-  HEIGHT_TOKEN_OVERRIDES: "attachedTokenOverridesHeight"
+  HEIGHT_TOKEN_OVERRIDES: "attachedTokenOverridesHeight",
+  ADD_TOKEN_SIZE: "addTokenSize"
 };
 
 export const LABELS = {

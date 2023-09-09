@@ -1,3 +1,11 @@
+## 0.6.8
+Grouped the dnd5e spell configuration properties for Walled Template in a distinct area, with a header, to help distinguish those properties from base dnd5e properties.
+Add toggle to the dnd5e spell configuration to increase template size by the token size if a token is directly under the template origination point. Best used with spells like *spirit guardians* that would be ineffective when used by larger tokens, like dragons. Closes issue #55.
+Fixes for highlighting weirdness along borders when the highlighting setting is set to area === 0. Workaround for potential Foundry bug issue [#9991](https://github.com/foundryvtt/foundryvtt/issues/9991). Closes issue #60.
+Fix for square templates not displaying animations. Closes issue #58.
+
+Update to geometry lib v0.2.7.
+
 ## 0.6.7
 Add setting to snap-to-grid when dragging templates. Closes issue #53.
 Avoid errors when removing a token with an attached template or when attaching a token that was immediately attached and then removed previously. Closes issue #50.
