@@ -385,14 +385,14 @@ function boundsOverlap(bounds) {
     return this.shape.contains(tBounds.center.x, tBounds.center.y);
   }
 
-  // Using SETTINGS.AUTOTARGET.METHODS.OVERLAP
-  if ( !tBounds.overlaps(this.shape) ) { return false; }
+  // If the rectangles don't overlap, we can stop here.
+  if ( !tBounds.overlaps(this.shape.getBounds()) ) return false;
 
-  // Calculate the area of overlap by constructing the intersecting polygon between the
+  // Calculate the area of potential overlap by constructing the intersecting polygon between the
   // bounds and the template shape.
   // It is possible for the overlap to be a single point, and the poly returned would be degen.
   const poly = boundsShapeIntersection(tBounds, this.shape);
-  if ( !poly || poly.points.length < 3 ) return false;
+  if ( !poly || poly.points.length < 6 ) return false; // Less than 6 points: line, point, or empty.
 
   // If the polygon area is zero, no overlap.
   const p_area = poly.area;
