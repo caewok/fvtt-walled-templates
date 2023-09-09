@@ -385,20 +385,23 @@ function boundsOverlap(bounds) {
     return this.shape.contains(tBounds.center.x, tBounds.center.y);
   }
 
-  // Using SETTINGS.AUTOTARGET.METHODS.OVERLAP
-  if ( !tBounds.overlaps(this.shape) ) { return false; }
+  // If the rectangles don't overlap, we can stop here.
+  if ( !tBounds.overlaps(this.shape.getBounds()) ) return false;
 
-  const area_percentage = getSetting(SETTINGS.AUTOTARGET.AREA);
-  if ( !area_percentage ) { return true; }
-
-  // Calculate the area of overlap by constructing the intersecting polygon between the
+  // Calculate the area of potential overlap by constructing the intersecting polygon between the
   // bounds and the template shape.
+  // It is possible for the overlap to be a single point, and the poly returned would be degen.
   const poly = boundsShapeIntersection(tBounds, this.shape);
-  if ( !poly || poly.points.length < 3 ) return false;
-  const b_area = bounds.area;
-  const p_area = poly.area;
-  const target_area = b_area * area_percentage;
+  if ( !poly || poly.points.length < 6 ) return false; // Less than 6 points: line, point, or empty.
 
+  // If the polygon area is zero, no overlap.
+  const p_area = poly.area;
+  if ( p_area.almostEqual(0) ) return false;
+
+  // Test for overlap.
+  const area_percentage = getSetting(SETTINGS.AUTOTARGET.AREA);
+  const b_area = bounds.area;
+  const target_area = b_area * area_percentage;
   return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%
 }
 
@@ -663,11 +666,17 @@ PATCHES.AUTOTARGET.METHODS = {
  * @return {PIXI.Polygon}
  */
 function boundsShapeIntersection(tBounds, shape) {
+  if ( tBounds instanceof Square ) tBounds = tBounds.toPolygon();
+
+
   // Intersection of two PIXI.Rectangles returns PIXI.Rectangle; convert to Polygon
   if ( shape instanceof PIXI.Rectangle
     && tBounds instanceof PIXI.Rectangle ) return tBounds.intersection(shape).toPolygon();
 
   if ( shape instanceof PIXI.Polygon ) return tBounds.intersectPolygon(shape);
+
+  // See issue #9991 https://github.com/foundryvtt/foundryvtt/issues/9991
+  if ( shape instanceof PIXI.Rectangle ) return shape.toPolygon().intersectPolygon(tBounds);
 
   // Shape should be circle
   return shape.intersectPolygon(tBounds.toPolygon());
