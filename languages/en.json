@@ -24,6 +24,9 @@
     "walledtemplates.dnd5e-spell-config.attach-token.caster": "Caster",
     "walledtemplates.dnd5e-spell-config.attach-token.target": "Last Targeted",
 
+    "walledtemplates.dnd5e-spell-config.add-token-size.Name": "Add token size to template",
+    "walledtemplates.dnd5e-spell-config.add-token-size.Hint": "If spell is centered on a token, add the token size (min of width/height) to the template size.",
+
     "walledtemplates.settings.menu.title": "Default Shape Settings",
 
     "walledtemplates.settings.default_circle.Name": "Default Circle",
