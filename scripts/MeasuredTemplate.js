@@ -666,11 +666,17 @@ PATCHES.AUTOTARGET.METHODS = {
  * @return {PIXI.Polygon}
  */
 function boundsShapeIntersection(tBounds, shape) {
+  if ( tBounds instanceof Square ) tBounds = tBounds.toPolygon();
+
+
   // Intersection of two PIXI.Rectangles returns PIXI.Rectangle; convert to Polygon
   if ( shape instanceof PIXI.Rectangle
     && tBounds instanceof PIXI.Rectangle ) return tBounds.intersection(shape).toPolygon();
 
   if ( shape instanceof PIXI.Polygon ) return tBounds.intersectPolygon(shape);
+
+  // See issue #9991 https://github.com/foundryvtt/foundryvtt/issues/9991
+  if ( shape instanceof PIXI.Rectangle ) return shape.toPolygon().intersectPolygon(tBounds);
 
   // Shape should be circle
   return shape.intersectPolygon(tBounds.toPolygon());
