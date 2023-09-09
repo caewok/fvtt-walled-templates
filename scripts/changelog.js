@@ -121,6 +121,17 @@ Hooks.once("ready", () => {
             in v11.308 mean that older versions of Foundry may not play nicely with Walled Templates from now on.`
     })
 
+    .addEntry({
+      version: "0.6.8",
+      title: "Dnd5e spell item improvements",
+      body: `\
+          - **Account for token size:** In dnd5e, added a toggle in the spell item configuration to add the token size (min width/height)
+            to the template distance if the template originates at the center of a token.
+
+          - **Spell configuration legend.** In dnd5e, the spell item configuration now displays Walled Template configuration options
+            in a distinct area, identified by a header. (Only displays when valid spell template shapes are chosen.)`
+    })
+
     .build()
     ?.render(true);
 });
