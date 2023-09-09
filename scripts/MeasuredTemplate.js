@@ -388,17 +388,20 @@ function boundsOverlap(bounds) {
   // Using SETTINGS.AUTOTARGET.METHODS.OVERLAP
   if ( !tBounds.overlaps(this.shape) ) { return false; }
 
-  const area_percentage = getSetting(SETTINGS.AUTOTARGET.AREA);
-  if ( !area_percentage ) { return true; }
-
   // Calculate the area of overlap by constructing the intersecting polygon between the
   // bounds and the template shape.
+  // It is possible for the overlap to be a single point, and the poly returned would be degen.
   const poly = boundsShapeIntersection(tBounds, this.shape);
   if ( !poly || poly.points.length < 3 ) return false;
-  const b_area = bounds.area;
-  const p_area = poly.area;
-  const target_area = b_area * area_percentage;
 
+  // If the polygon area is zero, no overlap.
+  const p_area = poly.area;
+  if ( p_area.almostEqual(0) ) return false;
+
+  // Test for overlap.
+  const area_percentage = getSetting(SETTINGS.AUTOTARGET.AREA);
+  const b_area = bounds.area;
+  const target_area = b_area * area_percentage;
   return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%
 }
 
