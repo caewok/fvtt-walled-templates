@@ -3,6 +3,8 @@ Add toggle to the dnd5e spell configuration to increase template size by the tok
 Fixes for highlighting weirdness along borders when the highlighting setting is set to area === 0. Workaround for potential Foundry bug issue [#9991](https://github.com/foundryvtt/foundryvtt/issues/9991). Closes issue #60.
 Fix for square templates not displaying animations. Closes issue #58.
 
+Update to geometry lib v0.2.7.
+
 ## 0.6.7
 Add setting to snap-to-grid when dragging templates. Closes issue #53.
 Avoid errors when removing a token with an attached template or when attaching a token that was immediately attached and then removed previously. Closes issue #50.
