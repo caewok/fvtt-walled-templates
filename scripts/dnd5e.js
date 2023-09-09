@@ -67,6 +67,18 @@ function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-
     }
     templateD.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsBlock);
     templateD.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, wallRestriction);
+
+    if ( item.getFlag(MODULE_ID, FLAGS.ADD_TOKEN_SIZE) ) {
+      // Does the template originate on a token? (Use the first token found.)
+      const templateOrigin = new PIXI.Point(templateD.x, templateD.y);
+      const token = canvas.tokens.placeables.find(t => templateOrigin.almostEqual(t.center));
+      if ( token ) {
+        // Add 1/2 token size to the template distance.
+        const { width, height } = token.document;
+        const size = Math.min(width, height) * canvas.dimensions.distance;
+        templateD.updateSource({ distance: templateD.distance + size });
+      }
+    }
   }
 }
 

@@ -25,7 +25,7 @@
     "walledtemplates.dnd5e-spell-config.attach-token.target": "Last Targeted",
 
     "walledtemplates.dnd5e-spell-config.add-token-size.Name": "Add token size to template",
-    "walledtemplates.dnd5e-spell-config.add-token-size.Hint": "If spell is centered on a token, add the token size (min of width/height) to the template size.",
+    "walledtemplates.dnd5e-spell-config.add-token-size.Hint": "If spell originates at the center of a token, add the token size (min of width/height) to the template size.",
 
     "walledtemplates.settings.menu.title": "Default Shape Settings",
 
