@@ -183,8 +183,8 @@ export class WalledTemplateShape {
     }
 
     // Set origin, which may be used by other modules
-    poly.x ??= this.origin.x;
-    poly.y ??= this.origin.y;
+    poly.x ??= 0;
+    poly.y ??= 0;
     return poly;
   }
 
