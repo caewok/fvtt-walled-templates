@@ -104,5 +104,5 @@ async function render5eSpellTemplateConfig(app, html, data) {
   const template = `modules/${MODULE_ID}/templates/walled-templates-dnd5e-spell-template-config.html`;
   const myHTML = await renderTemplate(template, data);
 
-  html.find(".input-select-select").first().after(myHTML);
+  html.find(".form-group.consumption").first().after(myHTML);
 }
