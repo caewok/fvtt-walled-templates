@@ -1,3 +1,7 @@
+## 0.6.9
+Fix for overhead tiles not working as expected. Closes issue #62.
+Update to geometry lib v0.2.8.
+
 ## 0.6.8
 Grouped the dnd5e spell configuration properties for Walled Template in a distinct area, with a header, to help distinguish those properties from base dnd5e properties.
 Add toggle to the dnd5e spell configuration to increase template size by the token size if a token is directly under the template origination point. Best used with spells like *spirit guardians* that would be ineffective when used by larger tokens, like dragons. Closes issue #55.
