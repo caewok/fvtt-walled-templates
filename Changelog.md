@@ -1,6 +1,7 @@
 ## 0.6.10
 Fix for Drag Ruler snapping. Closes issues #59 and #64. Submitted PR to Drag Ruler git for issue with Drag Ruler not working with attached templates (issue #47).
 Fix for null `token.actor.effects` error. Closes issue #65.
+Update to geometry lib v0.2.9.
 
 ## 0.6.9
 Fix for overhead tiles not working as expected. Closes issue #62.
