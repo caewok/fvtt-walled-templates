@@ -226,6 +226,7 @@ PATCHES.BASIC.METHODS = {
  * @returns {MeasuredTemplate[]|ActiveEffects[]}
  */
 function attachedTemplates() {
+  if ( !this?.actor?.effects ) return;  // Issue #65.
   return this.actor.effects
     .filter(e => e.origin && e.origin.includes("MeasuredTemplate"))
     .map(e => fromUuidSync(e.origin)?.object)
