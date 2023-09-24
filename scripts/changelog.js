@@ -135,6 +135,16 @@ Hooks.once("ready", () => {
             in a distinct area, identified by a header. (Only displays when valid spell template shapes are chosen.)`
     })
 
+    .addEntry({
+      version: "0.6.10",
+      title: "Drag Ruler update",
+      body: `\
+          This Walled Templates update has a fix for snap-to-grid when using Drag Ruler.
+
+          I have submitted a PR to the Drag Ruler Git to address compatibility with Drag Ruler when dragging a token with an attached template.
+          In the meantime, I have posted instructions for how to temporarily correct this issue in the [open issue in my Git](https://github.com/caewok/fvtt-walled-templates/issues/47#issuecomment-1732570294).`
+    })
+
     .build()
     ?.render(true);
 });
