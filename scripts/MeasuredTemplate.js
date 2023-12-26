@@ -378,7 +378,7 @@ function _applyRenderFlags(wrapped, flags) {
  */
 function _canHover(wrapped, user, event) {
   if ( wrapped(user, event) ) return true;
-  return this.controlIcon.visible;
+  return this.controlIcon?.visible;
 }
 
 PATCHES.BASIC.WRAPS = {
