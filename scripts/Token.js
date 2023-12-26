@@ -49,7 +49,7 @@ function updateTokenHook(tokenD, changed, _options, userId) {
   const token = tokenD.object;
 
   const attachedTemplates = token.attachedTemplates;
-  if ( !attachedTemplates.length ) return;
+  if ( !attachedTemplates || !attachedTemplates.length ) return;
 
   // TODO: Update elevation, rotation
   const props = (new Set(["x", "y", "elevation", "rotation"])).intersection(new Set(Object.keys(changed)));
