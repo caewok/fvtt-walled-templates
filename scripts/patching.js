@@ -26,7 +26,8 @@ export const PATCHES = {
   dnd5e: PATCHES_dnd5e // Only works b/c these are all hooks. Otherwise, would need class breakdown.
 };
 
-export const PATCHER = new Patcher(PATCHES);
+export const PATCHER = new Patcher();
+PATCHER.addPatchesFromRegistrationObject(PATCHES);
 
 export function initializePatching() {
   PATCHER.registerGroup("BASIC");
