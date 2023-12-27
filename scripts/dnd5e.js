@@ -26,14 +26,8 @@ function renderItemSheet5eHook(app, html, data) {
 }
 
 /**
- * Hook dnd pre-item usage, to add the last targeted token to the options passed through.
- */
-function dnd5epreUseItemHook(item, config, options) {
-  foundry.utils.mergeObject(options.flags, { lastTargeted: game.user.targets.ids.at(-1) });
-}
-
-/**
  * Given a template, add configuration from the attached item, if any.
+ * Called in the drawMeasuredTemplate hook. At that point, the template may not have an id.
  * @param {AbilityTemplate} template    Template created from item in dnd5e
  */
 export function addDnd5eItemConfigurationToTemplate(template) {
@@ -52,20 +46,6 @@ export function addDnd5eItemConfigurationToTemplate(template) {
     wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTION[shape]);
   }
 
-  if ( attachToken ) {
-    switch ( attachToken ) {
-      case "caster": {
-        const token = item.parent.token ?? item.parent.getActiveTokens()[0];
-        if ( token ) templateD.object.attachToken(token);
-        break;
-      }
-      case "target": {
-        const tokenId = game.user.targets.ids.at(-1);
-        if ( tokenId ) templateD.object.attachToken(tokenId);
-        break;
-      }
-    }
-  }
   // templateD.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsBlock);
   // templateD.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, wallRestriction);
   templateD.updateSource({
@@ -76,7 +56,6 @@ export function addDnd5eItemConfigurationToTemplate(template) {
       }
     }
   });
-
 
   if ( item.getFlag(MODULE_ID, FLAGS.ADD_TOKEN_SIZE) ) {
     // Does the template originate on a token? (Use the first token found.)
@@ -91,11 +70,12 @@ export function addDnd5eItemConfigurationToTemplate(template) {
   }
 }
 
-
-
-
 /**
- * Hook dnd template creation from item, so item flags regarding the template can be added.
+ * Hook dnd template creation from item, to attach the caster or target to the template.
+ * Must wait until after template preview is done, for at least two reasons:
+ * (1) No template id during preview, which breaks attaching.
+ * (2) Could cause tokens to move around during preview, which is not good.
+ * Other flags set up earlier, with the draw hook.
  */
 function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-line no-unused-vars
   log("dnd5e.useItem hook", item);
@@ -103,51 +83,18 @@ function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-
 
   // Add item flags to the template(s)
   const attachToken = item.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.SPELL_TEMPLATE);
-  for ( const templateD of templates ) {
-    const shape = templateD.t;
-    let wallsBlock = item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK);
-    let wallRestriction = item.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION);
-    if ( !wallsBlock
-      || wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[shape]);
-    if ( !wallRestriction || wallRestriction === LABELS.GLOBAL_DEFAULT ) {
-      wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTION[shape]);
-    }
-
-    if ( attachToken ) {
-      switch ( attachToken ) {
-        case "caster": {
-          const token = item.parent.token ?? item.parent.getActiveTokens()[0];
-          if ( token ) templateD.object.attachToken(token);
-          break;
-        }
-        case "target": {
-          const tokenId = options.flags.lastTargeted;
-          if ( tokenId ) templateD.object.attachToken(tokenId);
-          break;
-        }
-      }
-    }
-    templateD.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsBlock);
-    templateD.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, wallRestriction);
-
-    if ( item.getFlag(MODULE_ID, FLAGS.ADD_TOKEN_SIZE) ) {
-      // Does the template originate on a token? (Use the first token found.)
-      const templateOrigin = new PIXI.Point(templateD.x, templateD.y);
-      const token = canvas.tokens.placeables.find(t => templateOrigin.almostEqual(t.center));
-      if ( token ) {
-        // Add 1/2 token size to the template distance.
-        const { width, height } = token.document;
-        const size = Math.min(width, height) * canvas.dimensions.distance;
-        templateD.updateSource({ distance: templateD.distance + size });
-      }
-    }
+  if ( !attachToken ) return;
+  let token;
+  switch ( attachToken ) {
+    case "caster": token = item.parent.token ?? item.parent.getActiveTokens()[0]; break;
+    case "target": token = options.flags.lastTargeted; break; // tokenId
   }
+  templates.forEach(templateD => templateD.object.attachToken(token));
 }
 
 PATCHES_dnd5e.dnd5e.HOOKS = {
   renderItemSheet5e: renderItemSheet5eHook,
-  //["dnd5e.useItem"]: dnd5eUseItemHook,
-  //["dnd5e.preUseItem"]: dnd5epreUseItemHook
+  ["dnd5e.useItem"]: dnd5eUseItemHook
 };
 
 /**
