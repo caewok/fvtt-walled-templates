@@ -1,3 +1,9 @@
+## 0.6.11
+Updates to patching methods.
+Update geometry lib to v0.2.12.
+Fix for undefined `attachedTemplate` on token update. Closes issue #75.
+
+
 ## 0.6.10
 Fix for Drag Ruler snapping. Closes issues #59 and #64. Submitted PR to Drag Ruler git for issue with Drag Ruler not working with attached templates (issue #47).
 Fix for null `token.actor.effects` error. Closes issue #65.

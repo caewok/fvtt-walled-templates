@@ -33,6 +33,68 @@ function dnd5epreUseItemHook(item, config, options) {
 }
 
 /**
+ * Given a template, add configuration from the attached item, if any.
+ * @param {AbilityTemplate} template    Template created from item in dnd5e
+ */
+export function addDnd5eItemConfigurationToTemplate(template) {
+  const item = template.item;
+  if ( !item ) return;
+
+  // Add item flags to the template(s)
+  const attachToken = item.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.SPELL_TEMPLATE);
+  const templateD = template.document;
+  const shape = templateD.t;
+  let wallsBlock = item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK);
+  let wallRestriction = item.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION);
+  if ( !wallsBlock
+    || wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[shape]);
+  if ( !wallRestriction || wallRestriction === LABELS.GLOBAL_DEFAULT ) {
+    wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTION[shape]);
+  }
+
+  if ( attachToken ) {
+    switch ( attachToken ) {
+      case "caster": {
+        const token = item.parent.token ?? item.parent.getActiveTokens()[0];
+        if ( token ) templateD.object.attachToken(token);
+        break;
+      }
+      case "target": {
+        const tokenId = game.user.targets.ids.at(-1);
+        if ( tokenId ) templateD.object.attachToken(tokenId);
+        break;
+      }
+    }
+  }
+  // templateD.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsBlock);
+  // templateD.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, wallRestriction);
+  templateD.updateSource({
+    flags: {
+      [MODULE_ID]: {
+        [FLAGS.WALLS_BLOCK]: wallsBlock,
+        [FLAGS.WALL_RESTRICTION]: wallRestriction
+      }
+    }
+  });
+
+
+  if ( item.getFlag(MODULE_ID, FLAGS.ADD_TOKEN_SIZE) ) {
+    // Does the template originate on a token? (Use the first token found.)
+    const templateOrigin = new PIXI.Point(templateD.x, templateD.y);
+    const token = canvas.tokens.placeables.find(t => templateOrigin.almostEqual(t.center));
+    if ( token ) {
+      // Add 1/2 token size to the template distance.
+      const { width, height } = token.document;
+      const size = Math.min(width, height) * canvas.dimensions.distance;
+      templateD.updateSource({ distance: templateD.distance + size });
+    }
+  }
+}
+
+
+
+
+/**
  * Hook dnd template creation from item, so item flags regarding the template can be added.
  */
 function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-line no-unused-vars
@@ -84,8 +146,8 @@ function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-
 
 PATCHES_dnd5e.dnd5e.HOOKS = {
   renderItemSheet5e: renderItemSheet5eHook,
-  ["dnd5e.useItem"]: dnd5eUseItemHook,
-  ["dnd5e.preUseItem"]: dnd5epreUseItemHook
+  //["dnd5e.useItem"]: dnd5eUseItemHook,
+  //["dnd5e.preUseItem"]: dnd5epreUseItemHook
 };
 
 /**
