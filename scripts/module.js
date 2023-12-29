@@ -20,7 +20,7 @@ await foundry.utils.benchmark(fn, 1e04, t)
 
 // Basics
 import { log } from "./util.js";
-import { SETTINGS, registerSettings, getSetting, toggleSetting } from "./settings.js";
+import { SETTINGS, registerSettings, getSetting, toggleSetting, registerKeybindings } from "./settings.js";
 import { MODULE_ID, FLAGS } from "./const.js";
 
 // Patches
@@ -119,6 +119,7 @@ Hooks.once("setup", function() {
   log("Setup...");
   registerSettings();
   registerAutotargeting();
+  registerKeybindings();
 
   const reg = WalledTemplateShape.shapeCodeRegister;
   if ( getSetting(SETTINGS.DIAGONAL_SCALING.circle) ) reg.set("circle", WalledTemplateSquare);

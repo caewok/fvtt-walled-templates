@@ -10,6 +10,10 @@ import { MODULE_ID, SHAPE_KEYS } from "./const.js";
 import { registerAutotargeting } from "./patching.js";
 import { WalledTemplateShapeSettings } from "./WalledTemplateShapeSettings.js";
 
+const KEYBINDINGS = {
+  AUTOTARGET: "autoTarget"
+};
+
 export const SETTINGS = {
   DEFAULT_WALLS_BLOCK: {},
   DEFAULT_WALL_RESTRICTION: {},
@@ -219,4 +223,28 @@ export function registerSettings() {
 
 export function debugPolygons() {
   return game.modules.get("_dev-mode")?.api?.getPackageDebugValue(MODULE_ID);
+}
+
+export function registerKeybindings() {
+  game.keybindings.register(MODULE_ID, KEYBINDINGS.AUTOTARGET, {
+    name: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.AUTOTARGET}.name`),
+    hint: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.AUTOTARGET}.hint`),
+    editable: [
+      { key: "KeyT",
+        modifiers: ["Alt"]
+      }
+    ],
+    onDown: () => toggleAutotarget(),
+    precedence: CONST.KEYBINDING_PRECEDENCE.DEFERRED,
+    restricted: false
+  });
+}
+
+async function toggleAutotarget() {
+  if ( !(canvas.tokens.active || canvas.templates.active) ) return;
+  const autotargetType = getSetting(SETTINGS.AUTOTARGET.MENU);
+  if ( !(autotargetType === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF || autotargetType === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON) ) return;
+  await toggleSetting(SETTINGS.AUTOTARGET.ENABLED);
+  canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
+  if ( canvas.templates.active && ui.controls ) ui.controls.initialize({layer: canvas.templates.constructor.layerOptions.name}); // Redraw the toggle button.
 }

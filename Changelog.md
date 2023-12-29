@@ -1,8 +1,11 @@
 ## 0.6.11
+Add keybinding to toggle template autotargeting. Closes issue #69.
+
 Updates to patching methods.
 Update geometry lib to v0.2.12.
 Fix for undefined `attachedTemplate` on token update. Closes issue #75.
 Fix for template preview not observing global defaults. Closes issue #79.
+Fix for attachedTemplates not iterable. Closes issue #65.
 
 
 ## 0.6.10
