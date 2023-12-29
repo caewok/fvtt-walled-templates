@@ -95,5 +95,8 @@
     "walledtemplates.controls.autotarget.Title": "Autotarget tokens with template",
 
     "walledtemplates.notifications.attach-last-selected-token": "Please select a token to attach.",
-    "walledtemplates.notifications.attach-last-targeted-token": "Please target a token to attach."
+    "walledtemplates.notifications.attach-last-targeted-token": "Please target a token to attach.",
+
+    "walledtemplates.keybindings.autoTarget.name": "Toggle Template Autotargeting",
+    "walledtemplates.keybindings.autoTarget.hint": "Defers to other uses for the key. For example, if set to 'T', will not function if hovering over a token. Also only functions if the autotarget toggle is enabled in settings. And only functions in token or template layers."
 }
