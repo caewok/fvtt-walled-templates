@@ -17,12 +17,31 @@ import { getSetting, SETTINGS } from "./settings.js";
 import { Hexagon } from "./geometry/RegularPolygon/Hexagon.js";
 import { Square } from "./geometry/RegularPolygon/Square.js";
 import { UserCloneTargets } from "./UserCloneTargets.js";
+import { addDnd5eItemConfigurationToTemplate } from "./dnd5e.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
 PATCHES.AUTOTARGET = {};
+PATCHES.dnd5e = {};
 
 // ----- NOTE: Hooks ----- //
+
+/**
+ * Hook drawMeasuredTemplate to monitor if a template has been created with an item.
+ * Pull necessary flags from that item, such as caster.
+ *
+ * A hook event that fires when a {@link PlaceableObject} is initially drawn.
+ * The dispatched event name replaces "Object" with the named PlaceableObject subclass, i.e. "drawToken".
+ * @event drawObject
+ * @category PlaceableObject
+ * @param {PlaceableObject} object    The object instance being drawn
+ */
+function drawMeasuredTemplate(template) {
+  if ( !template.item ) return;
+  addDnd5eItemConfigurationToTemplate(template);
+}
+
+PATCHES.dnd5e.HOOKS = { drawMeasuredTemplate };
 
 /**
  * Hook preCreateMeasuredTemplate to
@@ -378,7 +397,7 @@ function _applyRenderFlags(wrapped, flags) {
  */
 function _canHover(wrapped, user, event) {
   if ( wrapped(user, event) ) return true;
-  return this.controlIcon.visible;
+  return this.controlIcon?.visible;
 }
 
 PATCHES.BASIC.WRAPS = {
