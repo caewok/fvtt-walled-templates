@@ -335,12 +335,10 @@ function destroy(wrapped, options) {
  * Control display of border when rendering the template.
  */
 function _applyRenderFlags(wrapped, flags) {
-  const interactionState = this.interactionState;
   const canHide = !(this.hover
     || this.isPreview
     || !this.visible
-    || typeof interactionState === "undefined"
-    || interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG);
+    || this.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG);
 
   // Control the border visibility by changing its thickness.
   if ( flags.refreshTemplate ) {
