@@ -178,7 +178,7 @@ export class WalledTemplateShape {
     const poly = this.computeSweepPolygon(recurse);
 
     if ( !poly || isNaN(poly.points[0]) ) {
-      console.error("_computeShapeMeasuredTemplate poly is broken.");
+      console.warn("_computeShapeMeasuredTemplate poly is broken.");
       return this.originalShape;
     }
 
