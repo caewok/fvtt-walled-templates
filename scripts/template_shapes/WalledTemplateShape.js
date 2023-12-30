@@ -233,7 +233,7 @@ export class WalledTemplateShape {
       debug: debugPolygons(),
       type: this.wallRestriction,
       source: this,
-      boundaryShapes: this.translatedBoundaryShapes,
+      boundaryShapes: this.translatedBoundaryShapes.map(shape => shape.toPolygon()), // TODO: Don't map to polygon if rectangle intersection with poly gets fixed.
       lightWall: this.options.lastReflectedEdge // Only used for cones
     };
 

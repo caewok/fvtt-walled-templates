@@ -1,5 +1,6 @@
-## 0.6.11
+## 0.7.0
 Add keybinding to toggle template autotargeting. Closes issue #69.
+Hide text of the template when hiding the border. Closes issue #45. Switch to using the template refresh hook for better compatibility.
 
 Updates to patching methods.
 Update geometry lib to v0.2.12.
