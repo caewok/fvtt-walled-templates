@@ -26,6 +26,9 @@ PATCHES.dnd5e = {};
 
 // ----- NOTE: Hooks ----- //
 
+
+
+
 /**
  * Hook drawMeasuredTemplate to monitor if a template has been created with an item.
  * Pull necessary flags from that item, such as caster.
@@ -223,28 +226,6 @@ function highlightGrid(wrapped) {
   const grid = canvas.grid;
   const hl = grid.getHighlightLayer(this.highlightId);
   hl.clear();
-}
-
-/**
- * Mixed wrap of MeasuredTemplate.prototype._refreshTemplate
- * If the setting is set to hide, don't draw the border.
- */
-function _refreshTemplate(wrapped) {
-  const interactionState = this._original?.mouseInteractionManager?.state ?? this.mouseInteractionManager?.state;
-  if ( this.hover
-    || typeof interactionState === "undefined"
-    || interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
-    || !getSetting(SETTINGS.HIDE.BORDER) ) return wrapped();
-
-  // Clear the existing layer and draw the texture but not the outline or origin/destination points.
-  const t = this.template.clear();
-
-  // Fill Color or Texture
-  if ( this.texture ) t.beginTextureFill({texture: this.texture});
-  else t.beginFill(0x000000, 0.0);
-
-  // Draw the shape
-  t.drawShape(this.shape);
 }
 
 PATCHES.BASIC.MIXES = { _getGridHighlightPositions };
