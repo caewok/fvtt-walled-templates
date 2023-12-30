@@ -88,6 +88,7 @@ function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-
   switch ( attachToken ) {
     case "caster": token = item.parent.token ?? item.parent.getActiveTokens()[0]; break;
     case "target": token = options.flags.lastTargeted; break; // tokenId
+    default: return;
   }
   templates.forEach(templateD => templateD.object.attachToken(token));
 }
