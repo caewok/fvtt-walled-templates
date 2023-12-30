@@ -26,6 +26,50 @@ PATCHES.dnd5e = {};
 
 // ----- NOTE: Hooks ----- //
 
+/**
+ * On refresh, control the ruler (text) visibility.
+ *
+ * A hook event that fires when a {@link PlaceableObject} is incrementally refreshed.
+ * The dispatched event name replaces "Object" with the named PlaceableObject subclass, i.e. "refreshToken".
+ * @event refreshObject
+ * @category PlaceableObject
+ * @param {PlaceableObject} object    The object instance being refreshed
+ */
+function refreshMeasuredTemplate(template, flags) {
+  const canHide = !(template.hover
+    || template.isPreview
+    || !template.visible
+    || template.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG);
+
+  // Control the border visibility including border text.
+  if ( flags.refreshTemplate ) {
+    if ( canHide && getSetting(SETTINGS.HIDE.BORDER) ) {
+      template.template.visible = false;
+      template.ruler.visible = false;
+    } else {
+      template.template.visible = true;
+      template.ruler.visible = true;
+    }
+  }
+
+  // Control the highlight visibility by changing its alpha.
+  if ( flags.refreshGrid || flags.refreshState ) {
+    const hl = canvas.grid.getHighlightLayer(template.highlightId);
+    if ( canHide && getSetting(SETTINGS.HIDE.HIGHLIGHTING) ) {
+      hl.alpha = 0;
+    } else {
+      hl.alpha = template.document.hidden ? 0.5 : 1;
+    }
+  }
+
+  // Make the control icon visible to non-owners.
+  if ( flags.refreshState && !template.document.isOwner ) {
+    template.controlIcon.refresh({
+      visible: template.visible && template.layer.active && !template.document.hidden,
+    });
+    template.controlIcon.alpha = 0.5;
+  }
+}
 
 
 
@@ -120,7 +164,7 @@ function hoverMeasuredTemplateHook(template, _hovering) {
 
 
 PATCHES.BASIC.HOOKS = {
-  refreshMeasuredTemplate: refreshMeasuredTemplateHook,
+  refreshMeasuredTemplate,
   preCreateMeasuredTemplate: preCreateMeasuredTemplateHook,
   updateMeasuredTemplate: updateMeasuredTemplateHook,
   destroyMeasuredTemplate: destroyMeasuredTemplateHook,
@@ -330,47 +374,6 @@ function destroy(wrapped, options) {
   return wrapped(options);
 }
 
-
-/**
- * Control display of border when rendering the template.
- */
-function _applyRenderFlags(wrapped, flags) {
-  const canHide = !(this.hover
-    || this.isPreview
-    || !this.visible
-    || this.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG);
-
-  // Control the border visibility by changing its thickness.
-  if ( flags.refreshTemplate ) {
-    if ( canHide && getSetting(SETTINGS.HIDE.BORDER) ) {
-      if ( this._borderThickness ) this._oldBorderThickness = this._borderThickness;
-      this._borderThickness = 0;
-    } else {
-      this._borderThickness = this._oldBorderThickness || 3;
-    }
-  }
-
-  wrapped(flags);
-
-  // Control the highlight visibility by changing its alpha.
-  if ( flags.refreshGrid || flags.refreshState ) {
-    const hl = canvas.grid.getHighlightLayer(this.highlightId);
-    if ( canHide && getSetting(SETTINGS.HIDE.HIGHLIGHTING) ) {
-      hl.alpha = 0;
-    } else {
-      hl.alpha = this.document.hidden ? 0.5 : 1;
-    }
-  }
-
-  // Make the control icon visible to non-owners.
-  if ( flags.refreshState && !this.document.isOwner ) {
-    this.controlIcon.refresh({
-      visible: this.visible && this.layer.active && !this.document.hidden,
-    });
-    this.controlIcon.alpha = 0.5;
-  }
-}
-
 /**
  * Allow non-owners to hover over a template icon.
  */
@@ -388,7 +391,7 @@ PATCHES.BASIC.WRAPS = {
   _onDragLeftCancel,
   _onDragLeftDrop,
   destroy,
-  _applyRenderFlags,
+  // _applyRenderFlags,
   _canHover
 };
 
