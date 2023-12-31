@@ -7,8 +7,8 @@ Dialog
 "use strict";
 
 import { MODULE_ID } from "./const.js";
-import { SETTINGS, getSetting, setSetting } from "./settings.js";
-const CHANGELOG = SETTINGS.CHANGELOG;
+import { Settings } from "./settings.js";
+const CHANGELOG = Settings.KEYS.CHANGELOG;
 
 // From Perfect Vision
 // https://github.com/dev7355608/perfect-vision/blob/cdf03ae7e4b5969efaee8e742bf9dd11d18ba8b7/scripts/changelog.js
@@ -163,7 +163,7 @@ class ChangelogBuilder {
 
   build() {
     const converter = new showdown.Converter();
-    const curr = getSetting(CHANGELOG);
+    const curr = Settings.get(Settings.KEYS.CHANGELOG);
     const next = this.#entries.length;
     let content = "";
 
@@ -211,7 +211,7 @@ class ChangelogBuilder {
         dont_show_again: {
           icon: `<i class="fas fa-times"></i>`,
           label: "Don't show again",
-          callback: () => setSetting(CHANGELOG, next)
+          callback: () => Settings.set(Settings.KEYS.CHANGELOG, next)
         }
       },
       default: "dont_show_again"

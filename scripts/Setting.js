@@ -4,7 +4,7 @@
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { SETTINGS } from "./settings.js";
+import { Settings } from "./settings.js";
 import { MODULE_ID } from "./const.js";
 
 import { WalledTemplateShape } from "./template_shapes/WalledTemplateShape.js";
@@ -24,7 +24,7 @@ PATCHES.BASIC = {};
  */
 function updateSettingHook(setting, _change, _opts, _id) {
   const reg = WalledTemplateShape.shapeCodeRegister;
-  if ( setting.key === `${MODULE_ID}.${SETTINGS.DIAGONAL_SCALING.circle}` ) {
+  if ( setting.key === `${MODULE_ID}.${Settings.KEYS.DIAGONAL_SCALING.circle}` ) {
     if ( setting.value ) reg.set("circle", WalledTemplateSquare);
     else reg.set("circle", WalledTemplateCircle);
   }

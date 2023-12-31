@@ -30,22 +30,40 @@
     "walledtemplates.dnd5e-spell-config.add-token-size.Name": "Add token size to template",
     "walledtemplates.dnd5e-spell-config.add-token-size.Hint": "If spell originates at the center of a token, add the token size (min of width/height) to the template size.",
 
-    "walledtemplates.settings.menu.title": "Default Shape Settings",
+    "walledtemplates.settings.submenu.title": "Default Shape Settings",
 
-    "walledtemplates.settings.default_circle.Name": "Default Circle",
-    "walledtemplates.settings.default_cone.Name": "Default Cone",
-    "walledtemplates.settings.default_ray.Name": "Default Ray",
-    "walledtemplates.settings.default_rect.Name": "Default Rectangle",
+    "walledtemplates.settings.submenu.circle.Name": "Circle",
+    "walledtemplates.settings.submenu.cone.Name": "Cone",
+    "walledtemplates.settings.submenu.ray.Name": "Ray",
+    "walledtemplates.settings.submenu.rect.Name": "Rectangle",
+
+    "walledtemplates.settings.submenu.circle.Title": "Default circle template settings",
+    "walledtemplates.settings.submenu.cone.Title": "Default cone template settings",
+    "walledtemplates.settings.submenu.ray.Title": "Default ray template settings",
+    "walledtemplates.settings.submenu.rect.Title": "Default rectangle template settings",
+
+    "walledtemplates.settings.submenu.circle.Description": "Default template settings unless overriden by a specific spell (dnd5e) or macro.",
+    "walledtemplates.settings.submenu.cone.Description": "Default template settings unless overriden by a specific spell (dnd5e) or macro.",
+    "walledtemplates.settings.submenu.ray.Description": "Default template settings unless overriden by a specific spell (dnd5e) or macro.",
+    "walledtemplates.settings.submenu.rect.Description": "Default template settings unless overriden by a specific spell (dnd5e) or macro.",
+
+    "walledtemplates.settings.submenu.autotarget-override.Name": "Override Highlight/Autotarget",
+    "walledtemplates.settings.submenu.autotarget-override.Hint": "Override the default highlight/autotarget settings for this shape",
+
+    "walledtemplates.settings.default_circle.Name": "Walls Block",
+    "walledtemplates.settings.default_cone.Name": "Walls Block",
+    "walledtemplates.settings.default_ray.Name": "Walls Block",
+    "walledtemplates.settings.default_rect.Name": "Walls Block",
 
     "walledtemplates.settings.default_circle.Hint": "Select default for newly created circle templates. Circles can spread but not reflect.",
     "walledtemplates.settings.default_cone.Hint": "Select default for newly created cone templates. Cones can reflect but not spread.",
     "walledtemplates.settings.default_ray.Hint": "Select default for newly created ray templates. Rays can reflect but not spread.",
     "walledtemplates.settings.default_rect.Hint": "Select default for newly created rectangle templates. Rectangles can spread but not reflect.",
 
-    "walledtemplates.settings.default-circle-wall-restriction.Name": "Default Circle Wall Restriction",
-    "walledtemplates.settings.default-cone-wall-restriction.Name": "Default Cone Wall Restriction",
-    "walledtemplates.settings.default-ray-wall-restriction.Name": "Default Ray Wall Restriction",
-    "walledtemplates.settings.default-rect-wall-restriction.Name": "Default Rectangle Wall Restriction",
+    "walledtemplates.settings.default-circle-wall-restriction.Name": "Wall Restriction",
+    "walledtemplates.settings.default-cone-wall-restriction.Name": "Wall Restriction",
+    "walledtemplates.settings.default-ray-wall-restriction.Name": "Wall Restriction",
+    "walledtemplates.settings.default-rect-wall-restriction.Name": "Wall Restriction",
 
     "walledtemplates.settings.default-circle-wall-restriction.Hint": "Walls that block this type will block circle templates.",
     "walledtemplates.settings.default-cone-wall-restriction.Hint": "Walls that block this type will block cone templates.",

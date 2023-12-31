@@ -5,7 +5,7 @@ game
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { SETTINGS, getSetting } from "./settings.js";
+import { Settings } from "./settings.js";
 import { Patcher } from "./Patcher.js";
 
 import { PATCHES as PATCHES_MeasuredTemplate } from "./MeasuredTemplate.js";
@@ -38,7 +38,7 @@ export function initializePatching() {
  * Register the autotargeting patches. Must be done after settings are enabled.
  */
 export function registerAutotargeting() {
-  const autotarget = getSetting(SETTINGS.AUTOTARGET.MENU) !== SETTINGS.AUTOTARGET.CHOICES.NO;
+  const autotarget = Settings.get(Settings.KEYS.AUTOTARGET.MENU) !== Settings.KEYS.AUTOTARGET.CHOICES.NO;
 
   // Disable existing targeting before completely removing autotarget patches
   if ( PATCHER.groupIsRegistered("AUTOTARGET") && !autotarget ) {

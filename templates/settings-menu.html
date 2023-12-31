@@ -1,0 +1,72 @@
+<form class="flexcol">
+  <nav class="sheet-tabs tabs" data-group="sections">
+    <a class="item" data-tab="circle">
+      {{localize "walledtemplates.settings.submenu.circle.Name"}}
+    </a>
+
+    <a class="item" data-tab="cone">
+      {{localize "walledtemplates.settings.submenu.cone.Name"}}
+    </a>
+
+    <a class="item" data-tab="ray">
+      {{localize "walledtemplates.settings.submenu.ray.Name"}}
+    </a>
+
+    <a class="item" data-tab="rect">
+      {{localize "walledtemplates.settings.submenu.rect.Name"}}
+    </a>
+  </nav
+
+  <section class="content">
+    <div class="tab" data-tab="circle" data-group="sections">
+      <h2>{{localize "walledtemplates.settings.submenu.circle.Title"}}</h2>
+      <p><em>{{localize "walledtemplates.settings.submenu.circle.Description"}}</em></p>
+
+      {{#each settings}}
+        {{#if (eq this.tab "circle")}}
+          {{> atvSettingsMenuTabPartial}}
+        {{/if}}
+      {{/each}}
+    </div>
+
+    <div class="tab" data-tab="cone" data-group="sections">
+      <h2>{{localize "walledtemplates.settings.submenu.cone.Title"}}</h2>
+      <p><em>{{localize "walledtemplates.settings.submenu.cone.Description"}}</em></p>
+
+      {{#each settings}}
+        {{#if (eq this.tab "cone")}}
+          {{> atvSettingsMenuTabPartial}}
+        {{/if}}
+      {{/each}}
+    </div>
+
+    <div class="tab" data-tab="ray" data-group="sections">
+      <h2>{{localize "walledtemplates.settings.submenu.ray.Title"}}</h2>
+      <p><em>{{localize "walledtemplates.settings.submenu.ray.Description"}}</em></p>
+
+      {{#each settings}}
+        {{#if (eq this.tab "ray")}}
+          {{> atvSettingsMenuTabPartial}}
+        {{/if}}
+      {{/each}}
+    </div>
+
+    <div class="tab" data-tab="rect" data-group="sections">
+      <h2>{{localize "walledtemplates.settings.submenu.rect.Title"}}</h2>
+      <p><em>{{localize "walledtemplates.settings.submenu.rect.Description"}}</em></p>
+
+      {{#each settings}}
+        {{#if (eq this.tab "rect")}}
+          {{> atvSettingsMenuTabPartial}}
+        {{/if}}
+      {{/each}}
+    </div>
+
+
+  </section>
+
+  <footer class="sheet-footer flexrow" style="margin: auto; padding-top: 30px">
+    <br>
+    <button type='submit' name='submit' value='1'><i class='far fa-floppy-disk'></i>{{localize 'Save Changes'}}</button>
+  </footer>
+</form>

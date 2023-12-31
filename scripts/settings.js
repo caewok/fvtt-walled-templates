@@ -1,14 +1,16 @@
 /* globals
 canvas,
-game
+CONST,
+game,
+ui
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { log } from "./util.js";
 import { MODULE_ID, SHAPE_KEYS } from "./const.js";
 import { registerAutotargeting } from "./patching.js";
 import { WalledTemplateShapeSettings } from "./WalledTemplateShapeSettings.js";
+import { ModuleSettingsAbstract } from "./ModuleSettingsAbstract.js";
 
 const KEYBINDINGS = {
   AUTOTARGET: "autoTarget"
@@ -62,189 +64,238 @@ for ( const shapeKey of SHAPE_KEYS ) {
   SETTINGS.DEFAULT_WALLS_BLOCK[shapeKey] = `default_${shapeKey}`;
   SETTINGS.DEFAULT_WALL_RESTRICTION[shapeKey] = `default-${shapeKey}-wall-restriction`;
   SETTINGS.DIAGONAL_SCALING[shapeKey] = `diagonal-scaling-${shapeKey}`;
+
+  // Override highlighting/autotarget for specific shapes.
+  SETTINGS.AUTOTARGET[shapeKey] = {};
+  SETTINGS.AUTOTARGET[shapeKey].OVERRIDE = `autotarget-override-${shapeKey}`;
+  SETTINGS.AUTOTARGET[shapeKey].METHOD = `autotarget-method-${shapeKey}`;
+  SETTINGS.AUTOTARGET[shapeKey].AREA = `autotarget-area-${shapeKey}`;
 }
 
-// ---- NOTE: Exported functions ----- //
+export class Settings extends ModuleSettingsAbstract {
+  /** @type {object} */
+  static KEYS = SETTINGS;
 
-export function getSetting(settingName) {
-  return game.settings.get(MODULE_ID, settingName);
-}
+  static registerAll() {
+    const { KEYS, register, registerMenu, localize } = this;
 
-export async function toggleSetting(settingName) {
-  const curr = getSetting(settingName);
-  return await game.settings.set(MODULE_ID, settingName, !curr);
-}
+    registerMenu("menu", {
+      name: "Walled Templates Settings Menu",
+      label: localize("submenu.title"),
+      icon: "fas fa-cog",
+      type: WalledTemplateShapeSettings,
+      restricted: true
+    });
 
-export async function setSetting(settingName, value) {
-  return await game.settings.set(MODULE_ID, settingName, value);
-}
-
-export function registerSettings() {
-  log("Registering walled template switch");
-
-  game.settings.registerMenu(MODULE_ID, "menu", {
-    name: "Walled Templates Settings Menu",
-    label: `${MODULE_ID}.settings.menu.title`,
-    icon: "fas fa-cog",
-    type: WalledTemplateShapeSettings,
-    restricted: true
-  });
-
-  game.settings.register(MODULE_ID, SETTINGS.AUTOTARGET.ENABLED, {
-    name: "Enable autotargeting",
-    config: false,
-    scope: "client",
-    type: Boolean,
-    default: false
-  });
-
-  const CHOICES = SETTINGS.AUTOTARGET.CHOICES;
-  game.settings.register(MODULE_ID, SETTINGS.AUTOTARGET.MENU, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.MENU}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.MENU}.Hint`),
-    scope: "client",
-    config: true,
-    type: String,
-    choices: {
-      [SETTINGS.AUTOTARGET.CHOICES.NO]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.MENU}.Choice.${CHOICES.NO}`),
-      [SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.MENU}.Choice.${CHOICES.TOGGLE_OFF}`),
-      [SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.MENU}.Choice.${CHOICES.TOGGLE_ON}`),
-      [SETTINGS.AUTOTARGET.CHOICES.YES]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.MENU}.Choice.${CHOICES.YES}`)
-    },
-    default: SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF,
-    onChange: value => {
-      const enabled = value === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON
-      || value === SETTINGS.AUTOTARGET.CHOICES.YES;
-      setSetting(SETTINGS.AUTOTARGET.ENABLED, enabled);
-      registerAutotargeting();
-    }
-  });
-
-  const METHODS = SETTINGS.AUTOTARGET.METHODS;
-  game.settings.register(MODULE_ID, SETTINGS.AUTOTARGET.METHOD, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.METHOD}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.METHOD}.Hint`),
-    scope: "world",
-    config: true,
-    default: "center",
-    type: String,
-    choices: {
-      [SETTINGS.AUTOTARGET.METHODS.CENTER]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.METHOD}.Method.${METHODS.CENTER}`),
-      [SETTINGS.AUTOTARGET.METHODS.OVERLAP]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.METHOD}.Method.${METHODS.OVERLAP}`)
-    }
-  }); // See class TokenLayer.targetObjects
-
-  game.settings.register(MODULE_ID, SETTINGS.AUTOTARGET.AREA, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.AREA}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.AUTOTARGET.AREA}.Hint`),
-    range: {
-      max: 1,
-      min: 0,
-      step: 0.01
-    },
-    type: Number,
-    default: 0,
-    scope: "world",
-    config: true
-  });
-
-  game.settings.register(MODULE_ID, SETTINGS.HIDE.BORDER, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.HIDE.BORDER}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.HIDE.BORDER}.Hint`),
-    type: Boolean,
-    default: false,
-    scope: "world",
-    config: true,
-    onChange: _value => canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshTemplate: true }))
-  });
-
-  game.settings.register(MODULE_ID, SETTINGS.HIDE.HIGHLIGHTING, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.HIDE.HIGHLIGHTING}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.HIDE.HIGHLIGHTING}.Hint`),
-    type: Boolean,
-    default: false,
-    scope: "world",
-    config: true,
-    onChange: _value => canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshGrid: true }))
-  });
-
-  game.settings.register(MODULE_ID, SETTINGS.SNAP_GRID, {
-    name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.SNAP_GRID}.Name`),
-    hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.SNAP_GRID}.Hint`),
-    type: Boolean,
-    default: false,
-    scope: "world",
-    config: true,
-  });
-
-  for ( const shape of SHAPE_KEYS ) {
-    game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALLS_BLOCK[shape], {
-      name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK[shape]}.Name`),
-      hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK[shape]}.Hint`),
-      scope: "world",
+    register(KEYS.AUTOTARGET.ENABLED, {
+      name: "Enable autotargeting",
       config: false,
-      default: SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED,
+      scope: "client",
+      type: Boolean,
+      default: false
+    });
+
+    const CHOICES = KEYS.AUTOTARGET.CHOICES;
+    register(KEYS.AUTOTARGET.MENU, {
+      name: localize(`${KEYS.AUTOTARGET.MENU}.Name`),
+      hint: localize(`${KEYS.AUTOTARGET.MENU}.Hint`),
+      scope: "client",
+      config: true,
       type: String,
       choices: {
-        [SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED}`),
-        [SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED}`),
-        [SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.RECURSE]: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.RECURSE}`)
+        [KEYS.AUTOTARGET.CHOICES.NO]: localize(`${KEYS.AUTOTARGET.MENU}.Choice.${CHOICES.NO}`),
+        [KEYS.AUTOTARGET.CHOICES.TOGGLE_OFF]: localize(`${KEYS.AUTOTARGET.MENU}.Choice.${CHOICES.TOGGLE_OFF}`),
+        [KEYS.AUTOTARGET.CHOICES.TOGGLE_ON]: localize(`${KEYS.AUTOTARGET.MENU}.Choice.${CHOICES.TOGGLE_ON}`),
+        [KEYS.AUTOTARGET.CHOICES.YES]: localize(`${KEYS.AUTOTARGET.MENU}.Choice.${CHOICES.YES}`)
+      },
+      default: KEYS.AUTOTARGET.CHOICES.TOGGLE_OFF,
+      onChange: value => {
+        const enabled = value === KEYS.AUTOTARGET.CHOICES.TOGGLE_ON
+        || value === KEYS.AUTOTARGET.CHOICES.YES;
+        Settings.set(KEYS.AUTOTARGET.ENABLED, enabled);
+        registerAutotargeting();
       }
     });
 
-    game.settings.register(MODULE_ID, SETTINGS.DEFAULT_WALL_RESTRICTION[shape], {
-      name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTION[shape]}.Name`),
-      hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DEFAULT_WALL_RESTRICTION[shape]}.Hint`),
+    const METHODS = KEYS.AUTOTARGET.METHODS;
+    register(KEYS.AUTOTARGET.METHOD, {
+      name: localize(`${KEYS.AUTOTARGET.METHOD}.Name`),
+      hint: localize(`${KEYS.AUTOTARGET.METHOD}.Hint`),
       scope: "world",
-      config: false,
-      default: SETTINGS.DEFAULT_WALL_RESTRICTION.CHOICES.MOVE,
+      config: true,
+      default: "center",
       type: String,
       choices: {
-        // Use the default Foundry en.json WALLS version
-        [SETTINGS.DEFAULT_WALL_RESTRICTION.CHOICES.LIGHT]: game.i18n.localize("WALLS.Light"),
-        [SETTINGS.DEFAULT_WALL_RESTRICTION.CHOICES.MOVE]: game.i18n.localize("WALLS.Movement"),
-        [SETTINGS.DEFAULT_WALL_RESTRICTION.CHOICES.SIGHT]: game.i18n.localize("WALLS.Sight"),
-        [SETTINGS.DEFAULT_WALL_RESTRICTION.CHOICES.SOUND]: game.i18n.localize("WALLS.Sound")
+        [KEYS.AUTOTARGET.METHODS.CENTER]: localize(`${KEYS.AUTOTARGET.METHOD}.Method.${METHODS.CENTER}`),
+        [KEYS.AUTOTARGET.METHODS.OVERLAP]: localize(`${KEYS.AUTOTARGET.METHOD}.Method.${METHODS.OVERLAP}`)
       }
+    }); // See class TokenLayer.targetObjects
+
+    register(KEYS.AUTOTARGET.AREA, {
+      name: localize(`${KEYS.AUTOTARGET.AREA}.Name`),
+      hint: localize(`${KEYS.AUTOTARGET.AREA}.Hint`),
+      range: {
+        max: 1,
+        min: 0,
+        step: 0.01
+      },
+      type: Number,
+      default: 0,
+      scope: "world",
+      config: true
     });
 
-    game.settings.register(MODULE_ID, SETTINGS.DIAGONAL_SCALING[shape], {
-      name: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING[shape]}.Name`),
-      hint: game.i18n.localize(`${MODULE_ID}.settings.${SETTINGS.DIAGONAL_SCALING[shape]}.Hint`),
+    register(KEYS.HIDE.BORDER, {
+      name: localize(`${KEYS.HIDE.BORDER}.Name`),
+      hint: localize(`${KEYS.HIDE.BORDER}.Hint`),
       type: Boolean,
       default: false,
       scope: "world",
-      config: false
+      config: true,
+      onChange: _value => canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshTemplate: true }))
+    });
+
+    register(KEYS.HIDE.HIGHLIGHTING, {
+      name: localize(`${KEYS.HIDE.HIGHLIGHTING}.Name`),
+      hint: localize(`${KEYS.HIDE.HIGHLIGHTING}.Hint`),
+      type: Boolean,
+      default: false,
+      scope: "world",
+      config: true,
+      onChange: _value => canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshGrid: true }))
+    });
+
+    register(KEYS.SNAP_GRID, {
+      name: localize(`${KEYS.SNAP_GRID}.Name`),
+      hint: localize(`${KEYS.SNAP_GRID}.Hint`),
+      type: Boolean,
+      default: false,
+      scope: "world",
+      config: true
+    });
+
+    // ----- NOTE: Submenu ---- //
+
+    for ( const shape of SHAPE_KEYS ) {
+      register(KEYS.DEFAULT_WALLS_BLOCK[shape], {
+        name: localize(`${KEYS.DEFAULT_WALLS_BLOCK[shape]}.Name`),
+        hint: localize(`${KEYS.DEFAULT_WALLS_BLOCK[shape]}.Hint`),
+        scope: "world",
+        config: false,
+        tab: shape,
+        default: KEYS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED,
+        type: String,
+        choices: {
+          [KEYS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED]: localize(`${KEYS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED}`),
+          [KEYS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED]: localize(`${KEYS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED}`),
+          [KEYS.DEFAULT_WALLS_BLOCK.CHOICES.RECURSE]: localize(`${KEYS.DEFAULT_WALLS_BLOCK.CHOICES.RECURSE}`)
+        }
+      });
+
+      register(KEYS.DEFAULT_WALL_RESTRICTION[shape], {
+        name: localize(`${KEYS.DEFAULT_WALL_RESTRICTION[shape]}.Name`),
+        hint: localize(`${KEYS.DEFAULT_WALL_RESTRICTION[shape]}.Hint`),
+        scope: "world",
+        config: false,
+        tab: shape,
+        default: KEYS.DEFAULT_WALL_RESTRICTION.CHOICES.MOVE,
+        type: String,
+        choices: {
+          // Use the default Foundry en.json WALLS version
+          [KEYS.DEFAULT_WALL_RESTRICTION.CHOICES.LIGHT]: game.i18n.localize("WALLS.Light"),
+          [KEYS.DEFAULT_WALL_RESTRICTION.CHOICES.MOVE]: game.i18n.localize("WALLS.Movement"),
+          [KEYS.DEFAULT_WALL_RESTRICTION.CHOICES.SIGHT]: game.i18n.localize("WALLS.Sight"),
+          [KEYS.DEFAULT_WALL_RESTRICTION.CHOICES.SOUND]: game.i18n.localize("WALLS.Sound")
+        }
+      });
+
+      if ( shape !== "rect" ) {
+        register(KEYS.DIAGONAL_SCALING[shape], {
+          name: localize(`${KEYS.DIAGONAL_SCALING[shape]}.Name`),
+          hint: localize(`${KEYS.DIAGONAL_SCALING[shape]}.Hint`),
+          type: Boolean,
+          default: false,
+          scope: "world",
+          config: false,
+          tab: shape
+        });
+      }
+
+      // ----- Overide the highlight/autotarget settings for this shape.
+      register(KEYS.AUTOTARGET[shape].OVERRIDE, {
+        name: localize(`submenu.autotarget-override.Name`),
+        hint: localize(`submenu.autotarget-override.Hint`),
+        type: Boolean,
+        default: false,
+        scope: "world",
+        config: false,
+        tab: shape,
+        horizontalDivider: true
+      });
+
+      register(KEYS.AUTOTARGET[shape].METHOD, {
+        name: localize(`${KEYS.AUTOTARGET.METHOD}.Name`),
+        hint: localize(`${KEYS.AUTOTARGET.METHOD}.Hint`),
+        scope: "world",
+        config: false,
+        tab: shape,
+        default: "center",
+        type: String,
+        choices: {
+          [KEYS.AUTOTARGET.METHODS.CENTER]: localize(`${KEYS.AUTOTARGET.METHOD}.Method.${METHODS.CENTER}`),
+          [KEYS.AUTOTARGET.METHODS.OVERLAP]: localize(`${KEYS.AUTOTARGET.METHOD}.Method.${METHODS.OVERLAP}`)
+        }
+      });
+
+      register(KEYS.AUTOTARGET[shape].AREA, {
+        name: localize(`${KEYS.AUTOTARGET.AREA}.Name`),
+        hint: localize(`${KEYS.AUTOTARGET.AREA}.Hint`),
+        range: {
+          max: 1,
+          min: 0,
+          step: 0.01
+        },
+        type: Number,
+        default: 0,
+        scope: "world",
+        config: false,
+        tab: shape
+      });
+    }
+  }
+
+  static registerKeybindings() {
+    game.keybindings.register(MODULE_ID, KEYBINDINGS.AUTOTARGET, {
+      name: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.AUTOTARGET}.name`),
+      hint: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.AUTOTARGET}.hint`),
+      editable: [
+        { key: "KeyT",
+          modifiers: ["Alt"]
+        }
+      ],
+      onDown: () => this.toggleAutotarget(),
+      precedence: CONST.KEYBINDING_PRECEDENCE.DEFERRED,
+      restricted: false
     });
   }
 
-  log("Done registering settings.");
+  static async toggleAutotarget() {
+    if ( !(canvas.tokens?.active || canvas.templates?.active) ) return;
+    const AUTOTARGET = this.KEYS.AUTOTARGET;
+    const autotargetType = this.get(AUTOTARGET.MENU);
+    if ( !(autotargetType === AUTOTARGET.CHOICES.TOGGLE_OFF
+        || autotargetType === AUTOTARGET.CHOICES.TOGGLE_ON) ) return;
+    await this.toggle(AUTOTARGET.ENABLED);
+    canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
+
+    // Redraw the toggle button.
+    if ( canvas.templates.active
+      && ui.controls ) ui.controls.initialize({layer: canvas.templates.constructor.layerOptions.name});
+  }
+
 }
 
 export function debugPolygons() {
   return game.modules.get("_dev-mode")?.api?.getPackageDebugValue(MODULE_ID);
 }
 
-export function registerKeybindings() {
-  game.keybindings.register(MODULE_ID, KEYBINDINGS.AUTOTARGET, {
-    name: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.AUTOTARGET}.name`),
-    hint: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.AUTOTARGET}.hint`),
-    editable: [
-      { key: "KeyT",
-        modifiers: ["Alt"]
-      }
-    ],
-    onDown: () => toggleAutotarget(),
-    precedence: CONST.KEYBINDING_PRECEDENCE.DEFERRED,
-    restricted: false
-  });
-}
-
-async function toggleAutotarget() {
-  if ( !(canvas.tokens.active || canvas.templates.active) ) return;
-  const autotargetType = getSetting(SETTINGS.AUTOTARGET.MENU);
-  if ( !(autotargetType === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF || autotargetType === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON) ) return;
-  await toggleSetting(SETTINGS.AUTOTARGET.ENABLED);
-  canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
-  if ( canvas.templates.active && ui.controls ) ui.controls.initialize({layer: canvas.templates.constructor.layerOptions.name}); // Redraw the toggle button.
-}
