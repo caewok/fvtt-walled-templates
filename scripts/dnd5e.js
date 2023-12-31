@@ -7,7 +7,7 @@ renderTemplate
 
 import { log } from "./util.js";
 import { MODULE_ID, FLAGS, LABELS } from "./const.js";
-import { getSetting, SETTINGS } from "./settings.js";
+import { Settings } from "./settings.js";
 
 export const PATCHES_dnd5e = {};
 PATCHES_dnd5e.dnd5e = {};
@@ -41,9 +41,9 @@ export function addDnd5eItemConfigurationToTemplate(template) {
   let wallsBlock = item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK);
   let wallRestriction = item.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION);
   if ( !wallsBlock
-    || wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[shape]);
+    || wallsBlock === LABELS.GLOBAL_DEFAULT ) wallsBlock = Settings.get(Settings.KEYS.DEFAULT_WALLS_BLOCK[shape]);
   if ( !wallRestriction || wallRestriction === LABELS.GLOBAL_DEFAULT ) {
-    wallRestriction = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTION[shape]);
+    wallRestriction = Settings.get(Settings.KEYS.DEFAULT_WALL_RESTRICTION[shape]);
   }
 
   // templateD.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsBlock);

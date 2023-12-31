@@ -8,15 +8,15 @@ MeasuredTemplate
 "use strict";
 
 import { log, gridShapeForTopLeft } from "../util.js";
-import { getSetting, SETTINGS } from "../settings.js";
+import { Settings } from "../settings.js";
 import { MODULE_ID } from "../const.js";
 
 // Same as PF2e but for the contains test
 export function WalledTemplatesPF2eHighlightGrid(wrapped) {
   log(`WalledTemplatesPF2eHighlightGrid type ${this.type}`);
 
-  if ( this.document.getFlag(MODULE_ID, "enabled") === SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED
-    && getSetting(SETTINGS.AUTOTARGET.METHOD) === SETTINGS.AUTOTARGET.METHODS.CENTER ) {
+  if ( this.document.getFlag(MODULE_ID, "enabled") === Settings.KEYS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED
+    && Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) {
     log("WalledTemplatesPF2eHighlightGrid|Using Foundry default");
     return wrapped();
   }

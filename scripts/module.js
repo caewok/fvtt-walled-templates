@@ -20,7 +20,7 @@ await foundry.utils.benchmark(fn, 1e04, t)
 
 // Basics
 import { log } from "./util.js";
-import { SETTINGS, registerSettings, getSetting, toggleSetting, registerKeybindings } from "./settings.js";
+import { Settings } from "./settings.js";
 import { MODULE_ID, FLAGS } from "./const.js";
 
 // Patches
@@ -117,12 +117,12 @@ function initializeWalledTemplates(systemId) {
 
 Hooks.once("setup", function() {
   log("Setup...");
-  registerSettings();
-  registerAutotargeting();
-  registerKeybindings();
+  Settings.registerAll();
+  Settings.toggleAutotarget();
+  Settings.registerKeybindings();
 
   const reg = WalledTemplateShape.shapeCodeRegister;
-  if ( getSetting(SETTINGS.DIAGONAL_SCALING.circle) ) reg.set("circle", WalledTemplateSquare);
+  if ( Settings.get(Settings.KEYS.DIAGONAL_SCALING.circle) ) reg.set("circle", WalledTemplateSquare);
 });
 
 
@@ -145,12 +145,12 @@ Hooks.once("ready", async function() {
       const enabled = t.document.getFlag(MODULE_ID, "enabled");
       if ( typeof enabled !== "undefined" ) {
         promises.push(t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, enabled
-          ? SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED : SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED));
+          ? Settings.KEYS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED : Settings.KEYS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED));
       } else {
         promises.push(t.document.setFlag(
           MODULE_ID,
           FLAGS.WALLS_BLOCK,
-          getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[shape])));
+          Settings.get(Settings.KEYS.DEFAULT_WALLS_BLOCK[shape])));
       }
     }
 
@@ -158,7 +158,7 @@ Hooks.once("ready", async function() {
       promises.push(t.document.setFlag(
         MODULE_ID,
         FLAGS.WALL_RESTRICTION,
-        getSetting(SETTINGS.DEFAULT_WALL_RESTRICTION[shape])));
+        Settings.get(Settings.KEYS.DEFAULT_WALL_RESTRICTION[shape])));
     }
   }
   if ( promises.length ) await Promise.all(promises);
@@ -175,16 +175,17 @@ Hooks.once("ready", async function() {
 
 Hooks.on("getSceneControlButtons", controls => {
   const control = controls.find(x => x.name === "measure");
-  const opt = getSetting(SETTINGS.AUTOTARGET.MENU);
+  const AUTOTARGET = Settings.KEYS.AUTOTARGET;
+  const opt = Settings.get(AUTOTARGET.MENU);
   control.tools.splice(4, 0, {
     icon: "fas fa-crosshairs",
     name: "autotarget",
     title: game.i18n.localize("walledtemplates.controls.autotarget.Title"),
     toggle: true,
-    visible: opt === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_OFF || opt === SETTINGS.AUTOTARGET.CHOICES.TOGGLE_ON,
-    active: getSetting(SETTINGS.AUTOTARGET.ENABLED),
+    visible: opt === AUTOTARGET.CHOICES.TOGGLE_OFF || opt === AUTOTARGET.CHOICES.TOGGLE_ON,
+    active: Settings.get(AUTOTARGET.ENABLED),
     onClick: toggle => { // eslint-disable-line no-unused-vars
-      toggleSetting(SETTINGS.AUTOTARGET.ENABLED);
+      Settings.toggle(AUTOTARGET.ENABLED);
       canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
     }
   });

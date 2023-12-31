@@ -13,7 +13,7 @@ PIXI
 import { WalledTemplateShape } from "./template_shapes/WalledTemplateShape.js";
 import { log, gridShapeForTopLeft } from "./util.js";
 import { MODULE_ID, FLAGS } from "./const.js";
-import { getSetting, SETTINGS } from "./settings.js";
+import { Settings } from "./settings.js";
 import { Hexagon } from "./geometry/RegularPolygon/Hexagon.js";
 import { Square } from "./geometry/RegularPolygon/Square.js";
 import { UserCloneTargets } from "./UserCloneTargets.js";
@@ -43,7 +43,7 @@ function refreshMeasuredTemplate(template, flags) {
 
   // Control the border visibility including border text.
   if ( flags.refreshTemplate ) {
-    if ( canHide && getSetting(SETTINGS.HIDE.BORDER) ) {
+    if ( canHide && Settings.get(Settings.KEYS.HIDE.BORDER) ) {
       template.template.visible = false;
       template.ruler.visible = false;
     } else {
@@ -55,7 +55,7 @@ function refreshMeasuredTemplate(template, flags) {
   // Control the highlight visibility by changing its alpha.
   if ( flags.refreshGrid || flags.refreshState ) {
     const hl = canvas.grid.getHighlightLayer(template.highlightId);
-    if ( canHide && getSetting(SETTINGS.HIDE.HIGHLIGHTING) ) {
+    if ( canHide && Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING) ) {
       hl.alpha = 0;
     } else {
       hl.alpha = template.document.hidden ? 0.5 : 1;
@@ -106,15 +106,15 @@ function preCreateMeasuredTemplateHook(templateD, updateData, _opts, _id) {
   // Only create if the id does not already exist
   if (typeof templateD.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
     // In v10, setting the flag throws an error about not having id
-    // template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
-    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[t]);
+    // template.setFlag(MODULE_ID, "enabled", Settings.get(Settings.KEYS.DEFAULT_WALLED));
+    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = Settings.get(Settings.KEYS.DEFAULT_WALLS_BLOCK[t]);
   }
 
   if ( typeof templateD.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
-    updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTION[t]);
+    updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = Settings.get(Settings.KEYS.DEFAULT_WALL_RESTRICTION[t]);
   }
 
-  if ( (t === "ray" || t === "cone") && getSetting(SETTINGS.DIAGONAL_SCALING[t]) ) {
+  if ( (t === "ray" || t === "cone") && Settings.get(Settings.KEYS.DIAGONAL_SCALING[t]) ) {
     // Extend rays or cones to conform to 5-5-5 diagonal, if applicable.
     // See dndHelpers for original:
     // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L78
@@ -158,8 +158,8 @@ async function destroyMeasuredTemplateHook(template) {
  * @param {boolean} hovering
  */
 function hoverMeasuredTemplateHook(template, _hovering) {
-  if ( getSetting(SETTINGS.HIDE.BORDER) ) template.renderFlags.set({ refreshTemplate: true });
-  if ( getSetting(SETTINGS.HIDE.HIGHLIGHTING) ) template.renderFlags.set({ refreshGrid: true });
+  if ( Settings.get(Settings.KEYS.HIDE.BORDER) ) template.renderFlags.set({ refreshTemplate: true });
+  if ( Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING) ) template.renderFlags.set({ refreshGrid: true });
 }
 
 
@@ -178,7 +178,7 @@ PATCHES.BASIC.HOOKS = {
  * @returns {Points[]}
  */
 function _getGridHighlightPositions(wrapper) {
-  if ( getSetting(SETTINGS.AUTOTARGET.METHOD) === SETTINGS.AUTOTARGET.METHODS.CENTER ) return wrapper();
+  if ( Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) return wrapper();
 
   // Replicate most of _getGridHighlightPositions but include all.
   const grid = canvas.grid.grid;
@@ -264,7 +264,7 @@ function highlightGrid(wrapped) {
    || this.hover
    || typeof interactionState === "undefined"
    || interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
-   || !getSetting(SETTINGS.HIDE.HIGHLIGHTING) ) return wrapped();
+   || !Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING) ) return wrapped();
 
   // Clear the existing highlight layer
   const grid = canvas.grid;
@@ -310,7 +310,7 @@ function _onDragLeftMove(wrapped, event) {
 
   const precision = event.shiftKey ? 2 : 1;
   const { origin, destination } = event.interactionData;
-  if ( getSetting(SETTINGS.SNAP_GRID) ) {
+  if ( Settings.get(Settings.KEYS.SNAP_GRID) ) {
     event.interactionData.destination = canvas.grid.getSnappedPosition(destination.x, destination.y, precision)
 
     // Drag ruler fix when holding shift.
@@ -322,7 +322,7 @@ function _onDragLeftMove(wrapped, event) {
   }
 
   wrapped(event);
-  if ( !getSetting(SETTINGS.SNAP_GRID) ) return;
+  if ( !Settings.get(Settings.KEYS.SNAP_GRID) ) return;
 
   // Move the clones to snapped locations.
   // Mimics MeasuredTemplate.prototype._onDragLeftMove
@@ -344,7 +344,7 @@ function _onDragLeftCancel(wrapped, event) {
 function _onDragLeftDrop(wrapped, event) {
   const precision = event.shiftKey ? 2 : 1;
   const { origin, destination } = event.interactionData;
-  if ( getSetting(SETTINGS.SNAP_GRID) ) {
+  if ( Settings.get(Settings.KEYS.SNAP_GRID) ) {
     event.interactionData.destination = canvas.grid.getSnappedPosition(destination.x, destination.y, precision)
 
     // Drag ruler fix when holding shift.
@@ -408,7 +408,7 @@ PATCHES.BASIC.WRAPS = {
 function boundsOverlap(bounds) {
   const tBounds = bounds.translate(-this.x, -this.y);
 
-  if ( getSetting(SETTINGS.AUTOTARGET.METHOD) === SETTINGS.AUTOTARGET.METHODS.CENTER ) {
+  if ( Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) {
     return this.shape.contains(tBounds.center.x, tBounds.center.y);
   }
 
@@ -426,7 +426,7 @@ function boundsOverlap(bounds) {
   if ( p_area.almostEqual(0) ) return false;
 
   // Test for overlap.
-  const area_percentage = getSetting(SETTINGS.AUTOTARGET.AREA);
+  const area_percentage = Settings.autotargetArea(this.document.t);
   const b_area = bounds.area;
   const target_area = b_area * area_percentage;
   return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%
@@ -557,7 +557,7 @@ PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHoo
  */
 function autotargetTokens({ onlyVisible = false } = {}) {
   log("autotargetTokens", this);
-  if ( !getSetting(SETTINGS.AUTOTARGET.ENABLED) ) return this.releaseTargets();
+  if ( !Settings.get(Settings.KEYS.AUTOTARGET.ENABLED) ) return this.releaseTargets();
 
   log(`Autotarget ${this._original ? "clone" : "original"} with ${this.targets.size} targets.`);
   const tokens = new Set(this.targetsWithinShape({onlyVisible}));

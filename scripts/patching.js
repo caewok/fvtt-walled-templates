@@ -5,7 +5,7 @@ game
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { SETTINGS, getSetting } from "./settings.js";
+import { Settings } from "./settings.js";
 import { Patcher } from "./Patcher.js";
 
 import { PATCHES as PATCHES_MeasuredTemplate } from "./MeasuredTemplate.js";
@@ -16,10 +16,14 @@ import { PATCHES_dnd5e } from "./dnd5e.js";
 import { PATCHES as PATCHES_ActiveEffect } from "./ActiveEffect.js";
 import { PATCHES as PATCHES_Setting } from "./Setting.js";
 
+// Settings
+import { PATCHES as PATCHES_Settings } from "./ModuleSettingsAbstract.js";
+
 export const PATCHES = {
   ActiveEffect: PATCHES_ActiveEffect,
   MeasuredTemplate: PATCHES_MeasuredTemplate,
   MeasuredTemplateConfig: PATCHES_MeasuredTemplateConfig,
+  Settings: PATCHES_Settings,
   Setting: PATCHES_Setting,
   Token: PATCHES_Token,
   Wall: PATCHES_Wall,
@@ -38,7 +42,7 @@ export function initializePatching() {
  * Register the autotargeting patches. Must be done after settings are enabled.
  */
 export function registerAutotargeting() {
-  const autotarget = getSetting(SETTINGS.AUTOTARGET.MENU) !== SETTINGS.AUTOTARGET.CHOICES.NO;
+  const autotarget = Settings.get(Settings.KEYS.AUTOTARGET.MENU) !== Settings.KEYS.AUTOTARGET.CHOICES.NO;
 
   // Disable existing targeting before completely removing autotarget patches
   if ( PATCHER.groupIsRegistered("AUTOTARGET") && !autotarget ) {
@@ -47,4 +51,8 @@ export function registerAutotargeting() {
 
   PATCHER.deregisterGroup("AUTOTARGET");
   if ( autotarget ) PATCHER.registerGroup("AUTOTARGET");
+
+  // Redraw the toggle button.
+  if ( canvas.templates.active
+    && ui.controls ) ui.controls.initialize({layer: canvas.templates.constructor.layerOptions.name});
 }

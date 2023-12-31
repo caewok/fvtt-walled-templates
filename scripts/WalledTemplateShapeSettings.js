@@ -1,27 +1,21 @@
 /* globals
 canvas,
-expandObject,
-FormApplication,
 foundry,
 game
 */
 "use strict";
 
-import { MODULE_ID, LABELS, SHAPE_KEYS } from "./const.js";
-import { getSetting, setSetting, SETTINGS } from "./settings.js";
+import { MODULE_ID, SHAPE_KEYS } from "./const.js";
+import { Settings } from "./settings.js";
+import { SettingsSubmenuAbstract } from "./SettingsSubmenuAbstract.js";
 
 /**
  * Settings submenu for setting shape options.
  */
-export class WalledTemplateShapeSettings extends FormApplication {
+export class WalledTemplateShapeSettings extends SettingsSubmenuAbstract {
   static get defaultOptions() {
     const opts = super.defaultOptions;
     return foundry.utils.mergeObject(opts, {
-      template: `modules/${MODULE_ID}/templates/walled-templates-settings-menu.html`,
-      height: 390,
-      title: game.i18n.localize(`${MODULE_ID}.settings.menu.title`),
-      width: 600,
-      classes: [MODULE_ID, "settings"],
       tabs: [
         {
           navSelector: ".tabs",
@@ -35,44 +29,45 @@ export class WalledTemplateShapeSettings extends FormApplication {
   }
 
   getData(options={}) {
-    const data = super.getData(options);
-    const shapes = {};
-    for ( const shapeKey of SHAPE_KEYS ) {
-      shapes[shapeKey] = {
-        key: shapeKey,
-        ...WalledTemplateShapeSettings.defaultSettings(shapeKey)
-      };
+    return foundry.utils.mergeObject(super.getData(options), {
+      gridUnits: canvas.scene.grid.units || game.i18n.localize("GridUnits")
+    });
+  }
+
+  activateListeners(html) {
+    this._initializeDisplayOptions();
+    super.activateListeners(html);
+
+    // Disable the override settings until override is enabled.
+    for ( const shape of SHAPE_KEYS ) {
+      html.find(`[name="${MODULE_ID}.${Settings.KEYS.AUTOTARGET[shape].OVERRIDE}"]`).change(this.shapeOverrideChanged.bind(this, shape));
     }
-
-    return foundry.utils.mergeObject(data, {
-      shapes,
-      gridUnits: canvas.scene.grid.units || game.i18n.localize("GridUnits"),
-      blockoptions: LABELS.WALLS_BLOCK,
-      walloptions: LABELS.WALL_RESTRICTION,
-      heightoptions: LABELS.HEIGHT_CHOICES
-    });
   }
 
-  static defaultSettings(shapeKey) {
-    const settingsObj = {};
-    const settingKeys = [
-      "DEFAULT_WALLS_BLOCK",
-      "DEFAULT_WALL_RESTRICTION",
-      "DIAGONAL_SCALING"
-    ];
-    for ( const key of settingKeys ) settingsObj[key] = getSetting(SETTINGS[key][shapeKey]);
-    return settingsObj;
+  _initializeDisplayOptions() {
+    // Disable shape override depending on settings.
+    for ( const shape of SHAPE_KEYS ) {
+      const disable = !Settings.get(Settings.KEYS.AUTOTARGET[shape].OVERRIDE);
+      if ( disable ) this.#disableShapeOverride(shape);
+    }
   }
 
-  async _updateObject(_, formData) {
-    const expandedFormData = expandObject(formData);
-    const promises = [];
-    Object.entries(expandedFormData).forEach(([shape, value]) => {
-      Object.entries(value).forEach(([settingName, settingValue]) => {
-        let settingKey = SETTINGS[settingName][shape];
-        promises.push(setSetting(settingKey, settingValue));
-      });
-    });
-    await Promise.all(promises);
+  shapeOverrideChanged(shape, event) {
+    const disable = !event.target.checked;
+    this.#disableShapeOverride(shape, disable);
+  }
+
+  #disableShapeOverride(shape, disable = true) {
+    const color = disable ? "gray" : "black";
+
+    // Method selection
+    const elemMethod = document.getElementsByName(`${MODULE_ID}.${Settings.KEYS.AUTOTARGET[shape].METHOD}`);
+    elemMethod[0].disabled = disable;
+    elemMethod[0].parentElement.parentElement.style.color = color
+
+    // Percent area selection
+    const elemArea = document.getElementsByName(`${MODULE_ID}.${Settings.KEYS.AUTOTARGET[shape].AREA}`);
+    elemArea[0].disabled = disable;
+    elemArea[0].parentElement.parentElement.style.color = color
   }
 }
