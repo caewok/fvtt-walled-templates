@@ -162,7 +162,7 @@ export class WalledTemplateShape {
     const defaultSetting = Settings.KEYS[`DEFAULT_${flagName}`][this.t];
     const setting = this.item?.getFlag(MODULE_ID, flag)
       ?? this.template.document.getFlag(MODULE_ID, flag)
-      ?? getSetting(defaultSetting);
+      ?? Settings.get(defaultSetting);
     if ( setting === LABELS.GLOBAL_DEFAULT ) return this.template.document.getFlag(MODULE_ID, flag);
     return setting;
   }

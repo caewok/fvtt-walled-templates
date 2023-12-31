@@ -13,7 +13,7 @@ export function WalledTemplatesPF1eGetHighlightedSquares(wrapped) {
   const highlightSquares = wrapped();
 
   if ( this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === Settings.KEYS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED
-    && Settings.get(Settings.KEYS.AUTOTARGET.METHOD) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) {
+    && Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) {
     log("WalledTemplatesPF1eGetHighlightedSquares|Using Foundry default");
     return highlightSquares;
   }

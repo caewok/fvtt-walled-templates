@@ -16,7 +16,7 @@ export function WalledTemplatesPF2eHighlightGrid(wrapped) {
   log(`WalledTemplatesPF2eHighlightGrid type ${this.type}`);
 
   if ( this.document.getFlag(MODULE_ID, "enabled") === Settings.KEYS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED
-    && Settings.get(Settings.KEYS.AUTOTARGET.METHOD) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) {
+    && Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) {
     log("WalledTemplatesPF2eHighlightGrid|Using Foundry default");
     return wrapped();
   }

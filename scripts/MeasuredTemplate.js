@@ -178,7 +178,7 @@ PATCHES.BASIC.HOOKS = {
  * @returns {Points[]}
  */
 function _getGridHighlightPositions(wrapper) {
-  if ( Settings.get(Settings.KEYS.AUTOTARGET.METHOD) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) return wrapper();
+  if ( Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) return wrapper();
 
   // Replicate most of _getGridHighlightPositions but include all.
   const grid = canvas.grid.grid;
@@ -408,7 +408,7 @@ PATCHES.BASIC.WRAPS = {
 function boundsOverlap(bounds) {
   const tBounds = bounds.translate(-this.x, -this.y);
 
-  if ( Settings.get(Settings.KEYS.AUTOTARGET.METHOD) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) {
+  if ( Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) {
     return this.shape.contains(tBounds.center.x, tBounds.center.y);
   }
 
@@ -426,7 +426,7 @@ function boundsOverlap(bounds) {
   if ( p_area.almostEqual(0) ) return false;
 
   // Test for overlap.
-  const area_percentage = Settings.get(Settings.KEYS.AUTOTARGET.AREA);
+  const area_percentage = Settings.autotargetArea(this.document.t);
   const b_area = bounds.area;
   const target_area = b_area * area_percentage;
   return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%

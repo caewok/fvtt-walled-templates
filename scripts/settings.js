@@ -76,6 +76,32 @@ export class Settings extends ModuleSettingsAbstract {
   /** @type {object} */
   static KEYS = SETTINGS;
 
+  /**
+   * Retrieve autotarget area for the given shape, taking into account override settings.
+   * @param {string} [shape]    If not provided, default for all shapes will be provided.
+   * @returns {number}
+   */
+  static autotargetArea(shape) { return this.#getShapeAutotarget("AREA", shape); }
+
+  /**
+   * Retrieve autotarget method for the given shape, taking into account override settings.
+   * @param {string} [shape]    If not provided, default for all shapes will be provided.
+   * @returns {SETTINGS.AUTOTARGET.METHODS}
+   */
+  static autotargetMethod(shape) { return this.#getShapeAutotarget("METHOD", shape); }
+
+  /**
+   * Helper to retrieve the shape override.
+   * @param {"METHOD"|"AREA"} keyName
+   * @param {string} [shape]    If not provided, default for all shapes will be provided.
+   * @returns {SETTINGS.AUTOTARGET.METHODS}
+   */
+  static #getShapeAutotarget(keyName, shape) {
+    const shapeSettings = this.KEYS.AUTOTARGET[shape];
+    if ( !shapeSettings || !this.get(shapeSettings.OVERRIDE) ) return this.get(this.KEYS.AUTOTARGET[keyName]);
+    return this.get(shapeSettings[keyName]);
+  }
+
   static registerAll() {
     const { KEYS, register, registerMenu, localize } = this;
 
