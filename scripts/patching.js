@@ -51,4 +51,8 @@ export function registerAutotargeting() {
 
   PATCHER.deregisterGroup("AUTOTARGET");
   if ( autotarget ) PATCHER.registerGroup("AUTOTARGET");
+
+  // Redraw the toggle button.
+  if ( canvas.templates.active
+    && ui.controls ) ui.controls.initialize({layer: canvas.templates.constructor.layerOptions.name});
 }

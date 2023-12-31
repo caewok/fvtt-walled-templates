@@ -139,6 +139,7 @@ export class Settings extends ModuleSettingsAbstract {
         const enabled = value === KEYS.AUTOTARGET.CHOICES.TOGGLE_ON
         || value === KEYS.AUTOTARGET.CHOICES.YES;
         Settings.set(KEYS.AUTOTARGET.ENABLED, enabled);
+        Settings.cache.delete(KEYS.AUTOTARGET.MENU); // Cache not reset yet; must do it manually b/c registerAutotargeting hits the cache.
         registerAutotargeting();
       }
     });
