@@ -1,20 +1,19 @@
 {
   "name": "walledtemplates",
-  "minimumCoreVersion": "11",
   "id": "walledtemplates",
   "title": "Walled Templates",
-  "version": "This is auto replaced",
+  "version": "#{VERSION}#",
   "library": false,
   "manifestPlusVersion": "1.0.0",
   "compatibility": {
     "minimum": "11.302",
-    "verified": "11.308"
+    "verified": "11.315"
   },
   "authors": [
     {
       "name": "caewok",
       "url": "https://github.com/caewok",
-      "discord": "caewok#9192"
+      "discord": "caewok"
     }
   ],
   "relationships": {
@@ -38,9 +37,9 @@
       "description": "Allow walls to block templates"
     }
   ],
-  "url": "This is auto replaced",
-  "manifest": "This is auto replaced",
-  "download": "This is auto replaced",
+  "url": "#{URL}#",
+  "manifest": "#{MANIFEST}#",
+  "download": "#{DOWNLOAD}#",
   "license": "LICENSE",
   "readme": "README.md"
 }
