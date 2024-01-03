@@ -10,7 +10,7 @@ PIXI
 import { MODULE_ID, FLAGS, LABELS } from "../const.js";
 import { Point3d } from "../geometry/3d/Point3d.js";
 import { ClipperPaths } from "../geometry/ClipperPaths.js";
-import { SETTINGS, getSetting, debugPolygons } from "../settings.js";
+import { Settings, debugPolygons } from "../settings.js";
 import { ClockwiseSweepShape } from "../ClockwiseSweepShape.js";
 import { LightWallSweep } from "../ClockwiseSweepLightWall.js";
 
@@ -101,13 +101,13 @@ export class WalledTemplateShape {
     return [this.translatedShape];
   }
 
-  /** @type {SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES} */
+  /** @type {Settings.KEYS.DEFAULT_WALLS_BLOCK.CHOICES} */
   get wallsBlockCode() { return this.#getSetting("WALLS_BLOCK"); }
 
   /** @type {boolean} */
-  get doWallsBlock() { return this.wallsBlockCode !== SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED; }
+  get doWallsBlock() { return this.wallsBlockCode !== Settings.KEYS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED; }
 
-  /** @type {SETTINGS.DEFAULT_WALL_RESTRICTION} */
+  /** @type {Settings.KEYS.DEFAULT_WALL_RESTRICTION} */
   get wallRestriction() { return this.#getSetting("WALL_RESTRICTION"); }
 
   /**
@@ -132,7 +132,7 @@ export class WalledTemplateShape {
    */
   get doRecursion() {
     const numRecursions = CONFIG[MODULE_ID].recursions[this.t] ?? 0;
-    return this.wallsBlockCode === SETTINGS.DEFAULT_WALLS_BLOCK.CHOICES.RECURSE
+    return this.wallsBlockCode === Settings.KEYS.DEFAULT_WALLS_BLOCK.CHOICES.RECURSE
       && this.options.level < numRecursions;
   }
 
@@ -159,10 +159,10 @@ export class WalledTemplateShape {
 
   #getSetting(flagName) {
     const flag = FLAGS[flagName];
-    const defaultSetting = SETTINGS[`DEFAULT_${flagName}`][this.t];
+    const defaultSetting = Settings.KEYS[`DEFAULT_${flagName}`][this.t];
     const setting = this.item?.getFlag(MODULE_ID, flag)
       ?? this.template.document.getFlag(MODULE_ID, flag)
-      ?? getSetting(defaultSetting);
+      ?? Settings.get(defaultSetting);
     if ( setting === LABELS.GLOBAL_DEFAULT ) return this.template.document.getFlag(MODULE_ID, flag);
     return setting;
   }
@@ -178,7 +178,7 @@ export class WalledTemplateShape {
     const poly = this.computeSweepPolygon(recurse);
 
     if ( !poly || isNaN(poly.points[0]) ) {
-      console.error("_computeShapeMeasuredTemplate poly is broken.");
+      console.warn("_computeShapeMeasuredTemplate poly is broken.");
       return this.originalShape;
     }
 
@@ -233,7 +233,7 @@ export class WalledTemplateShape {
       debug: debugPolygons(),
       type: this.wallRestriction,
       source: this,
-      boundaryShapes: this.translatedBoundaryShapes,
+      boundaryShapes: this.translatedBoundaryShapes.map(shape => shape.toPolygon()), // TODO: Don't map to polygon if rectangle intersection with poly gets fixed.
       lightWall: this.options.lastReflectedEdge // Only used for cones
     };
 

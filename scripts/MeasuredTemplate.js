@@ -13,16 +13,82 @@ PIXI
 import { WalledTemplateShape } from "./template_shapes/WalledTemplateShape.js";
 import { log, gridShapeForTopLeft } from "./util.js";
 import { MODULE_ID, FLAGS } from "./const.js";
-import { getSetting, SETTINGS } from "./settings.js";
+import { Settings } from "./settings.js";
 import { Hexagon } from "./geometry/RegularPolygon/Hexagon.js";
 import { Square } from "./geometry/RegularPolygon/Square.js";
 import { UserCloneTargets } from "./UserCloneTargets.js";
+import { addDnd5eItemConfigurationToTemplate } from "./dnd5e.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
 PATCHES.AUTOTARGET = {};
+PATCHES.dnd5e = {};
 
 // ----- NOTE: Hooks ----- //
+
+/**
+ * On refresh, control the ruler (text) visibility.
+ *
+ * A hook event that fires when a {@link PlaceableObject} is incrementally refreshed.
+ * The dispatched event name replaces "Object" with the named PlaceableObject subclass, i.e. "refreshToken".
+ * @event refreshObject
+ * @category PlaceableObject
+ * @param {PlaceableObject} object    The object instance being refreshed
+ */
+function refreshMeasuredTemplate(template, flags) {
+  const canHide = !(template.hover
+    || template.isPreview
+    || !template.visible
+    || template.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG);
+
+  // Control the border visibility including border text.
+  if ( flags.refreshTemplate ) {
+    if ( canHide && Settings.get(Settings.KEYS.HIDE.BORDER) ) {
+      template.template.visible = false;
+      template.ruler.visible = false;
+    } else {
+      template.template.visible = true;
+      template.ruler.visible = true;
+    }
+  }
+
+  // Control the highlight visibility by changing its alpha.
+  if ( flags.refreshGrid || flags.refreshState ) {
+    const hl = canvas.grid.getHighlightLayer(template.highlightId);
+    if ( canHide && Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING) ) {
+      hl.alpha = 0;
+    } else {
+      hl.alpha = template.document.hidden ? 0.5 : 1;
+    }
+  }
+
+  // Make the control icon visible to non-owners.
+  if ( flags.refreshState && !template.document.isOwner ) {
+    template.controlIcon.refresh({
+      visible: template.visible && template.layer.active && !template.document.hidden,
+    });
+    template.controlIcon.alpha = 0.5;
+  }
+}
+
+
+
+/**
+ * Hook drawMeasuredTemplate to monitor if a template has been created with an item.
+ * Pull necessary flags from that item, such as caster.
+ *
+ * A hook event that fires when a {@link PlaceableObject} is initially drawn.
+ * The dispatched event name replaces "Object" with the named PlaceableObject subclass, i.e. "drawToken".
+ * @event drawObject
+ * @category PlaceableObject
+ * @param {PlaceableObject} object    The object instance being drawn
+ */
+function drawMeasuredTemplate(template) {
+  if ( !template.item ) return;
+  addDnd5eItemConfigurationToTemplate(template);
+}
+
+PATCHES.dnd5e.HOOKS = { drawMeasuredTemplate };
 
 /**
  * Hook preCreateMeasuredTemplate to
@@ -40,15 +106,15 @@ function preCreateMeasuredTemplateHook(templateD, updateData, _opts, _id) {
   // Only create if the id does not already exist
   if (typeof templateD.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
     // In v10, setting the flag throws an error about not having id
-    // template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
-    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[t]);
+    // template.setFlag(MODULE_ID, "enabled", Settings.get(Settings.KEYS.DEFAULT_WALLED));
+    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = Settings.get(Settings.KEYS.DEFAULT_WALLS_BLOCK[t]);
   }
 
   if ( typeof templateD.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
-    updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTION[t]);
+    updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = Settings.get(Settings.KEYS.DEFAULT_WALL_RESTRICTION[t]);
   }
 
-  if ( (t === "ray" || t === "cone") && getSetting(SETTINGS.DIAGONAL_SCALING[t]) ) {
+  if ( (t === "ray" || t === "cone") && Settings.get(Settings.KEYS.DIAGONAL_SCALING[t]) ) {
     // Extend rays or cones to conform to 5-5-5 diagonal, if applicable.
     // See dndHelpers for original:
     // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L78
@@ -92,13 +158,13 @@ async function destroyMeasuredTemplateHook(template) {
  * @param {boolean} hovering
  */
 function hoverMeasuredTemplateHook(template, _hovering) {
-  if ( getSetting(SETTINGS.HIDE.BORDER) ) template.renderFlags.set({ refreshTemplate: true });
-  if ( getSetting(SETTINGS.HIDE.HIGHLIGHTING) ) template.renderFlags.set({ refreshGrid: true });
+  if ( Settings.get(Settings.KEYS.HIDE.BORDER) ) template.renderFlags.set({ refreshTemplate: true });
+  if ( Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING) ) template.renderFlags.set({ refreshGrid: true });
 }
 
 
 PATCHES.BASIC.HOOKS = {
-  refreshMeasuredTemplate: refreshMeasuredTemplateHook,
+  refreshMeasuredTemplate,
   preCreateMeasuredTemplate: preCreateMeasuredTemplateHook,
   updateMeasuredTemplate: updateMeasuredTemplateHook,
   destroyMeasuredTemplate: destroyMeasuredTemplateHook,
@@ -112,7 +178,7 @@ PATCHES.BASIC.HOOKS = {
  * @returns {Points[]}
  */
 function _getGridHighlightPositions(wrapper) {
-  if ( getSetting(SETTINGS.AUTOTARGET.METHOD) === SETTINGS.AUTOTARGET.METHODS.CENTER ) return wrapper();
+  if ( Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) return wrapper();
 
   // Replicate most of _getGridHighlightPositions but include all.
   const grid = canvas.grid.grid;
@@ -198,34 +264,12 @@ function highlightGrid(wrapped) {
    || this.hover
    || typeof interactionState === "undefined"
    || interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
-   || !getSetting(SETTINGS.HIDE.HIGHLIGHTING) ) return wrapped();
+   || !Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING) ) return wrapped();
 
   // Clear the existing highlight layer
   const grid = canvas.grid;
   const hl = grid.getHighlightLayer(this.highlightId);
   hl.clear();
-}
-
-/**
- * Mixed wrap of MeasuredTemplate.prototype._refreshTemplate
- * If the setting is set to hide, don't draw the border.
- */
-function _refreshTemplate(wrapped) {
-  const interactionState = this._original?.mouseInteractionManager?.state ?? this.mouseInteractionManager?.state;
-  if ( this.hover
-    || typeof interactionState === "undefined"
-    || interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
-    || !getSetting(SETTINGS.HIDE.BORDER) ) return wrapped();
-
-  // Clear the existing layer and draw the texture but not the outline or origin/destination points.
-  const t = this.template.clear();
-
-  // Fill Color or Texture
-  if ( this.texture ) t.beginTextureFill({texture: this.texture});
-  else t.beginFill(0x000000, 0.0);
-
-  // Draw the shape
-  t.drawShape(this.shape);
 }
 
 PATCHES.BASIC.MIXES = { _getGridHighlightPositions };
@@ -266,7 +310,7 @@ function _onDragLeftMove(wrapped, event) {
 
   const precision = event.shiftKey ? 2 : 1;
   const { origin, destination } = event.interactionData;
-  if ( getSetting(SETTINGS.SNAP_GRID) ) {
+  if ( Settings.get(Settings.KEYS.SNAP_GRID) ) {
     event.interactionData.destination = canvas.grid.getSnappedPosition(destination.x, destination.y, precision)
 
     // Drag ruler fix when holding shift.
@@ -278,7 +322,7 @@ function _onDragLeftMove(wrapped, event) {
   }
 
   wrapped(event);
-  if ( !getSetting(SETTINGS.SNAP_GRID) ) return;
+  if ( !Settings.get(Settings.KEYS.SNAP_GRID) ) return;
 
   // Move the clones to snapped locations.
   // Mimics MeasuredTemplate.prototype._onDragLeftMove
@@ -300,7 +344,7 @@ function _onDragLeftCancel(wrapped, event) {
 function _onDragLeftDrop(wrapped, event) {
   const precision = event.shiftKey ? 2 : 1;
   const { origin, destination } = event.interactionData;
-  if ( getSetting(SETTINGS.SNAP_GRID) ) {
+  if ( Settings.get(Settings.KEYS.SNAP_GRID) ) {
     event.interactionData.destination = canvas.grid.getSnappedPosition(destination.x, destination.y, precision)
 
     // Drag ruler fix when holding shift.
@@ -330,55 +374,12 @@ function destroy(wrapped, options) {
   return wrapped(options);
 }
 
-
-/**
- * Control display of border when rendering the template.
- */
-function _applyRenderFlags(wrapped, flags) {
-  const interactionState = this.interactionState;
-  const canHide = !(this.hover
-    || this.isPreview
-    || !this.visible
-    || typeof interactionState === "undefined"
-    || interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG);
-
-  // Control the border visibility by changing its thickness.
-  if ( flags.refreshTemplate ) {
-    if ( canHide && getSetting(SETTINGS.HIDE.BORDER) ) {
-      if ( this._borderThickness ) this._oldBorderThickness = this._borderThickness;
-      this._borderThickness = 0;
-    } else {
-      this._borderThickness = this._oldBorderThickness || 3;
-    }
-  }
-
-  wrapped(flags);
-
-  // Control the highlight visibility by changing its alpha.
-  if ( flags.refreshGrid || flags.refreshState ) {
-    const hl = canvas.grid.getHighlightLayer(this.highlightId);
-    if ( canHide && getSetting(SETTINGS.HIDE.HIGHLIGHTING) ) {
-      hl.alpha = 0;
-    } else {
-      hl.alpha = this.document.hidden ? 0.5 : 1;
-    }
-  }
-
-  // Make the control icon visible to non-owners.
-  if ( flags.refreshState && !this.document.isOwner ) {
-    this.controlIcon.refresh({
-      visible: this.visible && this.layer.active && !this.document.hidden,
-    });
-    this.controlIcon.alpha = 0.5;
-  }
-}
-
 /**
  * Allow non-owners to hover over a template icon.
  */
 function _canHover(wrapped, user, event) {
   if ( wrapped(user, event) ) return true;
-  return this.controlIcon.visible;
+  return this.controlIcon?.visible;
 }
 
 PATCHES.BASIC.WRAPS = {
@@ -390,7 +391,7 @@ PATCHES.BASIC.WRAPS = {
   _onDragLeftCancel,
   _onDragLeftDrop,
   destroy,
-  _applyRenderFlags,
+  // _applyRenderFlags,
   _canHover
 };
 
@@ -407,7 +408,7 @@ PATCHES.BASIC.WRAPS = {
 function boundsOverlap(bounds) {
   const tBounds = bounds.translate(-this.x, -this.y);
 
-  if ( getSetting(SETTINGS.AUTOTARGET.METHOD) === SETTINGS.AUTOTARGET.METHODS.CENTER ) {
+  if ( Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) {
     return this.shape.contains(tBounds.center.x, tBounds.center.y);
   }
 
@@ -425,7 +426,7 @@ function boundsOverlap(bounds) {
   if ( p_area.almostEqual(0) ) return false;
 
   // Test for overlap.
-  const area_percentage = getSetting(SETTINGS.AUTOTARGET.AREA);
+  const area_percentage = Settings.autotargetArea(this.document.t);
   const b_area = bounds.area;
   const target_area = b_area * area_percentage;
   return p_area > target_area || p_area.almostEqual(target_area); // Ensure targeting works at 0% and 100%
@@ -556,7 +557,7 @@ PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHoo
  */
 function autotargetTokens({ onlyVisible = false } = {}) {
   log("autotargetTokens", this);
-  if ( !getSetting(SETTINGS.AUTOTARGET.ENABLED) ) return this.releaseTargets();
+  if ( !Settings.get(Settings.KEYS.AUTOTARGET.ENABLED) ) return this.releaseTargets();
 
   log(`Autotarget ${this._original ? "clone" : "original"} with ${this.targets.size} targets.`);
   const tokens = new Set(this.targetsWithinShape({onlyVisible}));

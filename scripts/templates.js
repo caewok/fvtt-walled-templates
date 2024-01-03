@@ -9,7 +9,7 @@ isEmpty
 
 import { log } from "./util.js";
 import { MODULE_ID, FLAGS } from "./const.js";
-import { getSetting, SETTINGS } from "./settings.js";
+import { Settings } from "./settings.js";
 
 /**
  * Hook preCreateMeasuredTemplate to
@@ -28,15 +28,15 @@ export function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
   // Only create if the id does not already exist
   if (typeof templateD.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
     // In v10, setting the flag throws an error about not having id
-    // template.setFlag(MODULE_ID, "enabled", getSetting(SETTINGS.DEFAULT_WALLED));
-    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = getSetting(SETTINGS.DEFAULT_WALLS_BLOCK[t]);
+    // template.setFlag(MODULE_ID, "enabled", Settings.get(Settings.KEYS.DEFAULT_WALLED));
+    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = Settings.get(Settings.KEYS.DEFAULT_WALLS_BLOCK[t]);
   }
 
   if ( typeof templateD.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
-    updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = getSetting(SETTINGS.DEFAULT_WALL_RESTRICTION[t]);
+    updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = Settings.get(Settings.KEYS.DEFAULT_WALL_RESTRICTION[t]);
   }
 
-  if ( getSetting(SETTINGS.DIAGONAL_SCALING[t]) ) {
+  if ( Settings.get(Settings.KEYS.DIAGONAL_SCALING[t]) ) {
     if ( t === "circle" && ((distance / gridDist) >= 1) ) {
       // Switch circles to squares if applicable
       // Conforms with 5-5-5 diagonal rule.

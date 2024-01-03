@@ -1,3 +1,15 @@
+## 0.7.0
+Add keybinding to toggle template autotargeting. Closes issue #69.
+Hide text of the template when hiding the border. Closes issue #45. Switch to using the template refresh hook for better compatibility.
+Add settings to override the highlight/autotarget method and area for specific shapes. Closes issue #54.
+
+Updates to patching methods.
+Update geometry lib to v0.2.12.
+Fix for undefined `attachedTemplate` on token update. Closes issue #75.
+Fix for template preview not observing global defaults. Closes issue #79.
+Fix for attachedTemplates not iterable. Closes issue #65.
+
+
 ## 0.6.10
 Fix for Drag Ruler snapping. Closes issues #59 and #64. Submitted PR to Drag Ruler git for issue with Drag Ruler not working with attached templates (issue #47).
 Fix for null `token.actor.effects` error. Closes issue #65.

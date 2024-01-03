@@ -70,7 +70,7 @@ function updateTokenHook(tokenD, changed, _options, userId) {
  * @param {PlaceableObject} object    The object instance being destroyed
  */
 async function destroyTokenHook(token) {
-  if ( token._original ) return;
+  if ( token._original || !token.attachedTemplates.length ) return;
 
   // Issue #50: Don't remove the active effect for a deleted unlinked token.
   const isLinked = token.document.isLinked;
@@ -226,7 +226,7 @@ PATCHES.BASIC.METHODS = {
  * @returns {MeasuredTemplate[]|ActiveEffects[]}
  */
 function attachedTemplates() {
-  if ( !this?.actor?.effects ) return;  // Issue #65.
+  if ( !this?.actor?.effects ) return [];  // Issue #65, #77.
   return this.actor.effects
     .filter(e => e.origin && e.origin.includes("MeasuredTemplate"))
     .map(e => fromUuidSync(e.origin)?.object)
@@ -243,7 +243,7 @@ PATCHES.BASIC.GETTERS = { attachedTemplates };
  */
 async function animate(wrapped, updateData, opts) {
   const attachedTemplates = this.attachedTemplates;
-  if ( !attachedTemplates || !attachedTemplates.length ) return wrapped(updateData, opts);
+  if ( !attachedTemplates.length ) return wrapped(updateData, opts);
 
   const props = (new Set(["x", "y", "elevation", "rotation"])).intersection(new Set(Object.keys(updateData)));
   if ( !props.size ) return wrapped(updateData, opts);
