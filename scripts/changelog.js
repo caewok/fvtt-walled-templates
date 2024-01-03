@@ -145,6 +145,18 @@ Hooks.once("ready", () => {
           In the meantime, I have posted instructions for how to temporarily correct this issue in the [open issue in my Git](https://github.com/caewok/fvtt-walled-templates/issues/47#issuecomment-1732570294).`
     })
 
+    .addEntry({
+      version: "0.7.0",
+      title: "Settings and keybinding updates",
+      body: `\
+          - **Per-shape highlight/autotarget:** You can now override the highlight/autotarget method for a specific shape.
+
+          - **Autotarget keybinding:** A keybinding is provided to toggle autotargeting from either the token or the template layers.
+
+          - **Better template hiding:** Template hiding will now hide the template ruler point and the text. Hiding is now better integrated
+            into Foundry for hopefully better compatibility with other modules.`
+    })
+
     .build()
     ?.render(true);
 });
