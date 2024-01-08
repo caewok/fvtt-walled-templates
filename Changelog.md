@@ -1,3 +1,6 @@
+## 0.7.1
+Fix for Settings.cache undefined error.
+
 ## 0.7.0
 Add keybinding to toggle template autotargeting. Closes issue #69.
 Hide text of the template when hiding the border. Closes issue #45. Switch to using the template refresh hook for better compatibility.
