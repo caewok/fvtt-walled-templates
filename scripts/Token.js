@@ -16,7 +16,6 @@ import { UserCloneTargets } from "./UserCloneTargets.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
-PATCHES.AUTOTARGET = {};
 
 // ---- NOTE: Hooks ----- //
 
@@ -78,8 +77,8 @@ async function destroyTokenHook(token) {
   await Promise.all(promises);
 }
 
-PATCHES.AUTOTARGET.HOOKS = { controlToken: controlTokenHook };
 PATCHES.BASIC.HOOKS = {
+  controlToken: controlTokenHook,
   updateToken: updateTokenHook,
   destroyToken: destroyTokenHook };
 
