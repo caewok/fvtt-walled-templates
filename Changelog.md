@@ -1,5 +1,6 @@
 ## 0.7.1
 Fix for Settings.cache undefined error.
+Improve compatibility with Automated Animations when hiding template graphics.
 
 ## 0.7.0
 Add keybinding to toggle template autotargeting. Closes issue #69.
