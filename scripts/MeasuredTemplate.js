@@ -42,12 +42,14 @@ function refreshMeasuredTemplate(template, flags) {
     || template.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG);
 
   // Control the border visibility including border text.
-  if ( flags.refreshTemplate ) {
+  if ( flags.refreshTemplate || flags.refreshState  ) {
     if ( canHide && Settings.get(Settings.KEYS.HIDE.BORDER) ) {
-      template.template.visible = false;
+      template.template.alpha = 0; // Don't mess with visible to fool automated animations into displaying.
+      // template.template.visible = false;
       template.ruler.visible = false;
     } else {
-      template.template.visible = true;
+      template.template.alpha = 1;
+      // template.template.visible = true;
       template.ruler.visible = true;
     }
   }
