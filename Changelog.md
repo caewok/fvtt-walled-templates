@@ -1,6 +1,6 @@
 ## 0.7.1
 Fix for Settings.cache undefined error.
-Improve compatibility with Automated Animations when hiding template graphics.
+Improve compatibility with Automated Animations when hiding template graphics. Closes issue #82.
 Fix for template attachment config not finding the last selected token.
 Fix for null attachedTemplates in Token hook. Closes issue #76.
 
