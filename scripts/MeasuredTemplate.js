@@ -332,7 +332,7 @@ function _onDragLeftMove(wrapped, event) {
 
   for ( let c of event.interactionData.clones || [] ) {
     const snapped = canvas.grid.getSnappedPosition(c.document.x, c.document.y, precision);
-    console.debug(`Clone Origin: ${origin.x},${origin.y} Destination: ${destination.x},${destination.y}; Snapped: ${snapped.x},${snapped.y} Doc: ${c.document.x},${c.document.y}`);
+    // console.debug(`Clone Origin: ${origin.x},${origin.y} Destination: ${destination.x},${destination.y}; Snapped: ${snapped.x},${snapped.y} Doc: ${c.document.x},${c.document.y}`);
     c.document.x = snapped.x;
     c.document.y = snapped.y;
     c.renderFlags.set({refresh: true});
