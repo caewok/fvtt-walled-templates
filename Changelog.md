@@ -1,5 +1,8 @@
 ## 0.7.1
 Fix for Settings.cache undefined error.
+Improve compatibility with Automated Animations when hiding template graphics. Closes issue #82.
+Fix for template attachment config not finding the last selected token.
+Fix for null attachedTemplates in Token hook. Closes issue #76.
 
 ## 0.7.0
 Add keybinding to toggle template autotargeting. Closes issue #69.
@@ -10,8 +13,7 @@ Updates to patching methods.
 Update geometry lib to v0.2.12.
 Fix for undefined `attachedTemplate` on token update. Closes issue #75.
 Fix for template preview not observing global defaults. Closes issue #79.
-Fix for attachedTemplates not iterable. Closes issue #65.
-
+Fix for attachedTemplates not iterable. Closes issues #65, #77.
 
 ## 0.6.10
 Fix for Drag Ruler snapping. Closes issues #59 and #64. Submitted PR to Drag Ruler git for issue with Drag Ruler not working with attached templates (issue #47).

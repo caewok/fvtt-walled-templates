@@ -16,7 +16,6 @@ import { UserCloneTargets } from "./UserCloneTargets.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
-PATCHES.AUTOTARGET = {};
 
 // ---- NOTE: Hooks ----- //
 
@@ -49,7 +48,7 @@ function updateTokenHook(tokenD, changed, _options, userId) {
   const token = tokenD.object;
 
   const attachedTemplates = token.attachedTemplates;
-  if ( !attachedTemplates.length ) return;
+  if ( !attachedTemplates || !attachedTemplates.length ) return;
 
   // TODO: Update elevation, rotation
   const props = (new Set(["x", "y", "elevation", "rotation"])).intersection(new Set(Object.keys(changed)));
@@ -78,8 +77,8 @@ async function destroyTokenHook(token) {
   await Promise.all(promises);
 }
 
-PATCHES.AUTOTARGET.HOOKS = { controlToken: controlTokenHook };
 PATCHES.BASIC.HOOKS = {
+  controlToken: controlTokenHook,
   updateToken: updateTokenHook,
   destroyToken: destroyTokenHook };
 
