@@ -2,6 +2,7 @@
 Force template preview in dnd5e to snap to grid if snapping is enabled. Closes issue #81.
 Render template settings in the dnd5e Feature configuration. Closes issue #80.
 Ensure autotarget settings are correctly registered on canvas load. Closes issue #85.
+Switch to debug logging for when the sweep polygon is broken, which now seems to occur only when placing the template at the canvas edge results in the template being completely blocked. Closes issue #74.
 Update lib geometry to v0.2.13.
 
 ## 0.7.1
