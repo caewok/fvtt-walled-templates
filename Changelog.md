@@ -1,5 +1,7 @@
 ## 0.7.2
 Force template preview in dnd5e to snap to grid if snapping is enabled. Closes issue #81.
+Render template settings in the dnd5e Feature configuration. Closes issue #80.
+Ensure autotarget settings are correctly registered on canvas load. Closes issue #85.
 Update lib geometry to v0.2.13.
 
 ## 0.7.1

@@ -16,6 +16,7 @@ import { LightWallSweep } from "../ClockwiseSweepLightWall.js";
 
 // Debugging
 import { Draw } from "../geometry/Draw.js";
+import { log } from "../util.js";
 
 /**
  * Class to handle the different template shapes, allowing for subclasses of each shape.
@@ -178,7 +179,9 @@ export class WalledTemplateShape {
     const poly = this.computeSweepPolygon(recurse);
 
     if ( !poly || isNaN(poly.points[0]) ) {
-      console.warn("_computeShapeMeasuredTemplate poly is broken.");
+      // Seems to only happen in the top left corner of the canvas
+      // or if the origin is on the border such that the entire template is off-canvas.
+      if ( this.origin.x && this.origin.y ) log("_computeShapeMeasuredTemplate poly is broken.");
       return this.originalShape;
     }
 

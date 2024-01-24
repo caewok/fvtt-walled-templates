@@ -57,6 +57,11 @@ Hooks.once("init", function() {
   // Set CONFIGS used by this module.
   CONFIG[MODULE_ID] = {
     /**
+     * Enable debug logging.
+     */
+    debug: false,
+
+    /**
      * Number of recursions for each template type when using spread or reflect.
      * (circle|rect: spread; ray|cone: reflect)
      * @type { object: number }
