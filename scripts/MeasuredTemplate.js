@@ -73,8 +73,6 @@ function refreshMeasuredTemplate(template, flags) {
   }
 }
 
-
-
 /**
  * Hook drawMeasuredTemplate to monitor if a template has been created with an item.
  * Pull necessary flags from that item, such as caster.

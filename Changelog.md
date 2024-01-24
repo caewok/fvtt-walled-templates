@@ -1,4 +1,5 @@
 ## 0.7.2
+Force template preview in dnd5e to snap to grid if snapping is enabled. Closes issue #81.
 Update lib geometry to v0.2.13.
 
 ## 0.7.1
