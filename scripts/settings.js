@@ -20,7 +20,6 @@ export const SETTINGS = {
   DEFAULT_WALLS_BLOCK: {},
   DEFAULT_WALL_RESTRICTION: {},
   DIAGONAL_SCALING: {},
-  AUTOTARGET: {},
   HIDE: {
     BORDER: "hideBorder",
     HIGHLIGHTING: "hideHighlighting"
