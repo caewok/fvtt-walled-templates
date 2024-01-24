@@ -21,7 +21,8 @@ PATCHES_dnd5e.dnd5e = {};
  * @param {Object} data
  */
 function renderItemSheet5eHook(app, html, data) {
-  if (data.itemType !== "Spell") return;
+  const type = data.item?.type;
+  if ( !(type === "spell" || type === "feat") ) return;
   render5eSpellTemplateConfig(app, html, data);
 }
 
