@@ -1,3 +1,6 @@
+## 0.7.2
+Update lib geometry to v0.2.13.
+
 ## 0.7.1
 Fix for Settings.cache undefined error.
 Improve compatibility with Automated Animations when hiding template graphics. Closes issue #82.
