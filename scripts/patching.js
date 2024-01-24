@@ -15,11 +15,13 @@ import { PATCHES as PATCHES_Wall } from "./Wall.js";
 import { PATCHES_dnd5e } from "./dnd5e.js";
 import { PATCHES as PATCHES_ActiveEffect } from "./ActiveEffect.js";
 import { PATCHES as PATCHES_Setting } from "./Setting.js";
+import { PATCHES as PATCHES_AbilityTemplate } from "./AbilityTemplate.js";
 
 // Settings
 import { PATCHES as PATCHES_Settings } from "./ModuleSettingsAbstract.js";
 
 export const PATCHES = {
+  "dnd5e.canvas.AbilityTemplate": PATCHES_AbilityTemplate,
   ActiveEffect: PATCHES_ActiveEffect,
   MeasuredTemplate: PATCHES_MeasuredTemplate,
   MeasuredTemplateConfig: PATCHES_MeasuredTemplateConfig,

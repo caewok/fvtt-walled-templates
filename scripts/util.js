@@ -16,10 +16,7 @@ import { Square } from "./geometry/RegularPolygon/Square.js";
  */
 export function log(...args) {
   try {
-    const isDebugging = game.modules.get("_dev-mode")?.api?.getPackageDebugValue(MODULE_ID);
-    if ( isDebugging ) {
-      console.log(MODULE_ID, "|", ...args);
-    }
+    if ( CONFIG[MODULE_ID].debug ) console.debug(MODULE_ID, "|", ...args);
   } catch(e) {
     // Empty
   }

@@ -57,6 +57,11 @@ Hooks.once("init", function() {
   // Set CONFIGS used by this module.
   CONFIG[MODULE_ID] = {
     /**
+     * Enable debug logging.
+     */
+    debug: false,
+
+    /**
      * Number of recursions for each template type when using spread or reflect.
      * (circle|rect: spread; ray|cone: reflect)
      * @type { object: number }
@@ -91,7 +96,9 @@ Hooks.once("init", function() {
     WalledTemplateRoundedCone,
     WalledTemplateSquare,
 
-    PATCHER
+    PATCHER,
+
+    Settings
   };
 
   CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.retarget = {};
@@ -136,6 +143,7 @@ Hooks.once("ready", async function() {
   // Happens if templates were created without Walled Templates module enabled
 
   // Hold all promises so we can await at the end.
+  const KEYS = Settings.KEYS;
   const promises = [];
   for ( const t of canvas.templates.objects.children ) {
     const shape = t.document.t;
@@ -145,12 +153,12 @@ Hooks.once("ready", async function() {
       const enabled = t.document.getFlag(MODULE_ID, "enabled");
       if ( typeof enabled !== "undefined" ) {
         promises.push(t.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, enabled
-          ? Settings.KEYS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED : Settings.KEYS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED));
+          ? KEYS.DEFAULT_WALLS_BLOCK.CHOICES.WALLED : KEYS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED));
       } else {
         promises.push(t.document.setFlag(
           MODULE_ID,
           FLAGS.WALLS_BLOCK,
-          Settings.get(Settings.KEYS.DEFAULT_WALLS_BLOCK[shape])));
+          Settings.get(KEYS.DEFAULT_WALLS_BLOCK[shape])));
       }
     }
 
@@ -158,10 +166,16 @@ Hooks.once("ready", async function() {
       promises.push(t.document.setFlag(
         MODULE_ID,
         FLAGS.WALL_RESTRICTION,
-        Settings.get(Settings.KEYS.DEFAULT_WALL_RESTRICTION[shape])));
+        Settings.get(KEYS.DEFAULT_WALL_RESTRICTION[shape])));
     }
   }
   if ( promises.length ) await Promise.all(promises);
+
+  // Ensure autotargeting is registered on setup.
+  const atMenuChoice = Settings.get(KEYS.AUTOTARGET.MENU);
+  const enabled = Settings.get(KEYS.AUTOTARGET.ENABLED) || atMenuChoice === KEYS.AUTOTARGET.CHOICES.YES;
+  Settings.set(KEYS.AUTOTARGET.ENABLED, enabled);
+  registerAutotargeting();
 
   log("Refreshing templates on ready hook.");
   // Redraw templates once the canvas is loaded
