@@ -341,7 +341,7 @@ function _onDragLeftCancel(wrapped, event) {
   return wrapped(event);
 }
 
-function _onDragLeftDrop(wrapped, event) {
+async function _onDragLeftDrop(wrapped, event) {
   const precision = event.shiftKey ? 2 : 1;
   const { origin, destination } = event.interactionData;
   if ( Settings.get(Settings.KEYS.SNAP_GRID) ) {
@@ -360,7 +360,7 @@ function _onDragLeftDrop(wrapped, event) {
   // Temporarily set the event clones to this template clone.
   const tokenClones = event.interactionData.clones;
   event.interactionData.clones = [event.interactionData.attachedTemplateClones.get(this.id)];
-  wrapped(event);
+  await wrapped(event);
 
   // Restore the token clones.
   event.interactionData.clones = tokenClones;

@@ -316,14 +316,16 @@ function _onDragLeftMove(wrapped, event) {
   }
 }
 
-function _onDragLeftDrop(wrapped, event) {
-  wrapped(event);
+async function _onDragLeftDrop(wrapped, event) {
+  const res = await wrapped(event);
 
   // Trigger each attached template to drag.
+  if ( !event.interactionData.clones ) return res;
   for ( const clone of event.interactionData.clones ) {
     const attachedTemplates = clone.attachedTemplates;
-    for ( const template of attachedTemplates ) template._onDragLeftDrop(event);
+    for ( const template of attachedTemplates ) await template._onDragLeftDrop(event);
   }
+  return res;
 }
 
 function _onDragLeftCancel(wrapped, event) {
