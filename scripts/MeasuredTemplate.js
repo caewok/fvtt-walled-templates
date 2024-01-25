@@ -355,11 +355,17 @@ async function _onDragLeftDrop(wrapped, event) {
     }
   }
 
-  if ( !this.attachedToken ) return wrapped(event);
+  const attachedToken = this.attachedToken;
+  if ( !attachedToken ) return wrapped(event);
 
   // Temporarily set the event clones to this template clone.
   const tokenClones = event.interactionData.clones;
-  event.interactionData.clones = [event.interactionData.attachedTemplateClones.get(this.id)];
+  const c = event.interactionData.attachedTemplateClones.get(this.id);
+  event.interactionData.clones = [c];
+
+  // Enforce the distance between the template and token.
+  const changes = this._calculateAttachedTemplateOffset(attachedToken.document);
+  this.document.updateSource(changes);
   await wrapped(event);
 
   // Restore the token clones.
