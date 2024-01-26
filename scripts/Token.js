@@ -12,7 +12,9 @@ isEmpty
 "use strict";
 
 import { ACTIVE_EFFECT_ICON } from "./const.js";
+import { tokenBounds } from "./util.js";
 import { UserCloneTargets } from "./UserCloneTargets.js";
+import { Settings } from "./settings.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
@@ -339,6 +341,47 @@ function _onDragLeftCancel(wrapped, event) {
 }
 
 /**
+ * Wrap Token.prototype._onHoverIn
+ * If the token is visible to the user and show-on-hover is enabled,
+ * display any templates that would otherwise be hidden.
+ */
+function _onHoverIn(wrapped, event, options) {
+  showHideTemplates(this, true);
+  return wrapped(event, options);
+}
+
+/**
+ * Wrap Token.prototype._onHoverOut
+ * If the token is visible to the user and show-on-hover is enabled,
+ * display any templates that would otherwise be hidden.
+ */
+function _onHoverOut(wrapped, event, options) {
+  showHideTemplates(this, false);
+  return wrapped(event, options);
+}
+
+/**
+ * Test every template on the scene.
+ * If the token shape overlaps a template, show it. Otherwise hide it.
+ * Skip if templates are not hidden, token is not visible, or show on hover not enabled.
+ */
+function showHideTemplates(token, show = true) {
+  const HIDE = Settings.KEYS.HIDE;
+  if ( !Settings.get(HIDE.HIGHLIGHTING)
+    || !Settings.get(HIDE.SHOW_ON_HOVER)
+    || !token.isVisible ) return;
+
+  const tBounds = tokenBounds(token);
+  canvas.templates.placeables.forEach(t => {
+    // Show or hide the highlight layer. See refreshMeasuredTemplate hook in MeasuredTemplate.js.
+    show &&= t.boundsOverlap(tBounds);
+    const alpha = show ? (t.document.hidden ? 0.5 : 1) : 0;
+    const hl = canvas.grid.getHighlightLayer(t.highlightId);
+    hl.alpha = alpha;
+  });
+}
+
+/**
  * Wrap Token.prototype._refreshTarget
  * Trigger refresh of the clone targets
  * @param {ReticuleOptions} [reticule]  Additional parameters to configure how the targeting reticule is drawn.
@@ -365,4 +408,9 @@ PATCHES.BASIC.WRAPS = {
   _onDragLeftMove,
   _onDragLeftDrop,
   _onDragLeftCancel,
-  _refreshTarget };
+  _refreshTarget,
+
+  // Show on hover
+  _onHoverIn,
+  _onHoverOut
+};
