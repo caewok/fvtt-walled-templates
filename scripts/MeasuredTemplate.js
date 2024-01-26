@@ -11,7 +11,7 @@ PIXI
 "use strict";
 
 import { WalledTemplateShape } from "./template_shapes/WalledTemplateShape.js";
-import { log, gridShapeForTopLeft } from "./util.js";
+import { log, gridShapeForTopLeft, tokenBounds } from "./util.js";
 import { MODULE_ID, FLAGS } from "./const.js";
 import { Settings } from "./settings.js";
 import { Hexagon } from "./geometry/RegularPolygon/Hexagon.js";
@@ -713,19 +713,6 @@ function boundsShapeIntersection(tBounds, shape) {
 
   // Shape should be circle
   return shape.intersectPolygon(tBounds.toPolygon());
-}
-
-/**
- * Return either a square- or hexagon-shaped hit area object based on grid type
- * @param {Token} token
- * @return {PIXI.Rectangle|Hexagon}
- */
-function tokenBounds(token) {
-  if ( canvas.scene.grid.type === CONST.GRID_TYPES.GRIDLESS
-    || canvas.scene.grid.type === CONST.GRID_TYPES.SQUARE ) {
-    return Square.fromToken(token);
-  }
-  return Hexagon.fromToken(token);
 }
 
 function scaleDiagonalDistance(direction, distance) {
