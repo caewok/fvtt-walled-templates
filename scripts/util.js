@@ -1,7 +1,9 @@
 /* globals
 game,
 canvas,
-CONST
+CONFIG,
+CONST,
+PIXI
 */
 
 "use strict";
@@ -60,4 +62,36 @@ export function tokenName(token) {
     || token.document.displayName === CONST.TOKEN_DISPLAY_MODES.HOVER
     || token.document.displayName === CONST.TOKEN_DISPLAY_MODES.ALWAYS ) return token.name;
   return token.id;
+}
+
+/* NOTE: TOKEN SHAPES */
+
+/**
+ * Return either a square- or hexagon-shaped hit area object based on grid type
+ * @param {Token} token
+ * @return {PIXI.Rectangle|Hexagon}
+ */
+export function tokenBounds(token) {
+  if ( canvas.scene.grid.type === CONST.GRID_TYPES.GRIDLESS
+    || canvas.scene.grid.type === CONST.GRID_TYPES.SQUARE ) {
+    return Square.fromToken(token); // Will return PIXI.Rectangle if not even width/height.
+  }
+  return _hexGridShape(token);
+}
+
+function _hexGridShape(token) {
+  // Canvas.grid.grid.getBorderPolygon will return null if width !== height.
+  const { w, h } = token;
+  if ( w !== h || (w === 1 && h === 1) ) return Hexagon.fromToken(token);
+
+  // Get the top left corner
+  const c = token.center;
+  const [tlx, tly] = canvas.grid.grid.getTopLeft(c.x, c.y);
+  const points = canvas.grid.grid.getBorderPolygon(w, h, 0); // TO-DO: Should a border be included to improve calc?
+  const pointsTranslated = [];
+  const ln = points.length;
+  for ( let i = 0; i < ln; i += 2) {
+    pointsTranslated.push(points[i] + tlx, points[i+1] + tly);
+  }
+  return new PIXI.Polygon(pointsTranslated);
 }

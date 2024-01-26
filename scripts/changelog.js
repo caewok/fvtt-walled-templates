@@ -157,6 +157,17 @@ Hooks.once("ready", () => {
             into Foundry for hopefully better compatibility with other modules.`
     })
 
+    .addEntry({
+      version: "0.7.3",
+      title: "Show on token hover",
+      body: `\
+          Added a new setting that, if template highlight hiding is enabled, the template will display when hovering over a token within the
+          bounds of that template on the token layer.
+
+          This update also improves compatibility with Elevation Ruler, particularly when using the Token Ruler while dragging a token
+          that has an attached template.`
+    })
+
     .build()
     ?.render(true);
 });

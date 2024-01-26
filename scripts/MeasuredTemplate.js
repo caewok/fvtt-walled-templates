@@ -11,7 +11,7 @@ PIXI
 "use strict";
 
 import { WalledTemplateShape } from "./template_shapes/WalledTemplateShape.js";
-import { log, gridShapeForTopLeft } from "./util.js";
+import { log, gridShapeForTopLeft, tokenBounds } from "./util.js";
 import { MODULE_ID, FLAGS } from "./const.js";
 import { Settings } from "./settings.js";
 import { Hexagon } from "./geometry/RegularPolygon/Hexagon.js";
@@ -341,7 +341,7 @@ function _onDragLeftCancel(wrapped, event) {
   return wrapped(event);
 }
 
-function _onDragLeftDrop(wrapped, event) {
+async function _onDragLeftDrop(wrapped, event) {
   const precision = event.shiftKey ? 2 : 1;
   const { origin, destination } = event.interactionData;
   if ( Settings.get(Settings.KEYS.SNAP_GRID) ) {
@@ -355,12 +355,18 @@ function _onDragLeftDrop(wrapped, event) {
     }
   }
 
-  if ( !this.attachedToken ) return wrapped(event);
+  const attachedToken = this.attachedToken;
+  if ( !attachedToken ) return wrapped(event);
 
   // Temporarily set the event clones to this template clone.
   const tokenClones = event.interactionData.clones;
-  event.interactionData.clones = [event.interactionData.attachedTemplateClones.get(this.id)];
-  wrapped(event);
+  const c = event.interactionData.attachedTemplateClones.get(this.id);
+  event.interactionData.clones = [c];
+
+  // Enforce the distance between the template and token.
+  const changes = this._calculateAttachedTemplateOffset(attachedToken.document);
+  this.document.updateSource(changes);
+  await wrapped(event);
 
   // Restore the token clones.
   event.interactionData.clones = tokenClones;
@@ -707,19 +713,6 @@ function boundsShapeIntersection(tBounds, shape) {
 
   // Shape should be circle
   return shape.intersectPolygon(tBounds.toPolygon());
-}
-
-/**
- * Return either a square- or hexagon-shaped hit area object based on grid type
- * @param {Token} token
- * @return {PIXI.Rectangle|Hexagon}
- */
-function tokenBounds(token) {
-  if ( canvas.scene.grid.type === CONST.GRID_TYPES.GRIDLESS
-    || canvas.scene.grid.type === CONST.GRID_TYPES.SQUARE ) {
-    return Square.fromToken(token);
-  }
-  return Hexagon.fromToken(token);
 }
 
 function scaleDiagonalDistance(direction, distance) {

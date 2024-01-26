@@ -64,3 +64,12 @@ export const NOTIFICATIONS = {
 export const ACTIVE_EFFECT_ICON = `modules/${MODULE_ID}/assets/ruler-combined-solid-gray.svg`;
 
 export const SHAPE_KEYS = ["circle", "cone", "ray", "rect"];
+
+export const MODULES_ACTIVE = {
+  DRAG_RULER: false
+};
+
+// Hook init b/c game.modules is not initialized at start.
+Hooks.once("init", function() {
+  MODULES_ACTIVE.DRAG_RULER = game.modules.get("drag-ruler")?.active;
+});

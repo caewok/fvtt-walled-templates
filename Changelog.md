@@ -1,3 +1,8 @@
+## 0.7.3
+Force the template to stick to its set distance when the token drag is completed. Ensure drag method is awaiting the underlying method to avoid ghosting when using Elevation Ruler to drag tokens. Closes issue #86.
+
+Add a setting to show templates on token hover. Closes issue #84.
+
 ## 0.7.2
 Force template preview in dnd5e to snap to grid if snapping is enabled. Closes issue #81.
 Render template settings in the dnd5e Feature configuration. Closes issue #80.
