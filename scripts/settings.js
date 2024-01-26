@@ -22,7 +22,8 @@ export const SETTINGS = {
   DIAGONAL_SCALING: {},
   HIDE: {
     BORDER: "hideBorder",
-    HIGHLIGHTING: "hideHighlighting"
+    HIGHLIGHTING: "hideHighlighting",
+    SHOW_ON_HOVER: "showOnHover"
   },
   SNAP_GRID: "snapGrid",
   CHANGELOG: "changelog"
@@ -189,6 +190,15 @@ export class Settings extends ModuleSettingsAbstract {
       scope: "world",
       config: true,
       onChange: _value => canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshGrid: true }))
+    });
+
+    register(KEYS.HIDE.SHOW_ON_HOVER, {
+      name: localize(`${KEYS.HIDE.SHOW_ON_HOVER}.Name`),
+      hint: localize(`${KEYS.HIDE.SHOW_ON_HOVER}.Hint`),
+      type: Boolean,
+      default: false,
+      scope: "world",
+      config: true
     });
 
     register(KEYS.SNAP_GRID, {
