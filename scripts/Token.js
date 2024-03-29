@@ -123,8 +123,11 @@ async function detachTemplate(templateId, detachFromTemplate = true, removeActiv
   } else template = canvas.templates.documentCollection.get(templateId);
 
   // Remove the active effect associated with this template (if any).
-  if ( removeActiveEffect && this.actor.effects.has(templateId)) {
-    await this.actor.deleteEmbeddedDocuments("ActiveEffect", [templateId]);
+  if ( removeActiveEffect) {
+    const effect = this.actor.effects.find(e => e.origin.endsWith(templateId))
+    if(effect) {
+      await this.actor.deleteEmbeddedDocuments("ActiveEffect", [effect.id]);
+    }
   }
 
   // Remove this token from the template
