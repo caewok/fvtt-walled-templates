@@ -20,12 +20,17 @@ function renderMeasuredTemplateConfigHook(app, html, data) {
   // Look up the token. If present in the scene, consider it attached for the config.
   const template = app.object.object;
   const attachedToken = template.attachedToken;
+  let rotateWithToken = template.document.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ROTATE);
+  if (typeof rotateWithToken === 'undefined') {
+    rotateWithToken = true;
+  }
   const renderData = {};
   renderData[MODULE_ID] = {
     blockoptions: LABELS.WALLS_BLOCK,
     walloptions: LABELS.WALL_RESTRICTION,
     attachedTokenName: tokenName(attachedToken) || game.i18n.localize("None"),
-    hasAttachedToken: Boolean(attachedToken)
+    hasAttachedToken: Boolean(attachedToken),
+    rotateWithToken: Boolean(rotateWithToken)
   };
 
   foundry.utils.mergeObject(data, renderData, { inplace: true });
@@ -90,7 +95,7 @@ async function renderMeasuredTemplateConfig(app, html, data) {
  */
 async function onSelectedTokenButton(_event) {
   const token = fromUuidSync(game.user._lastSelected)?.object;
-  if ( !token ) {
+  if (!token) {
     ui.notifications.notify(game.i18n.localize(NOTIFICATIONS.NOTIFY.ATTACH_TOKEN_NOT_SELECTED));
     return;
   }
@@ -106,12 +111,12 @@ async function onSelectedTokenButton(_event) {
  */
 async function onTargetedTokenButton(_event) {
   const tokenId = game.user.targets.ids.at(-1);
-  if ( !tokenId ) {
+  if (!tokenId) {
     ui.notifications.notify(game.i18n.localize(NOTIFICATIONS.NOTIFY.ATTACH_TOKEN_NOT_TARGETED));
     return;
   }
   const token = canvas.tokens.documentCollection.get(tokenId)?.object;
-  if ( !token ) {
+  if (!token) {
     ui.notifications.error(`Targeted token for id ${tokenId} not found.`);
     return;
   }

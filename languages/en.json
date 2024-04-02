@@ -18,7 +18,7 @@
     "walledtemplates.MeasuredTemplateConfiguration.attach-token.removeToken": "Remove attached token",
 
     "walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Name": "Rotate with Token",
-    "walledtemplates.MeasuredTemplateConfiguration.attach-token.Hint": "When token rotates, rotate this template around the token.",
+    "walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Hint": "When token rotates, rotate this template around the token.",
 
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevation",
 
