@@ -41,7 +41,7 @@ function refreshMeasuredTemplate(template, flags) {
 
   // Control the border visibility including border text.
   if ( flags.refreshTemplate || flags.refreshState ) {
-    if ( canHide && Settings.get(Settings.KEYS.HIDE.BORDER) ) {
+    if ( canHide && Settings.get(Settings.KEYS.HIDE.BORDER) && !template.document.getFlag(MODULE_ID, FLAGS.HIDE.FORCE_BORDER) ) {
       template.template.alpha = 0; // Don't mess with visible to fool automated animations into displaying.
       // This doesn't work: template.template.visible = false;
       template.ruler.visible = false;
@@ -55,7 +55,7 @@ function refreshMeasuredTemplate(template, flags) {
   // Control the highlight visibility by changing its alpha.
   if ( flags.refreshGrid || flags.refreshState ) {
     const hl = canvas.grid.getHighlightLayer(template.highlightId);
-    if ( canHide && Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING) ) {
+    if ( canHide && Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING) && !template.document.getFlag(MODULE_ID, FLAGS.HIDE.FORCE_HIGHLIGHTING) ) {
       hl.alpha = 0;
     } else {
       hl.alpha = template.document.hidden ? 0.5 : 1;
@@ -132,7 +132,9 @@ function preCreateMeasuredTemplateHook(templateD, updateData, _opts, _id) {
 function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
   const wtChangeFlags = [
     `flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`,
-    `flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`
+    `flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`,
+    `flags.${MODULE_ID}.${FLAGS.HIDE.FORCE_BORDER}`,
+    `flags.${MODULE_ID}.${FLAGS.HIDE.FORCE_HIGHLIGHTING}`
   ];
 
   const changed = new Set(Object.keys(flattenObject(data)));
@@ -262,7 +264,8 @@ function highlightGrid(wrapped) {
    || this.hover
    || typeof interactionState === "undefined"
    || interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
-   || !Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING) ) return wrapped();
+   || !Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING)
+   || this.document.getFlag(MODULE_ID, FLAGS.HIDE.FORCE_HIGHLIGHTING) ) return wrapped();
 
   // Clear the existing highlight layer
   const grid = canvas.grid;

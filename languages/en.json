@@ -23,6 +23,12 @@
     "walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Name": "Do not autotarget",
     "walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Hint": "When enabled, overrides settings to not target tokens with this template.",
 
+    "walledtemplates.MeasuredTemplateConfiguration.force-border.Name": "Show Border",
+    "walledtemplates.MeasuredTemplateConfiguration.force-border.Hint": "When enabled, overrides settings to always show the border of this template.",
+
+    "walledtemplates.MeasuredTemplateConfiguration.force-highlighting.Name": "Show Highlighting",
+    "walledtemplates.MeasuredTemplateConfiguration.force-highlighting.Hint": "When enabled, overrides settings to always show highlighting for this template.",
+
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevation",
 
     "walledtemplates.dnd5e-spell-config.attach-token.Name": "Attach to?",
