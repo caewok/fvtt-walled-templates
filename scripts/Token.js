@@ -107,7 +107,7 @@ async function attachTemplate(template, effectData = {}, attachToTemplate = true
   effectData.icon ??= ACTIVE_EFFECT_ICON;
   effectData.name ??= `Measured Template ${templateShape}`;
   effectData.origin = template.document.uuid;
-  return this.document.toggleActiveEffect(effectData, { active: true });
+  return await this.actor.createEmbeddedDocuments("ActiveEffect", [effectData]);
 }
 
 /**
@@ -123,7 +123,12 @@ async function detachTemplate(templateId, detachFromTemplate = true, removeActiv
   } else template = canvas.templates.documentCollection.get(templateId);
 
   // Remove the active effect associated with this template (if any).
-  if ( removeActiveEffect ) await this.document.toggleActiveEffect({ id: templateId }, { active: false });
+  if ( removeActiveEffect) {
+    const effect = this.actor.effects.find(e => e.origin.endsWith(templateId))
+    if(effect) {
+      await this.actor.deleteEmbeddedDocuments("ActiveEffect", [effect.id]);
+    }
+  }
 
   // Remove this token from the template
   if ( detachFromTemplate && template ) await template.detachToken(false);
