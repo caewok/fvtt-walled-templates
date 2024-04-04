@@ -141,6 +141,10 @@ function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
   if ( wtChangeFlags.some(k => changed.has(k)) ) templateD.object.renderFlags.set({
     refreshShape: true
   });
+
+  if ( changed.has(`flags.${MODULE_ID}.${FLAGS.NO_AUTOTARGET}`) ) templateD.object.renderFlags.set({
+    retarget: true
+  });
 }
 
 /**
