@@ -20,6 +20,9 @@
     "walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Name": "Rotate with Token",
     "walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Hint": "When token rotates, rotate this template around the token.",
 
+    "walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Name": "Do not autotarget",
+    "walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Hint": "When enabled, overrides settings to not target tokens with this template.",
+
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevation",
 
     "walledtemplates.dnd5e-spell-config.attach-token.Name": "Attach to?",

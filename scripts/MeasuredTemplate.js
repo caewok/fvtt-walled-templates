@@ -551,10 +551,23 @@ PATCHES.BASIC.GETTERS = { attachedToken, wallsBlock };
  * @param {RenderFlags} flags
  */
 function refreshMeasuredTemplateHook(template, flags) {
-  if ( flags.retarget && template.autotargetTokens ) template.autotargetTokens();
+  if ( flags.retarget ) template.autotargetTokens();
 }
 
 PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook };
+
+// ----- NOTE: Getters/Setters ----- //
+
+/**
+ * Determine if this template should autotarget.
+ * @returns {boolean}
+ */
+function getAutotarget() {
+  return Settings.get(Settings.KEYS.AUTOTARGET.ENABLED)
+    && !this.document.getFlag(MODULE_ID, FLAGS.NO_AUTOTARGET);
+}
+
+PATCHES.AUTOTARGET.GETTERS = { autotarget: getAutotarget };
 
 // ----- NOTE: Methods ----- //
 /**
@@ -563,7 +576,7 @@ PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHoo
  */
 function autotargetTokens({ onlyVisible = false } = {}) {
   log("autotargetTokens", this);
-  if ( !Settings.get(Settings.KEYS.AUTOTARGET.ENABLED) ) return this.releaseTargets();
+  if ( !this.autotarget ) return this.releaseTargets();
 
   log(`Autotarget ${this._original ? "clone" : "original"} with ${this.targets.size} targets.`);
   const tokens = new Set(this.targetsWithinShape({onlyVisible}));
