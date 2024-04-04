@@ -172,9 +172,6 @@ Hooks.once("ready", async function() {
   if ( promises.length ) await Promise.all(promises);
 
   // Ensure autotargeting is registered on setup.
-  const atMenuChoice = Settings.get(KEYS.AUTOTARGET.MENU);
-  const enabled = Settings.get(KEYS.AUTOTARGET.ENABLED) || atMenuChoice === KEYS.AUTOTARGET.CHOICES.YES;
-  Settings.set(KEYS.AUTOTARGET.ENABLED, enabled);
   registerAutotargeting();
 
   log("Refreshing templates on ready hook.");
@@ -185,6 +182,10 @@ Hooks.once("ready", async function() {
       refreshShape: true
     });
   });
+
+  log("Refreshing autotargeting.");
+  Settings.refreshAutotargeting();
+
 });
 
 Hooks.on("getSceneControlButtons", controls => {
@@ -196,7 +197,7 @@ Hooks.on("getSceneControlButtons", controls => {
     name: "autotarget",
     title: game.i18n.localize("walledtemplates.controls.autotarget.Title"),
     toggle: true,
-    visible: opt === AUTOTARGET.CHOICES.TOGGLE_OFF || opt === AUTOTARGET.CHOICES.TOGGLE_ON,
+    visible: opt === AUTOTARGET.CHOICES.TOGGLE,
     active: Settings.get(AUTOTARGET.ENABLED),
     onClick: toggle => { // eslint-disable-line no-unused-vars
       Settings.toggle(AUTOTARGET.ENABLED);

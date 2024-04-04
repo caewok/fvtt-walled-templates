@@ -1,3 +1,14 @@
+## 0.7.4
+
+### Features
+Add flag and MeasuredTemplate config to disable autotargeting for specific template.
+
+### Bug fixes
+Incorporate PR #89 and #90 from @strongpauly. Thanks!
+Switch to a single toggle option (instead of 2) for autotargeting in settings. Fix for template target sets being shared between targets. Templates now do not autotarget on load if autotargeting is not enabled or the autotarget toggle is disabled. Closes #88.
+
+
+
 ## 0.7.3
 Force the template to stick to its set distance when the token drag is completed. Ensure drag method is awaiting the underlying method to avoid ghosting when using Elevation Ruler to drag tokens. Closes issue #86.
 

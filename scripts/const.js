@@ -7,23 +7,42 @@ duplicate
 export const MODULE_ID = "walledtemplates";
 
 export const FLAGS = {
+  /** @type {LABELS.WALLS_BLOCK: "unwalled"|"walled"|"recurse"} */
   WALLS_BLOCK: "wallsBlock",
+
+  /** @type {CONST.WALL_RESTRICTION_TYPES} */
   WALL_RESTRICTION: "wallRestriction",
+
+  /** @type {object} */
   RECURSE_DATA: "recurseData",
+
   ATTACHED_TOKEN: {
+
+    /** @type {string} */
     ID: "attachedTokenId",
+
     DELTAS: "attachedTokenDelta",
+
     SPELL_TEMPLATE: "attachToken",
+
     ROTATE: "rotateWithAttachedToken"
   },
+
   HIDE: {
+    /** @type {boolean} */
     BORDER: "hideBorder",
+
+    /** @type {boolean} */
     HIGHLIGHTING: "hideHighlighting"
   },
+
   HEIGHT_ALGORITHM: "heightAlgorithm",
   HEIGHT_CUSTOM_VALUE: "heightCustomValue",
   HEIGHT_TOKEN_OVERRIDES: "attachedTokenOverridesHeight",
-  ADD_TOKEN_SIZE: "addTokenSize"
+  ADD_TOKEN_SIZE: "addTokenSize",
+
+  /** @type {boolean} */
+  NO_AUTOTARGET: "noAutotarget"
 };
 
 export const LABELS = {

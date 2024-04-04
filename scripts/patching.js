@@ -5,7 +5,7 @@ game
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { Settings } from "./settings.js";
+import { Settings as ModuleSettings } from "./settings.js";
 import { Patcher } from "./Patcher.js";
 
 import { PATCHES as PATCHES_MeasuredTemplate } from "./MeasuredTemplate.js";
@@ -14,8 +14,10 @@ import { PATCHES as PATCHES_Token } from "./Token.js";
 import { PATCHES as PATCHES_Wall } from "./Wall.js";
 import { PATCHES_dnd5e } from "./dnd5e.js";
 import { PATCHES as PATCHES_ActiveEffect } from "./ActiveEffect.js";
-import { PATCHES as PATCHES_Setting } from "./Setting.js";
+import { PATCHES as PATCHES_ClientSettings } from "./ModuleSettingsAbstract.js";
 import { PATCHES as PATCHES_AbilityTemplate } from "./AbilityTemplate.js";
+import { PATCHES as PATCHES_Setting } from "./Setting.js";
+
 
 // Settings
 import { PATCHES as PATCHES_Settings } from "./ModuleSettingsAbstract.js";
@@ -23,9 +25,9 @@ import { PATCHES as PATCHES_Settings } from "./ModuleSettingsAbstract.js";
 export const PATCHES = {
   "dnd5e.canvas.AbilityTemplate": PATCHES_AbilityTemplate,
   ActiveEffect: PATCHES_ActiveEffect,
+  ClientSettings: PATCHES_ClientSettings,
   MeasuredTemplate: PATCHES_MeasuredTemplate,
   MeasuredTemplateConfig: PATCHES_MeasuredTemplateConfig,
-  Settings: PATCHES_Settings,
   Setting: PATCHES_Setting,
   Token: PATCHES_Token,
   Wall: PATCHES_Wall,
@@ -44,7 +46,7 @@ export function initializePatching() {
  * Register the autotargeting patches. Must be done after settings are enabled.
  */
 export function registerAutotargeting() {
-  const autotarget = Settings.get(Settings.KEYS.AUTOTARGET.MENU) !== Settings.KEYS.AUTOTARGET.CHOICES.NO;
+  const autotarget = ModuleSettings.get(ModuleSettings.KEYS.AUTOTARGET.MENU) !== ModuleSettings.KEYS.AUTOTARGET.CHOICES.NO;
 
   // Disable existing targeting before completely removing autotarget patches
   if ( PATCHER.groupIsRegistered("AUTOTARGET") && !autotarget ) {
@@ -52,7 +54,7 @@ export function registerAutotargeting() {
   }
 
   PATCHER.deregisterGroup("AUTOTARGET");
-  if ( autotarget ) PATCHER.registerGroup("AUTOTARGET");
+  if ( autotarget ) { PATCHER.registerGroup("AUTOTARGET"); }
 
   // Redraw the toggle button.
   if ( canvas.templates.active
