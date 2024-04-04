@@ -36,8 +36,7 @@ SETTINGS.AUTOTARGET = {
   AREA: "autotarget-area",
   CHOICES: {
     NO: "no",
-    TOGGLE_OFF: "toggle-off",
-    TOGGLE_ON: "toggle-on",
+    TOGGLE: "toggle",
     YES: "yes"
   },
 
@@ -130,17 +129,16 @@ export class Settings extends ModuleSettingsAbstract {
       type: String,
       choices: {
         [KEYS.AUTOTARGET.CHOICES.NO]: localize(`${KEYS.AUTOTARGET.MENU}.Choice.${CHOICES.NO}`),
-        [KEYS.AUTOTARGET.CHOICES.TOGGLE_OFF]: localize(`${KEYS.AUTOTARGET.MENU}.Choice.${CHOICES.TOGGLE_OFF}`),
-        [KEYS.AUTOTARGET.CHOICES.TOGGLE_ON]: localize(`${KEYS.AUTOTARGET.MENU}.Choice.${CHOICES.TOGGLE_ON}`),
+        [KEYS.AUTOTARGET.CHOICES.TOGGLE]: localize(`${KEYS.AUTOTARGET.MENU}.Choice.${CHOICES.TOGGLE}`),
         [KEYS.AUTOTARGET.CHOICES.YES]: localize(`${KEYS.AUTOTARGET.MENU}.Choice.${CHOICES.YES}`)
       },
-      default: KEYS.AUTOTARGET.CHOICES.TOGGLE_OFF,
+      default: KEYS.AUTOTARGET.CHOICES.TOGGLE,
       onChange: value => {
-        const enabled = value === KEYS.AUTOTARGET.CHOICES.TOGGLE_ON
-        || value === KEYS.AUTOTARGET.CHOICES.YES;
-        Settings.set(KEYS.AUTOTARGET.ENABLED, enabled);
+        const enabled = value === KEYS.AUTOTARGET.CHOICES.YES
+          || (value === KEYS.AUTOTARGET.CHOICES.TOGGLE && this.get(KEYS.AUTOTARGET.ENABLED));
         Settings.cache.delete(KEYS.AUTOTARGET.MENU); // Cache not reset yet; must do it manually b/c registerAutotargeting hits the cache.
         registerAutotargeting();
+        this.refreshAutotargeting();
       }
     });
 
@@ -315,18 +313,31 @@ export class Settings extends ModuleSettingsAbstract {
     });
   }
 
+  static refreshAutotargeting() {
+    canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
+  }
+
   static async toggleAutotarget() {
     if ( !(canvas.tokens?.active || canvas.templates?.active) ) return;
-    const AUTOTARGET = this.KEYS.AUTOTARGET;
-    const autotargetType = this.get(AUTOTARGET.MENU);
-    if ( !(autotargetType === AUTOTARGET.CHOICES.TOGGLE_OFF
-        || autotargetType === AUTOTARGET.CHOICES.TOGGLE_ON) ) return;
-    await this.toggle(AUTOTARGET.ENABLED);
-    canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
+    const AT = this.KEYS.AUTOTARGET;
+    const autotargetType = this.get(AT.MENU);
+    if ( autotargetType !== AT.CHOICES.TOGGLE ) return;
+    await this.toggle(AT.ENABLED);
+    this.refreshAutotargeting();
 
     // Redraw the toggle button.
     if ( canvas.templates.active
       && ui.controls ) ui.controls.initialize({layer: canvas.templates.constructor.layerOptions.name});
+  }
+
+  static get autotargetEnabled() {
+    const AT = this.KEYS.AUTOTARGET;
+    switch ( this.get(AT.MENU) ) {
+      case AT.CHOICES.NO: return false;
+      case AT.CHOICES.YES: return true;
+      case AT.CHOICES.TOGGLE: return this.get(AT.ENABLED);
+      default: return false;
+    }
   }
 
 }

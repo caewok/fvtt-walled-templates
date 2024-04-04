@@ -54,7 +54,7 @@ export function registerAutotargeting() {
   }
 
   PATCHER.deregisterGroup("AUTOTARGET");
-  if ( autotarget ) PATCHER.registerGroup("AUTOTARGET");
+  if ( autotarget ) { PATCHER.registerGroup("AUTOTARGET"); }
 
   // Redraw the toggle button.
   if ( canvas.templates.active

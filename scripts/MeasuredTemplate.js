@@ -1,6 +1,5 @@
 /* globals
 canvas,
-CONST,
 flattenObject,
 getProperty,
 isEmpty,
@@ -14,7 +13,6 @@ import { WalledTemplateShape } from "./template_shapes/WalledTemplateShape.js";
 import { log, gridShapeForTopLeft, tokenBounds } from "./util.js";
 import { MODULE_ID, FLAGS } from "./const.js";
 import { Settings } from "./settings.js";
-import { Hexagon } from "./geometry/RegularPolygon/Hexagon.js";
 import { Square } from "./geometry/RegularPolygon/Square.js";
 import { UserCloneTargets } from "./UserCloneTargets.js";
 import { addDnd5eItemConfigurationToTemplate } from "./dnd5e.js";
@@ -42,14 +40,14 @@ function refreshMeasuredTemplate(template, flags) {
     || template.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG);
 
   // Control the border visibility including border text.
-  if ( flags.refreshTemplate || flags.refreshState  ) {
+  if ( flags.refreshTemplate || flags.refreshState ) {
     if ( canHide && Settings.get(Settings.KEYS.HIDE.BORDER) ) {
       template.template.alpha = 0; // Don't mess with visible to fool automated animations into displaying.
-      // template.template.visible = false;
+      // This doesn't work: template.template.visible = false;
       template.ruler.visible = false;
     } else {
       template.template.alpha = 1;
-      // template.template.visible = true;
+      // This doesn't work: template.template.visible = true;
       template.ruler.visible = true;
     }
   }
@@ -67,7 +65,7 @@ function refreshMeasuredTemplate(template, flags) {
   // Make the control icon visible to non-owners.
   if ( flags.refreshState && !template.document.isOwner ) {
     template.controlIcon.refresh({
-      visible: template.visible && template.layer.active && !template.document.hidden,
+      visible: template.visible && template.layer.active && !template.document.hidden
     });
     template.controlIcon.alpha = 0.5;
   }
@@ -272,7 +270,7 @@ function highlightGrid(wrapped) {
   hl.clear();
 }
 
-PATCHES.BASIC.MIXES = { _getGridHighlightPositions };
+PATCHES.BASIC.MIXES = { _getGridHighlightPositions, highlightGrid };
 
 // ----- Autotarget Wraps ----- //
 
@@ -309,9 +307,9 @@ function _onDragLeftMove(wrapped, event) {
   }
 
   const precision = event.shiftKey ? 2 : 1;
-  const { origin, destination } = event.interactionData;
+  const destination = event.interactionData.destination;
   if ( Settings.get(Settings.KEYS.SNAP_GRID) ) {
-    event.interactionData.destination = canvas.grid.getSnappedPosition(destination.x, destination.y, precision)
+    event.interactionData.destination = canvas.grid.getSnappedPosition(destination.x, destination.y, precision);
 
     // Drag ruler fix when holding shift.
     const ruler = canvas.controls.ruler;
@@ -330,7 +328,6 @@ function _onDragLeftMove(wrapped, event) {
 
   for ( let c of event.interactionData.clones || [] ) {
     const snapped = canvas.grid.getSnappedPosition(c.document.x, c.document.y, precision);
-    // console.debug(`Clone Origin: ${origin.x},${origin.y} Destination: ${destination.x},${destination.y}; Snapped: ${snapped.x},${snapped.y} Doc: ${c.document.x},${c.document.y}`);
     c.document.x = snapped.x;
     c.document.y = snapped.y;
     c.renderFlags.set({refresh: true});
@@ -343,9 +340,9 @@ function _onDragLeftCancel(wrapped, event) {
 
 async function _onDragLeftDrop(wrapped, event) {
   const precision = event.shiftKey ? 2 : 1;
-  const { origin, destination } = event.interactionData;
+  const destination = event.interactionData.destination;
   if ( Settings.get(Settings.KEYS.SNAP_GRID) ) {
-    event.interactionData.destination = canvas.grid.getSnappedPosition(destination.x, destination.y, precision)
+    event.interactionData.destination = canvas.grid.getSnappedPosition(destination.x, destination.y, precision);
 
     // Drag ruler fix when holding shift.
     const ruler = canvas.controls.ruler;
@@ -537,7 +534,15 @@ function attachedToken() {
  */
 function wallsBlock() { return this.walledtemplates?.walledTemplate?.doWallsBlock; }
 
-PATCHES.BASIC.GETTERS = { attachedToken, wallsBlock };
+/**
+ * Determine if this template should autotarget.
+ * @returns {boolean}
+ */
+function getAutotarget() {
+  return Settings.autotargetEnabled && !this.document.getFlag(MODULE_ID, FLAGS.NO_AUTOTARGET);
+}
+
+PATCHES.BASIC.GETTERS = { attachedToken, wallsBlock, autotarget: getAutotarget };
 
 // ----- NOTE: Autotargeting ----- //
 
@@ -556,18 +561,6 @@ function refreshMeasuredTemplateHook(template, flags) {
 
 PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook };
 
-// ----- NOTE: Getters/Setters ----- //
-
-/**
- * Determine if this template should autotarget.
- * @returns {boolean}
- */
-function getAutotarget() {
-  return Settings.get(Settings.KEYS.AUTOTARGET.ENABLED)
-    && !this.document.getFlag(MODULE_ID, FLAGS.NO_AUTOTARGET);
-}
-
-PATCHES.AUTOTARGET.GETTERS = { autotarget: getAutotarget };
 
 // ----- NOTE: Methods ----- //
 /**

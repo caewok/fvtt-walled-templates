@@ -80,8 +80,7 @@
     "walledtemplates.settings.autotarget-menu.Name": "Enable autotargeting",
     "walledtemplates.settings.autotarget-menu.Hint": "When toggle option is selected, a bullseye control button in the template control bar will allow you to switch between targeting or not targeting.",
     "walledtemplates.settings.autotarget-menu.Choice.no": "Do not autotarget",
-    "walledtemplates.settings.autotarget-menu.Choice.toggle-off": "Display toggle button; default off",
-    "walledtemplates.settings.autotarget-menu.Choice.toggle-on": "Display toggle button; default on",
+    "walledtemplates.settings.autotarget-menu.Choice.toggle": "Display toggle button",
     "walledtemplates.settings.autotarget-menu.Choice.yes": "Always autotarget",
 
     "walledtemplates.settings.autotarget-method.Name": "Highlight/Autotarget method",
