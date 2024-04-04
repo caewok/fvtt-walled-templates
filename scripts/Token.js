@@ -302,6 +302,7 @@ function _onDragLeftStart(wrapped, event) {
   wrapped(event);
 
   // Trigger each attached template to drag.
+  if ( !event.interactionData.clones ) return;
   for ( const clone of event.interactionData.clones ) {
     const attachedTemplates = clone.attachedTemplates;
     for ( const template of attachedTemplates ) template._onDragLeftStart(event);
@@ -312,6 +313,7 @@ function _onDragLeftMove(wrapped, event) {
   wrapped(event);
 
   // Trigger each attached template to drag.
+  if ( !event.interactionData.clones ) return;
   for ( const clone of event.interactionData.clones ) {
     const attachedTemplates = clone.attachedTemplates;
     for ( const template of attachedTemplates ) template._onDragLeftMove(event);
@@ -334,6 +336,7 @@ function _onDragLeftCancel(wrapped, event) {
   wrapped(event);
 
   // Trigger each attached template to drag.
+  if ( !event.interactionData.clones ) return;
   for ( const clone of event.interactionData.clones ) {
     const attachedTemplates = clone.attachedTemplates;
     for ( const template of attachedTemplates ) template._onDragLeftCancel(event);
