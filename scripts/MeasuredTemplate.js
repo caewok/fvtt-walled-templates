@@ -133,14 +133,22 @@ function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
   const wtChangeFlags = [
     `flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`,
     `flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`,
-    `flags.${MODULE_ID}.${FLAGS.HIDE.FORCE_BORDER}`,
-    `flags.${MODULE_ID}.${FLAGS.HIDE.FORCE_HIGHLIGHTING}`
   ];
 
   const changed = new Set(Object.keys(flattenObject(data)));
   if ( wtChangeFlags.some(k => changed.has(k)) ) templateD.object.renderFlags.set({
     refreshShape: true
   });
+
+  const tDisplayFlags = [
+    `flags.${MODULE_ID}.${FLAGS.HIDE.FORCE_BORDER}`,
+    `flags.${MODULE_ID}.${FLAGS.HIDE.FORCE_HIGHLIGHTING}`
+  ];
+  if ( tDisplayFlags.some(k => changed.has(k)) ) templateD.object.renderFlags.set({
+    refreshTemplate: true,
+    refreshGrid: true
+  });
+
 
   if ( changed.has(`flags.${MODULE_ID}.${FLAGS.NO_AUTOTARGET}`) ) templateD.object.renderFlags.set({
     retarget: true
