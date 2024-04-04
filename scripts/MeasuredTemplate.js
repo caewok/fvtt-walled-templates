@@ -561,6 +561,12 @@ function refreshMeasuredTemplateHook(template, flags) {
 
 PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook };
 
+// ----- NOTE: Getters ----- //
+
+/** @type {Set<Token>} */
+function getTargets() { return this._targets || (this._targets = new Set()); }
+
+PATCHES.AUTOTARGET.GETTERS = { targets: getTargets };
 
 // ----- NOTE: Methods ----- //
 /**
@@ -689,8 +695,7 @@ PATCHES.AUTOTARGET.METHODS = {
   autotargetTokens,
   releaseTargets,
   acquireTargets,
-  targetsWithinShape,
-  targets: new Set()
+  targetsWithinShape
 };
 
 // ----- NOTE: Helper functions ----- //
