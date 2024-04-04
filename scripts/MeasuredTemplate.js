@@ -509,7 +509,7 @@ function _calculateAttachedTemplateOffset(tokenD) {
     const elevation = tokenD.elevation + delta.elevation;
     templateData.flags = { elevatedvision: { elevation }};
   }
-  if ( Object.hasOwn(tokenD, "rotation") && Object.hasOwn(delta, "rotation") ) {
+  if ( Object.hasOwn(tokenD, "rotation") && Object.hasOwn(delta, "rotation") && this.document.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ROTATE) ) {
     templateData.direction = Math.normalizeDegrees(tokenD.rotation + delta.rotation);
   }
   return this.document.constructor.cleanData(templateData, {partial: true});

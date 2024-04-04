@@ -13,7 +13,8 @@ export const FLAGS = {
   ATTACHED_TOKEN: {
     ID: "attachedTokenId",
     DELTAS: "attachedTokenDelta",
-    SPELL_TEMPLATE: "attachToken"
+    SPELL_TEMPLATE: "attachToken",
+    ROTATE: "rotateWithAttachedToken"
   },
   HIDE: {
     BORDER: "hideBorder",
@@ -70,6 +71,6 @@ export const MODULES_ACTIVE = {
 };
 
 // Hook init b/c game.modules is not initialized at start.
-Hooks.once("init", function() {
+Hooks.once("init", function () {
   MODULES_ACTIVE.DRAG_RULER = game.modules.get("drag-ruler")?.active;
 });
