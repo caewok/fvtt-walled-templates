@@ -25,6 +25,20 @@ PATCHES.dnd5e = {};
 // ----- NOTE: Hooks ----- //
 
 /**
+ * Helper that tests if a template can be hidden.
+ * Does not test all options.
+ * @param {MeasuredTemplate} template
+ * @returns {boolean} True if it can be hidden.
+ */
+function _canHideTemplate(template) {
+  return !(template.hover
+    || template.isPreview
+    || !template.visible
+    || template.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
+    || Settings.FORCE_TEMPLATE_DISPLAY);
+}
+
+/**
  * On refresh, control the ruler (text) visibility.
  *
  * A hook event that fires when a {@link PlaceableObject} is incrementally refreshed.
@@ -34,14 +48,14 @@ PATCHES.dnd5e = {};
  * @param {PlaceableObject} object    The object instance being refreshed
  */
 function refreshMeasuredTemplate(template, flags) {
-  const canHide = !(template.hover
-    || template.isPreview
-    || !template.visible
-    || template.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG);
+  const canHide = _canHideTemplate(template);
 
   // Control the border visibility including border text.
   if ( flags.refreshTemplate || flags.refreshState ) {
-    if ( canHide && Settings.get(Settings.KEYS.HIDE.BORDER) && !template.document.getFlag(MODULE_ID, FLAGS.HIDE.FORCE_BORDER) ) {
+    if ( canHide
+      && Settings.get(Settings.KEYS.HIDE.BORDER)
+      && !template.document.getFlag(MODULE_ID, FLAGS.HIDE.FORCE_BORDER) ) {
+
       template.template.alpha = 0; // Don't mess with visible to fool automated animations into displaying.
       // This doesn't work: template.template.visible = false;
       template.ruler.visible = false;
@@ -55,7 +69,10 @@ function refreshMeasuredTemplate(template, flags) {
   // Control the highlight visibility by changing its alpha.
   if ( flags.refreshGrid || flags.refreshState ) {
     const hl = canvas.grid.getHighlightLayer(template.highlightId);
-    if ( canHide && Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING) && !template.document.getFlag(MODULE_ID, FLAGS.HIDE.FORCE_HIGHLIGHTING) ) {
+    if ( canHide
+      && Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING)
+      && !template.document.getFlag(MODULE_ID, FLAGS.HIDE.FORCE_HIGHLIGHTING) ) {
+
       hl.alpha = 0;
     } else {
       hl.alpha = template.document.hidden ? 0.5 : 1;
@@ -132,7 +149,7 @@ function preCreateMeasuredTemplateHook(templateD, updateData, _opts, _id) {
 function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
   const wtChangeFlags = [
     `flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`,
-    `flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`,
+    `flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`
   ];
 
   const changed = new Set(Object.keys(flattenObject(data)));
@@ -271,11 +288,7 @@ function clone(wrapped) {
  * If the setting is set to hide, don't highlight grid unless hovering.
  */
 function highlightGrid(wrapped) {
-  const interactionState = this._original?.mouseInteractionManager?.state ?? this.mouseInteractionManager?.state;
-  if ( !this.visible
-   || this.hover
-   || typeof interactionState === "undefined"
-   || interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
+  if ( !_canHideTemplate(this)
    || !Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING)
    || this.document.getFlag(MODULE_ID, FLAGS.HIDE.FORCE_HIGHLIGHTING) ) return wrapped();
 

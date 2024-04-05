@@ -13,7 +13,8 @@ import { WalledTemplateShapeSettings } from "./WalledTemplateShapeSettings.js";
 import { ModuleSettingsAbstract } from "./ModuleSettingsAbstract.js";
 
 const KEYBINDINGS = {
-  AUTOTARGET: "autoTarget"
+  AUTOTARGET: "autoTarget",
+  UNHIDE_TEMPLATES: "unhideTemplates"
 };
 
 export const SETTINGS = {
@@ -75,6 +76,9 @@ export class Settings extends ModuleSettingsAbstract {
   /** @type {object} */
   static KEYS = SETTINGS;
 
+  /** @type {boolean} */
+  static FORCE_TEMPLATE_DISPLAY = false;
+
   /**
    * Retrieve autotarget area for the given shape, taking into account override settings.
    * @param {string} [shape]    If not provided, default for all shapes will be provided.
@@ -133,9 +137,7 @@ export class Settings extends ModuleSettingsAbstract {
         [KEYS.AUTOTARGET.CHOICES.YES]: localize(`${KEYS.AUTOTARGET.MENU}.Choice.${CHOICES.YES}`)
       },
       default: KEYS.AUTOTARGET.CHOICES.TOGGLE,
-      onChange: value => {
-        const enabled = value === KEYS.AUTOTARGET.CHOICES.YES
-          || (value === KEYS.AUTOTARGET.CHOICES.TOGGLE && this.get(KEYS.AUTOTARGET.ENABLED));
+      onChange: _value => {
         Settings.cache.delete(KEYS.AUTOTARGET.MENU); // Cache not reset yet; must do it manually b/c registerAutotargeting hits the cache.
         registerAutotargeting();
         this.refreshAutotargeting();
@@ -257,8 +259,8 @@ export class Settings extends ModuleSettingsAbstract {
 
       // ----- Overide the highlight/autotarget settings for this shape.
       register(KEYS.AUTOTARGET[shape].OVERRIDE, {
-        name: localize(`submenu.autotarget-override.Name`),
-        hint: localize(`submenu.autotarget-override.Hint`),
+        name: localize("submenu.autotarget-override.Name"),
+        hint: localize("submenu.autotarget-override.Hint"),
         type: Boolean,
         default: false,
         scope: "world",
@@ -311,6 +313,30 @@ export class Settings extends ModuleSettingsAbstract {
       precedence: CONST.KEYBINDING_PRECEDENCE.DEFERRED,
       restricted: false
     });
+
+    game.keybindings.register(MODULE_ID, KEYBINDINGS.UNHIDE_TEMPLATES, {
+      name: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.UNHIDE_TEMPLATES}.name`),
+      hint: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.UNHIDE_TEMPLATES}.hint`),
+      editable: [
+        { key: "KeyU"
+        }
+      ],
+      onDown: () => {
+        ui.notifications.info("Unhide pressed!")
+        if ( !(canvas.templates.active || canvas.tokens.active) ) return;
+        this.FORCE_TEMPLATE_DISPLAY ||= true;
+        canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshTemplate: true, refreshGrid: true}));
+      },
+      onUp: () => {
+        ui.notifications.info("Unhide released!")
+        if ( this.FORCE_TEMPLATE_DISPLAY ) canvas.templates.placeables.forEach(t =>
+          t.renderFlags.set({ refreshTemplate: true, refreshGrid: true}));
+        this.FORCE_TEMPLATE_DISPLAY &&= false;
+      },
+      precedence: CONST.KEYBINDING_PRECEDENCE.DEFERRED,
+      restricted: false
+    });
+
   }
 
   static refreshAutotargeting() {
