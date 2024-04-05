@@ -2,3 +2,5 @@
 .DS_Store
 
 sync_module.sh
+
+.vscode

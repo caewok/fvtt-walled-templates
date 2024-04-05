@@ -1,5 +1,6 @@
 /* globals
 canvas,
+CONFIG,
 CONST,
 game,
 ui
@@ -13,7 +14,10 @@ import { WalledTemplateShapeSettings } from "./WalledTemplateShapeSettings.js";
 import { ModuleSettingsAbstract } from "./ModuleSettingsAbstract.js";
 
 const KEYBINDINGS = {
-  AUTOTARGET: "autoTarget"
+  AUTOTARGET: "autoTarget",
+  UNHIDE_TEMPLATES: "unhideTemplates",
+  INCREMENT_ELEVATION: "incrementElevation",
+  DECREMENT_ELEVATION: "decrementElevation"
 };
 
 export const SETTINGS = {
@@ -36,8 +40,7 @@ SETTINGS.AUTOTARGET = {
   AREA: "autotarget-area",
   CHOICES: {
     NO: "no",
-    TOGGLE_OFF: "toggle-off",
-    TOGGLE_ON: "toggle-on",
+    TOGGLE: "toggle",
     YES: "yes"
   },
 
@@ -75,6 +78,9 @@ for ( const shapeKey of SHAPE_KEYS ) {
 export class Settings extends ModuleSettingsAbstract {
   /** @type {object} */
   static KEYS = SETTINGS;
+
+  /** @type {boolean} */
+  static FORCE_TEMPLATE_DISPLAY = false;
 
   /**
    * Retrieve autotarget area for the given shape, taking into account override settings.
@@ -130,17 +136,14 @@ export class Settings extends ModuleSettingsAbstract {
       type: String,
       choices: {
         [KEYS.AUTOTARGET.CHOICES.NO]: localize(`${KEYS.AUTOTARGET.MENU}.Choice.${CHOICES.NO}`),
-        [KEYS.AUTOTARGET.CHOICES.TOGGLE_OFF]: localize(`${KEYS.AUTOTARGET.MENU}.Choice.${CHOICES.TOGGLE_OFF}`),
-        [KEYS.AUTOTARGET.CHOICES.TOGGLE_ON]: localize(`${KEYS.AUTOTARGET.MENU}.Choice.${CHOICES.TOGGLE_ON}`),
+        [KEYS.AUTOTARGET.CHOICES.TOGGLE]: localize(`${KEYS.AUTOTARGET.MENU}.Choice.${CHOICES.TOGGLE}`),
         [KEYS.AUTOTARGET.CHOICES.YES]: localize(`${KEYS.AUTOTARGET.MENU}.Choice.${CHOICES.YES}`)
       },
-      default: KEYS.AUTOTARGET.CHOICES.TOGGLE_OFF,
-      onChange: value => {
-        const enabled = value === KEYS.AUTOTARGET.CHOICES.TOGGLE_ON
-        || value === KEYS.AUTOTARGET.CHOICES.YES;
-        Settings.set(KEYS.AUTOTARGET.ENABLED, enabled);
+      default: KEYS.AUTOTARGET.CHOICES.TOGGLE,
+      onChange: _value => {
         Settings.cache.delete(KEYS.AUTOTARGET.MENU); // Cache not reset yet; must do it manually b/c registerAutotargeting hits the cache.
         registerAutotargeting();
+        this.refreshAutotargeting();
       }
     });
 
@@ -259,8 +262,8 @@ export class Settings extends ModuleSettingsAbstract {
 
       // ----- Overide the highlight/autotarget settings for this shape.
       register(KEYS.AUTOTARGET[shape].OVERRIDE, {
-        name: localize(`submenu.autotarget-override.Name`),
-        hint: localize(`submenu.autotarget-override.Hint`),
+        name: localize("submenu.autotarget-override.Name"),
+        hint: localize("submenu.autotarget-override.Hint"),
         type: Boolean,
         default: false,
         scope: "world",
@@ -313,25 +316,100 @@ export class Settings extends ModuleSettingsAbstract {
       precedence: CONST.KEYBINDING_PRECEDENCE.DEFERRED,
       restricted: false
     });
+
+    game.keybindings.register(MODULE_ID, KEYBINDINGS.UNHIDE_TEMPLATES, {
+      name: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.UNHIDE_TEMPLATES}.name`),
+      hint: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.UNHIDE_TEMPLATES}.hint`),
+      editable: [
+        { key: "KeyU" }
+      ],
+      onDown: () => {
+        if ( !(canvas.templates.active || canvas.tokens.active) ) return;
+        this.FORCE_TEMPLATE_DISPLAY ||= true;
+        canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshTemplate: true, refreshGrid: true}));
+      },
+      onUp: () => {
+        if ( this.FORCE_TEMPLATE_DISPLAY ) canvas.templates.placeables.forEach(t =>
+          t.renderFlags.set({ refreshTemplate: true, refreshGrid: true}));
+        this.FORCE_TEMPLATE_DISPLAY &&= false;
+      },
+      precedence: CONST.KEYBINDING_PRECEDENCE.DEFERRED,
+      restricted: false
+    });
+
+    game.keybindings.register(MODULE_ID, KEYBINDINGS.INCREMENT_ELEVATION, {
+      name: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.INCREMENT_ELEVATION}.name`),
+      hint: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.INCREMENT_ELEVATION}.hint`),
+      editable: [
+        { key: "BracketRight" }
+      ],
+      onDown: _event => changeHoveredTemplateElevation(1),
+      precedence: CONST.KEYBINDING_PRECEDENCE.DEFERRED,
+      restricted: false
+    });
+
+    game.keybindings.register(MODULE_ID, KEYBINDINGS.DECREMENT_ELEVATION, {
+      name: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.DECREMENT_ELEVATION}.name`),
+      hint: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.DECREMENT_ELEVATION}.hint`),
+      editable: [
+        { key: "BracketLeft" }
+      ],
+      onDown: _event => changeHoveredTemplateElevation(-1),
+      precedence: CONST.KEYBINDING_PRECEDENCE.DEFERRED,
+      restricted: false
+    });
+
+  }
+
+  static refreshAutotargeting() {
+    canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
   }
 
   static async toggleAutotarget() {
     if ( !(canvas.tokens?.active || canvas.templates?.active) ) return;
-    const AUTOTARGET = this.KEYS.AUTOTARGET;
-    const autotargetType = this.get(AUTOTARGET.MENU);
-    if ( !(autotargetType === AUTOTARGET.CHOICES.TOGGLE_OFF
-        || autotargetType === AUTOTARGET.CHOICES.TOGGLE_ON) ) return;
-    await this.toggle(AUTOTARGET.ENABLED);
-    canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
+    const AT = this.KEYS.AUTOTARGET;
+    const autotargetType = this.get(AT.MENU);
+    if ( autotargetType !== AT.CHOICES.TOGGLE ) return;
+    await this.toggle(AT.ENABLED);
+    this.refreshAutotargeting();
 
     // Redraw the toggle button.
     if ( canvas.templates.active
       && ui.controls ) ui.controls.initialize({layer: canvas.templates.constructor.layerOptions.name});
   }
 
+  static get autotargetEnabled() {
+    const AT = this.KEYS.AUTOTARGET;
+    switch ( this.get(AT.MENU) ) {
+      case AT.CHOICES.NO: return false;
+      case AT.CHOICES.YES: return true;
+      case AT.CHOICES.TOGGLE: return this.get(AT.ENABLED);
+      default: return false;
+    }
+  }
 }
 
 export function debugPolygons() {
   return game.modules.get("_dev-mode")?.api?.getPackageDebugValue(MODULE_ID);
 }
 
+/**
+ * For any hovered template or preview template, change its elevation by the indicated amount.
+ * @param {number} amount     Amount (in grid units) to change. Negative decrements.
+ */
+function changeHoveredTemplateElevation(amount) {
+  if ( !(canvas.templates.active || canvas.tokens.active) ) return;
+
+  for ( const t of canvas.templates.preview.children ) {
+    // Preview templates do not yet have ids
+    t.document.flags.elevatedvision ??= {};
+    t.document.flags.elevatedvision.elevation ??= 0;
+    t.document.flags.elevatedvision.elevation += amount;
+    t.renderFlags.set({ refreshElevation: true });
+  }
+
+  if ( canvas.templates.active ) {
+    const t = canvas.templates.placeables.find(t => t.hover);
+    if ( t ) t.setElevationE(t.elevationE + amount);
+  }
+}

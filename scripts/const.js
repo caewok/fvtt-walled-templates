@@ -7,22 +7,45 @@ duplicate
 export const MODULE_ID = "walledtemplates";
 
 export const FLAGS = {
+  /** @type {LABELS.WALLS_BLOCK: "unwalled"|"walled"|"recurse"} */
   WALLS_BLOCK: "wallsBlock",
+
+  /** @type {CONST.WALL_RESTRICTION_TYPES} */
   WALL_RESTRICTION: "wallRestriction",
+
+  /** @type {object} */
   RECURSE_DATA: "recurseData",
+
   ATTACHED_TOKEN: {
+
+    /** @type {string} */
     ID: "attachedTokenId",
+
+    /** @type { x: {number}, y: {number}, elevation: {number} } */
+    // Difference between template and attached token.
     DELTAS: "attachedTokenDelta",
-    SPELL_TEMPLATE: "attachToken"
+
+    /** @type {Token} */
+    // Used to access item flag in `addDnd5eItemConfigurationToTemplate`.
+    SPELL_TEMPLATE: "attachToken",
+
+    /** @type {boolean} */
+    ROTATE: "rotateWithAttachedToken"
   },
+
   HIDE: {
-    BORDER: "hideBorder",
-    HIGHLIGHTING: "hideHighlighting"
+    /** @type {boolean} */
+    FORCE_BORDER: "forceBorder",
+
+    /** @type {boolean} */
+    FORCE_HIGHLIGHTING: "forceHighlighting"
   },
-  HEIGHT_ALGORITHM: "heightAlgorithm",
-  HEIGHT_CUSTOM_VALUE: "heightCustomValue",
-  HEIGHT_TOKEN_OVERRIDES: "attachedTokenOverridesHeight",
-  ADD_TOKEN_SIZE: "addTokenSize"
+
+  /** @type {boolean} */
+  ADD_TOKEN_SIZE: "addTokenSize",
+
+  /** @type {boolean} */
+  NO_AUTOTARGET: "noAutotarget"
 };
 
 export const LABELS = {
@@ -70,6 +93,6 @@ export const MODULES_ACTIVE = {
 };
 
 // Hook init b/c game.modules is not initialized at start.
-Hooks.once("init", function() {
+Hooks.once("init", function () {
   MODULES_ACTIVE.DRAG_RULER = game.modules.get("drag-ruler")?.active;
 });

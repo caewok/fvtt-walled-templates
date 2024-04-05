@@ -107,7 +107,7 @@ async function attachTemplate(template, effectData = {}, attachToTemplate = true
   effectData.icon ??= ACTIVE_EFFECT_ICON;
   effectData.name ??= `Measured Template ${templateShape}`;
   effectData.origin = template.document.uuid;
-  return this.document.toggleActiveEffect(effectData, { active: true });
+  return await this.actor.createEmbeddedDocuments("ActiveEffect", [effectData]);
 }
 
 /**
@@ -123,7 +123,12 @@ async function detachTemplate(templateId, detachFromTemplate = true, removeActiv
   } else template = canvas.templates.documentCollection.get(templateId);
 
   // Remove the active effect associated with this template (if any).
-  if ( removeActiveEffect ) await this.document.toggleActiveEffect({ id: templateId }, { active: false });
+  if ( removeActiveEffect) {
+    const effect = this.actor.effects.find(e => e.origin.endsWith(templateId))
+    if(effect) {
+      await this.actor.deleteEmbeddedDocuments("ActiveEffect", [effect.id]);
+    }
+  }
 
   // Remove this token from the template
   if ( detachFromTemplate && template ) await template.detachToken(false);
@@ -302,6 +307,7 @@ function _onDragLeftStart(wrapped, event) {
   wrapped(event);
 
   // Trigger each attached template to drag.
+  if ( !event.interactionData.clones ) return;
   for ( const clone of event.interactionData.clones ) {
     const attachedTemplates = clone.attachedTemplates;
     for ( const template of attachedTemplates ) template._onDragLeftStart(event);
@@ -312,6 +318,7 @@ function _onDragLeftMove(wrapped, event) {
   wrapped(event);
 
   // Trigger each attached template to drag.
+  if ( !event.interactionData.clones ) return;
   for ( const clone of event.interactionData.clones ) {
     const attachedTemplates = clone.attachedTemplates;
     for ( const template of attachedTemplates ) template._onDragLeftMove(event);
@@ -334,6 +341,7 @@ function _onDragLeftCancel(wrapped, event) {
   wrapped(event);
 
   // Trigger each attached template to drag.
+  if ( !event.interactionData.clones ) return;
   for ( const clone of event.interactionData.clones ) {
     const attachedTemplates = clone.attachedTemplates;
     for ( const template of attachedTemplates ) template._onDragLeftCancel(event);

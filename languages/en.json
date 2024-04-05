@@ -18,7 +18,16 @@
     "walledtemplates.MeasuredTemplateConfiguration.attach-token.removeToken": "Remove attached token",
 
     "walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Name": "Rotate with Token",
-    "walledtemplates.MeasuredTemplateConfiguration.attach-token.Hint": "When token rotates, rotate this template around the token.",
+    "walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Hint": "When token rotates, rotate this template around the token.",
+
+    "walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Name": "Do not autotarget",
+    "walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Hint": "When enabled, overrides settings to not target tokens with this template.",
+
+    "walledtemplates.MeasuredTemplateConfiguration.force-border.Name": "Show Border",
+    "walledtemplates.MeasuredTemplateConfiguration.force-border.Hint": "When enabled, overrides settings to always show the border of this template.",
+
+    "walledtemplates.MeasuredTemplateConfiguration.force-highlighting.Name": "Show Highlighting",
+    "walledtemplates.MeasuredTemplateConfiguration.force-highlighting.Hint": "When enabled, overrides settings to always show highlighting for this template.",
 
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevation",
 
@@ -77,8 +86,7 @@
     "walledtemplates.settings.autotarget-menu.Name": "Enable autotargeting",
     "walledtemplates.settings.autotarget-menu.Hint": "When toggle option is selected, a bullseye control button in the template control bar will allow you to switch between targeting or not targeting.",
     "walledtemplates.settings.autotarget-menu.Choice.no": "Do not autotarget",
-    "walledtemplates.settings.autotarget-menu.Choice.toggle-off": "Display toggle button; default off",
-    "walledtemplates.settings.autotarget-menu.Choice.toggle-on": "Display toggle button; default on",
+    "walledtemplates.settings.autotarget-menu.Choice.toggle": "Display toggle button",
     "walledtemplates.settings.autotarget-menu.Choice.yes": "Always autotarget",
 
     "walledtemplates.settings.autotarget-method.Name": "Highlight/Autotarget method",
@@ -119,5 +127,15 @@
     "walledtemplates.notifications.attach-last-targeted-token": "Please target a token to attach.",
 
     "walledtemplates.keybindings.autoTarget.name": "Toggle Template Autotargeting",
-    "walledtemplates.keybindings.autoTarget.hint": "Defers to other uses for the key. For example, if set to 'T', will not function if hovering over a token. Also only functions if the autotarget toggle is enabled in settings. And only functions in token or template layers."
+    "walledtemplates.keybindings.autoTarget.hint": "Defers to other uses for the key. For example, if set to 'T', will not function if hovering over a token. Also only functions if the autotarget toggle is enabled in settings. And only functions in token or template layers.",
+
+    "walledtemplates.keybindings.unhideTemplates.name": "Temporarily Unhide Templates",
+    "walledtemplates.keybindings.unhideTemplates.hint": "When held, template borders and highlighting unhidden.",
+
+    "walledtemplates.keybindings.incrementElevation.name": "Increment Template Elevation",
+    "walledtemplates.keybindings.incrementElevation.hint": "Increases template elevation in grid steps. Either while template is placed or when hovering over template control.",
+
+    "walledtemplates.keybindings.decrementElevation.name": "Decrement Template Elevation",
+    "walledtemplates.keybindings.decrementElevation.hint": "Decreases template elevation in grid steps. Either while template is placed or when hovering over template control."
+
 }

@@ -1,6 +1,5 @@
 /* globals
 canvas,
-CONST,
 flattenObject,
 getProperty,
 isEmpty,
@@ -14,7 +13,6 @@ import { WalledTemplateShape } from "./template_shapes/WalledTemplateShape.js";
 import { log, gridShapeForTopLeft, tokenBounds } from "./util.js";
 import { MODULE_ID, FLAGS } from "./const.js";
 import { Settings } from "./settings.js";
-import { Hexagon } from "./geometry/RegularPolygon/Hexagon.js";
 import { Square } from "./geometry/RegularPolygon/Square.js";
 import { UserCloneTargets } from "./UserCloneTargets.js";
 import { addDnd5eItemConfigurationToTemplate } from "./dnd5e.js";
@@ -27,6 +25,20 @@ PATCHES.dnd5e = {};
 // ----- NOTE: Hooks ----- //
 
 /**
+ * Helper that tests if a template can be hidden.
+ * Does not test all options.
+ * @param {MeasuredTemplate} template
+ * @returns {boolean} True if it can be hidden.
+ */
+function _canHideTemplate(template) {
+  return !(template.hover
+    || template.isPreview
+    || !template.visible
+    || template.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
+    || Settings.FORCE_TEMPLATE_DISPLAY);
+}
+
+/**
  * On refresh, control the ruler (text) visibility.
  *
  * A hook event that fires when a {@link PlaceableObject} is incrementally refreshed.
@@ -36,20 +48,20 @@ PATCHES.dnd5e = {};
  * @param {PlaceableObject} object    The object instance being refreshed
  */
 function refreshMeasuredTemplate(template, flags) {
-  const canHide = !(template.hover
-    || template.isPreview
-    || !template.visible
-    || template.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG);
+  const canHide = _canHideTemplate(template);
 
   // Control the border visibility including border text.
-  if ( flags.refreshTemplate || flags.refreshState  ) {
-    if ( canHide && Settings.get(Settings.KEYS.HIDE.BORDER) ) {
+  if ( flags.refreshTemplate || flags.refreshState ) {
+    if ( canHide
+      && Settings.get(Settings.KEYS.HIDE.BORDER)
+      && !template.document.getFlag(MODULE_ID, FLAGS.HIDE.FORCE_BORDER) ) {
+
       template.template.alpha = 0; // Don't mess with visible to fool automated animations into displaying.
-      // template.template.visible = false;
+      // This doesn't work: template.template.visible = false;
       template.ruler.visible = false;
     } else {
       template.template.alpha = 1;
-      // template.template.visible = true;
+      // This doesn't work: template.template.visible = true;
       template.ruler.visible = true;
     }
   }
@@ -57,7 +69,10 @@ function refreshMeasuredTemplate(template, flags) {
   // Control the highlight visibility by changing its alpha.
   if ( flags.refreshGrid || flags.refreshState ) {
     const hl = canvas.grid.getHighlightLayer(template.highlightId);
-    if ( canHide && Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING) ) {
+    if ( canHide
+      && Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING)
+      && !template.document.getFlag(MODULE_ID, FLAGS.HIDE.FORCE_HIGHLIGHTING) ) {
+
       hl.alpha = 0;
     } else {
       hl.alpha = template.document.hidden ? 0.5 : 1;
@@ -67,9 +82,27 @@ function refreshMeasuredTemplate(template, flags) {
   // Make the control icon visible to non-owners.
   if ( flags.refreshState && !template.document.isOwner ) {
     template.controlIcon.refresh({
-      visible: template.visible && template.layer.active && !template.document.hidden,
+      visible: template.visible && template.layer.active && !template.document.hidden
     });
     template.controlIcon.alpha = 0.5;
+  }
+
+  // Display the elevation tooltip if the control icon, border, or highlight is visible.
+  if ( flags.refreshTemplate || flags.refreshState || flags.refreshGrid ) {
+    const toolTipVisible = template.template.alpha > 0                              // Border visible
+      || canvas.grid.getHighlightLayer(template.highlightId).alpha > 0              // Highlight visible
+      || (template.visible && template.layer.active && !template.document.hidden);  // Control icon visible
+    template.tooltip.visible = toolTipVisible;
+  }
+
+  // Update the elevation value of the tooltip.
+  if ( flags.refreshElevation ) {
+    // See Token.prototype.#refreshElevation
+    canvas.primary.sortDirty = true;
+
+    // Elevation tooltip text
+    const tt = template._getTooltipText();
+    if ( tt !== template.tooltip.text ) template.tooltip.text = tt;
   }
 }
 
@@ -131,16 +164,27 @@ function preCreateMeasuredTemplateHook(templateD, updateData, _opts, _id) {
  * @param {DocumentModificationContext} options     Additional options which modified the update request
  * @param {string} userId                           The ID of the User who triggered the update workflow
  */
-function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
-  const wtChangeFlags = [
-    `flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`,
-    `flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`
-  ];
+const UPDATE_FLAGS = {
+  WALLS_BLOCK: `flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`,
+  WALL_RESTRICTION: `flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`,
+  FORCE_BORDER: `flags.${MODULE_ID}.${FLAGS.HIDE.FORCE_BORDER}`,
+  FORCE_HIGHLIGHTING: `flags.${MODULE_ID}.${FLAGS.HIDE.FORCE_HIGHLIGHTING}`,
+  NO_AUTOTARGET: `flags.${MODULE_ID}.${FLAGS.NO_AUTOTARGET}`,
+  ELEVATION: `flags.elevatedvision.elevation`
+};
+const WALL_FLAGS = [UPDATE_FLAGS.WALLS_BLOCK, UPDATE_FLAGS.WALL_RESTRICTION];
+const DISPLAY_FLAGS = [UPDATE_FLAGS.FORCE_BORDER, UPDATE_FLAGS.FORCE_HIGHLIGHTING];
 
+function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
   const changed = new Set(Object.keys(flattenObject(data)));
-  if ( wtChangeFlags.some(k => changed.has(k)) ) templateD.object.renderFlags.set({
-    refreshShape: true
+  const rf = templateD.object.renderFlags;
+  if ( WALL_FLAGS.some(k => changed.has(k)) ) rf.set({ refreshShape: true });
+  if ( DISPLAY_FLAGS.some(k => changed.has(k)) ) rf.set({
+    refreshTemplate: true,
+    refreshGrid: true
   });
+  if ( changed.has(UPDATE_FLAGS.NO_AUTOTARGET) ) rf.set({ retarget: true });
+  if ( changed.has(UPDATE_FLAGS.ELEVATION) ) rf.set({ refreshElevation: true });
 }
 
 /**
@@ -259,12 +303,9 @@ function clone(wrapped) {
  * If the setting is set to hide, don't highlight grid unless hovering.
  */
 function highlightGrid(wrapped) {
-  const interactionState = this._original?.mouseInteractionManager?.state ?? this.mouseInteractionManager?.state;
-  if ( !this.visible
-   || this.hover
-   || typeof interactionState === "undefined"
-   || interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
-   || !Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING) ) return wrapped();
+  if ( !_canHideTemplate(this)
+   || !Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING)
+   || this.document.getFlag(MODULE_ID, FLAGS.HIDE.FORCE_HIGHLIGHTING) ) return wrapped();
 
   // Clear the existing highlight layer
   const grid = canvas.grid;
@@ -272,7 +313,7 @@ function highlightGrid(wrapped) {
   hl.clear();
 }
 
-PATCHES.BASIC.MIXES = { _getGridHighlightPositions };
+PATCHES.BASIC.MIXES = { _getGridHighlightPositions, highlightGrid };
 
 // ----- Autotarget Wraps ----- //
 
@@ -309,9 +350,9 @@ function _onDragLeftMove(wrapped, event) {
   }
 
   const precision = event.shiftKey ? 2 : 1;
-  const { origin, destination } = event.interactionData;
+  const destination = event.interactionData.destination;
   if ( Settings.get(Settings.KEYS.SNAP_GRID) ) {
-    event.interactionData.destination = canvas.grid.getSnappedPosition(destination.x, destination.y, precision)
+    event.interactionData.destination = canvas.grid.getSnappedPosition(destination.x, destination.y, precision);
 
     // Drag ruler fix when holding shift.
     const ruler = canvas.controls.ruler;
@@ -330,7 +371,6 @@ function _onDragLeftMove(wrapped, event) {
 
   for ( let c of event.interactionData.clones || [] ) {
     const snapped = canvas.grid.getSnappedPosition(c.document.x, c.document.y, precision);
-    // console.debug(`Clone Origin: ${origin.x},${origin.y} Destination: ${destination.x},${destination.y}; Snapped: ${snapped.x},${snapped.y} Doc: ${c.document.x},${c.document.y}`);
     c.document.x = snapped.x;
     c.document.y = snapped.y;
     c.renderFlags.set({refresh: true});
@@ -343,9 +383,9 @@ function _onDragLeftCancel(wrapped, event) {
 
 async function _onDragLeftDrop(wrapped, event) {
   const precision = event.shiftKey ? 2 : 1;
-  const { origin, destination } = event.interactionData;
+  const destination = event.interactionData.destination;
   if ( Settings.get(Settings.KEYS.SNAP_GRID) ) {
-    event.interactionData.destination = canvas.grid.getSnappedPosition(destination.x, destination.y, precision)
+    event.interactionData.destination = canvas.grid.getSnappedPosition(destination.x, destination.y, precision);
 
     // Drag ruler fix when holding shift.
     const ruler = canvas.controls.ruler;
@@ -388,6 +428,16 @@ function _canHover(wrapped, user, event) {
   return this.controlIcon?.visible;
 }
 
+/**
+ * Wrap MeasuredTemplate.prototype._draw
+ * Add the elevation tooltip.
+ */
+function _draw(wrapped) {
+  wrapped();
+  this.tooltip ||= this.addChild(this._drawTooltip());
+}
+
+
 PATCHES.BASIC.WRAPS = {
   _computeShape,
   _canDrag,
@@ -398,7 +448,8 @@ PATCHES.BASIC.WRAPS = {
   _onDragLeftDrop,
   destroy,
   // _applyRenderFlags,
-  _canHover
+  _canHover,
+  _draw
 };
 
 
@@ -509,17 +560,67 @@ function _calculateAttachedTemplateOffset(tokenD) {
     const elevation = tokenD.elevation + delta.elevation;
     templateData.flags = { elevatedvision: { elevation }};
   }
-  if ( Object.hasOwn(tokenD, "rotation") && Object.hasOwn(delta, "rotation") ) {
+  if ( Object.hasOwn(tokenD, "rotation") && Object.hasOwn(delta, "rotation") && this.document.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ROTATE) ) {
     templateData.direction = Math.normalizeDegrees(tokenD.rotation + delta.rotation);
   }
   return this.document.constructor.cleanData(templateData, {partial: true});
+}
+
+/**
+ * New method: MeasuredTemplate.prototype._drawTooltip
+ */
+function _drawTooltip() {
+  let text = this._getTooltipText();
+  const style = this.constructor._getTextStyle();
+  const tip = new PreciseText(text, style);
+  tip.anchor.set(0.5, 1);
+
+  // From #drawControlIcon
+  const size = Math.max(Math.round((canvas.dimensions.size * 0.5) / 20) * 20, 40);
+  tip.position.set(0, -size / 2);
+  return tip;
+}
+
+/**
+ * New method: MeasuredTemplate.prototype._getTooltipText
+ */
+function _getTooltipText() {
+  const el = this.elevationE;
+  if ( !Number.isFinite(el) || el === 0 ) return "";
+  let units = canvas.scene.grid.units;
+  return el > 0 ? `+${el} ${units}` : `${el} ${units}`;
 }
 
 PATCHES.BASIC.METHODS = {
   boundsOverlap,
   attachToken,
   detachToken,
-  _calculateAttachedTemplateOffset };
+  _calculateAttachedTemplateOffset,
+  _drawTooltip,
+  _getTooltipText
+ };
+
+/**
+ * New method: MeasuredTemplate._getTextStyle
+ * Get the text style that should be used for this Template's tooltip.
+ * See Token.prototype._getTextStyle.
+ * @returns {string}
+ */
+function _getTextStyle() {
+  const style = CONFIG.canvasTextStyle.clone();
+  style.fontSize = 24;
+  if (canvas.dimensions.size >= 200) style.fontSize = 28;
+  else if (canvas.dimensions.size < 50) style.fontSize = 20;
+
+  // From #drawControlIcon
+  const size = Math.max(Math.round((canvas.dimensions.size * 0.5) / 20) * 20, 40);
+  style.wordWrapWidth = size * 2.5;
+  return style;
+}
+
+PATCHES.BASIC.STATIC_METHODS = {
+  _getTextStyle
+};
 
 // ----- NOTE: Getters ----- //
 /**
@@ -537,7 +638,15 @@ function attachedToken() {
  */
 function wallsBlock() { return this.walledtemplates?.walledTemplate?.doWallsBlock; }
 
-PATCHES.BASIC.GETTERS = { attachedToken, wallsBlock };
+/**
+ * Determine if this template should autotarget.
+ * @returns {boolean}
+ */
+function getAutotarget() {
+  return Settings.autotargetEnabled && !this.document.getFlag(MODULE_ID, FLAGS.NO_AUTOTARGET);
+}
+
+PATCHES.BASIC.GETTERS = { attachedToken, wallsBlock, autotarget: getAutotarget };
 
 // ----- NOTE: Autotargeting ----- //
 
@@ -551,10 +660,17 @@ PATCHES.BASIC.GETTERS = { attachedToken, wallsBlock };
  * @param {RenderFlags} flags
  */
 function refreshMeasuredTemplateHook(template, flags) {
-  if ( flags.retarget && template.autotargetTokens ) template.autotargetTokens();
+  if ( flags.retarget ) template.autotargetTokens();
 }
 
 PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook };
+
+// ----- NOTE: Getters ----- //
+
+/** @type {Set<Token>} */
+function getTargets() { return this._targets || (this._targets = new Set()); }
+
+PATCHES.AUTOTARGET.GETTERS = { targets: getTargets };
 
 // ----- NOTE: Methods ----- //
 /**
@@ -563,7 +679,7 @@ PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHoo
  */
 function autotargetTokens({ onlyVisible = false } = {}) {
   log("autotargetTokens", this);
-  if ( !Settings.get(Settings.KEYS.AUTOTARGET.ENABLED) ) return this.releaseTargets();
+  if ( !this.autotarget ) return this.releaseTargets();
 
   log(`Autotarget ${this._original ? "clone" : "original"} with ${this.targets.size} targets.`);
   const tokens = new Set(this.targetsWithinShape({onlyVisible}));
@@ -683,8 +799,7 @@ PATCHES.AUTOTARGET.METHODS = {
   autotargetTokens,
   releaseTargets,
   acquireTargets,
-  targetsWithinShape,
-  targets: new Set()
+  targetsWithinShape
 };
 
 // ----- NOTE: Helper functions ----- //
