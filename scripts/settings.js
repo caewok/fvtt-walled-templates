@@ -14,7 +14,9 @@ import { ModuleSettingsAbstract } from "./ModuleSettingsAbstract.js";
 
 const KEYBINDINGS = {
   AUTOTARGET: "autoTarget",
-  UNHIDE_TEMPLATES: "unhideTemplates"
+  UNHIDE_TEMPLATES: "unhideTemplates",
+  INCREMENT_ELEVATION: "incrementElevation",
+  DECREMENT_ELEVATION: "decrementElevation"
 };
 
 export const SETTINGS = {
@@ -318,21 +320,40 @@ export class Settings extends ModuleSettingsAbstract {
       name: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.UNHIDE_TEMPLATES}.name`),
       hint: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.UNHIDE_TEMPLATES}.hint`),
       editable: [
-        { key: "KeyU"
-        }
+        { key: "KeyU" }
       ],
       onDown: () => {
-        ui.notifications.info("Unhide pressed!")
         if ( !(canvas.templates.active || canvas.tokens.active) ) return;
         this.FORCE_TEMPLATE_DISPLAY ||= true;
         canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshTemplate: true, refreshGrid: true}));
       },
       onUp: () => {
-        ui.notifications.info("Unhide released!")
         if ( this.FORCE_TEMPLATE_DISPLAY ) canvas.templates.placeables.forEach(t =>
           t.renderFlags.set({ refreshTemplate: true, refreshGrid: true}));
         this.FORCE_TEMPLATE_DISPLAY &&= false;
       },
+      precedence: CONST.KEYBINDING_PRECEDENCE.DEFERRED,
+      restricted: false
+    });
+
+    game.keybindings.register(MODULE_ID, KEYBINDINGS.INCREMENT_ELEVATION, {
+      name: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.INCREMENT_ELEVATION}.name`),
+      hint: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.INCREMENT_ELEVATION}.hint`),
+      editable: [
+        { key: "BracketRight" }
+      ],
+      onDown: event => changeHoveredTemplateElevation(1),
+      precedence: CONST.KEYBINDING_PRECEDENCE.DEFERRED,
+      restricted: false
+    });
+
+    game.keybindings.register(MODULE_ID, KEYBINDINGS.DECREMENT_ELEVATION, {
+      name: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.DECREMENT_ELEVATION}.name`),
+      hint: game.i18n.localize(`${MODULE_ID}.keybindings.${KEYBINDINGS.DECREMENT_ELEVATION}.hint`),
+      editable: [
+        { key: "BracketLeft" }
+      ],
+      onDown: event => changeHoveredTemplateElevation(-1),
       precedence: CONST.KEYBINDING_PRECEDENCE.DEFERRED,
       restricted: false
     });
@@ -372,3 +393,23 @@ export function debugPolygons() {
   return game.modules.get("_dev-mode")?.api?.getPackageDebugValue(MODULE_ID);
 }
 
+/**
+ * For any hovered template or preview template, change its elevation by the indicated amount.
+ * @param {number} amount     Amount (in grid units) to change. Negative decrements.
+ */
+function changeHoveredTemplateElevation(amount) {
+  if ( !(canvas.templates.active || canvas.tokens.active) ) return;
+
+  for ( const t of canvas.templates.preview.children ) {
+      // Preview templates do not yet have ids
+      t.document.flags.elevatedvision ??= {};
+      t.document.flags.elevatedvision.elevation ??= 0;
+      t.document.flags.elevatedvision.elevation += CONFIG.GeometryLib.utils.gridUnitsToPixels(amount);
+    }
+  }
+
+  if ( canvas.templates.active ) {
+    const t = canvas.templates.placeables.find(t => t.hover);
+    if ( t ) t.setElevationE(t.elevationE + amount);
+  }
+}
