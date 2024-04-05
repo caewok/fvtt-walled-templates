@@ -1,5 +1,6 @@
 /* globals
 canvas,
+CONFIG,
 CONST,
 game,
 ui
@@ -342,7 +343,7 @@ export class Settings extends ModuleSettingsAbstract {
       editable: [
         { key: "BracketRight" }
       ],
-      onDown: event => changeHoveredTemplateElevation(1),
+      onDown: _event => changeHoveredTemplateElevation(1),
       precedence: CONST.KEYBINDING_PRECEDENCE.DEFERRED,
       restricted: false
     });
@@ -353,7 +354,7 @@ export class Settings extends ModuleSettingsAbstract {
       editable: [
         { key: "BracketLeft" }
       ],
-      onDown: event => changeHoveredTemplateElevation(-1),
+      onDown: _event => changeHoveredTemplateElevation(-1),
       precedence: CONST.KEYBINDING_PRECEDENCE.DEFERRED,
       restricted: false
     });
@@ -401,11 +402,11 @@ function changeHoveredTemplateElevation(amount) {
   if ( !(canvas.templates.active || canvas.tokens.active) ) return;
 
   for ( const t of canvas.templates.preview.children ) {
-      // Preview templates do not yet have ids
-      t.document.flags.elevatedvision ??= {};
-      t.document.flags.elevatedvision.elevation ??= 0;
-      t.document.flags.elevatedvision.elevation += CONFIG.GeometryLib.utils.gridUnitsToPixels(amount);
-    }
+    // Preview templates do not yet have ids
+    t.document.flags.elevatedvision ??= {};
+    t.document.flags.elevatedvision.elevation ??= 0;
+    t.document.flags.elevatedvision.elevation += amount;
+
   }
 
   if ( canvas.templates.active ) {
