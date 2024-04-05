@@ -387,7 +387,6 @@ export class Settings extends ModuleSettingsAbstract {
       default: return false;
     }
   }
-
 }
 
 export function debugPolygons() {
@@ -406,7 +405,7 @@ function changeHoveredTemplateElevation(amount) {
     t.document.flags.elevatedvision ??= {};
     t.document.flags.elevatedvision.elevation ??= 0;
     t.document.flags.elevatedvision.elevation += amount;
-
+    t.renderFlags.set({ refreshElevation: true });
   }
 
   if ( canvas.templates.active ) {
