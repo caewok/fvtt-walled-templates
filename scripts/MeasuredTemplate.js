@@ -86,6 +86,24 @@ function refreshMeasuredTemplate(template, flags) {
     });
     template.controlIcon.alpha = 0.5;
   }
+
+  // Display the elevation tooltip if the control icon, border, or highlight is visible.
+  if ( flags.refreshTemplate || flags.refreshState || flags.refreshGrid ) {
+    const toolTipVisible = template.template.alpha > 0                              // Border visible
+      || canvas.grid.getHighlightLayer(template.highlightId).alpha > 0              // Highlight visible
+      || (template.visible && template.layer.active && !template.document.hidden);  // Control icon visible
+    template.tooltip.visible = toolTipVisible;
+  }
+
+  // Update the elevation value of the tooltip.
+  if ( flags.refreshElevation ) {
+    // See Token.prototype.#refreshElevation
+    canvas.primary.sortDirty = true;
+
+    // Elevation tooltip text
+    const tt = template._getTooltipText();
+    if ( tt !== template.tooltip.text ) template.tooltip.text = tt;
+  }
 }
 
 /**
@@ -146,30 +164,27 @@ function preCreateMeasuredTemplateHook(templateD, updateData, _opts, _id) {
  * @param {DocumentModificationContext} options     Additional options which modified the update request
  * @param {string} userId                           The ID of the User who triggered the update workflow
  */
+const UPDATE_FLAGS = {
+  WALLS_BLOCK: `flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`,
+  WALL_RESTRICTION: `flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`,
+  FORCE_BORDER: `flags.${MODULE_ID}.${FLAGS.HIDE.FORCE_BORDER}`,
+  FORCE_HIGHLIGHTING: `flags.${MODULE_ID}.${FLAGS.HIDE.FORCE_HIGHLIGHTING}`,
+  NO_AUTOTARGET: `flags.${MODULE_ID}.${FLAGS.NO_AUTOTARGET}`,
+  ELEVATION: `flags.elevatedvision.elevation`
+};
+const WALL_FLAGS = [UPDATE_FLAGS.WALLS_BLOCK, UPDATE_FLAGS.WALL_RESTRICTION];
+const DISPLAY_FLAGS = [UPDATE_FLAGS.FORCE_BORDER, UPDATE_FLAGS.FORCE_HIGHLIGHTING];
+
 function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
-  const wtChangeFlags = [
-    `flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`,
-    `flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`
-  ];
-
   const changed = new Set(Object.keys(flattenObject(data)));
-  if ( wtChangeFlags.some(k => changed.has(k)) ) templateD.object.renderFlags.set({
-    refreshShape: true
-  });
-
-  const tDisplayFlags = [
-    `flags.${MODULE_ID}.${FLAGS.HIDE.FORCE_BORDER}`,
-    `flags.${MODULE_ID}.${FLAGS.HIDE.FORCE_HIGHLIGHTING}`
-  ];
-  if ( tDisplayFlags.some(k => changed.has(k)) ) templateD.object.renderFlags.set({
+  const rf = templateD.object.renderFlags;
+  if ( WALL_FLAGS.some(k => changed.has(k)) ) rf.set({ refreshShape: true });
+  if ( DISPLAY_FLAGS.some(k => changed.has(k)) ) rf.set({
     refreshTemplate: true,
     refreshGrid: true
   });
-
-
-  if ( changed.has(`flags.${MODULE_ID}.${FLAGS.NO_AUTOTARGET}`) ) templateD.object.renderFlags.set({
-    retarget: true
-  });
+  if ( changed.has(UPDATE_FLAGS.NO_AUTOTARGET) ) rf.set({ retarget: true });
+  if ( changed.has(UPDATE_FLAGS.ELEVATION) ) rf.set({ refreshElevation: true });
 }
 
 /**
@@ -413,6 +428,16 @@ function _canHover(wrapped, user, event) {
   return this.controlIcon?.visible;
 }
 
+/**
+ * Wrap MeasuredTemplate.prototype._draw
+ * Add the elevation tooltip.
+ */
+function _draw(wrapped) {
+  wrapped();
+  this.tooltip ||= this.addChild(this._drawTooltip());
+}
+
+
 PATCHES.BASIC.WRAPS = {
   _computeShape,
   _canDrag,
@@ -423,7 +448,8 @@ PATCHES.BASIC.WRAPS = {
   _onDragLeftDrop,
   destroy,
   // _applyRenderFlags,
-  _canHover
+  _canHover,
+  _draw
 };
 
 
@@ -540,11 +566,61 @@ function _calculateAttachedTemplateOffset(tokenD) {
   return this.document.constructor.cleanData(templateData, {partial: true});
 }
 
+/**
+ * New method: MeasuredTemplate.prototype._drawTooltip
+ */
+function _drawTooltip() {
+  let text = this._getTooltipText();
+  const style = this.constructor._getTextStyle();
+  const tip = new PreciseText(text, style);
+  tip.anchor.set(0.5, 1);
+
+  // From #drawControlIcon
+  const size = Math.max(Math.round((canvas.dimensions.size * 0.5) / 20) * 20, 40);
+  tip.position.set(0, -size / 2);
+  return tip;
+}
+
+/**
+ * New method: MeasuredTemplate.prototype._getTooltipText
+ */
+function _getTooltipText() {
+  const el = this.elevationE;
+  if ( !Number.isFinite(el) || el === 0 ) return "";
+  let units = canvas.scene.grid.units;
+  return el > 0 ? `+${el} ${units}` : `${el} ${units}`;
+}
+
 PATCHES.BASIC.METHODS = {
   boundsOverlap,
   attachToken,
   detachToken,
-  _calculateAttachedTemplateOffset };
+  _calculateAttachedTemplateOffset,
+  _drawTooltip,
+  _getTooltipText
+ };
+
+/**
+ * New method: MeasuredTemplate._getTextStyle
+ * Get the text style that should be used for this Template's tooltip.
+ * See Token.prototype._getTextStyle.
+ * @returns {string}
+ */
+function _getTextStyle() {
+  const style = CONFIG.canvasTextStyle.clone();
+  style.fontSize = 24;
+  if (canvas.dimensions.size >= 200) style.fontSize = 28;
+  else if (canvas.dimensions.size < 50) style.fontSize = 20;
+
+  // From #drawControlIcon
+  const size = Math.max(Math.round((canvas.dimensions.size * 0.5) / 20) * 20, 40);
+  style.wordWrapWidth = size * 2.5;
+  return style;
+}
+
+PATCHES.BASIC.STATIC_METHODS = {
+  _getTextStyle
+};
 
 // ----- NOTE: Getters ----- //
 /**

@@ -101,8 +101,13 @@ Hooks.once("init", function() {
     Settings
   };
 
+  // Add render flags to help with autotargeting and elevation of the template.
   CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.retarget = {};
   CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate = ["retarget", "refreshShape"];
+
+  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshElevation = { propagate: ["retarget", "refreshShape"]};
+  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate = ["retarget", "refreshShape", "refreshElevation"];
+
 
   // Tell modules that the module is set up
   Hooks.callAll(`${MODULE_ID}Ready`);

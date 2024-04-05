@@ -130,6 +130,12 @@
     "walledtemplates.keybindings.autoTarget.hint": "Defers to other uses for the key. For example, if set to 'T', will not function if hovering over a token. Also only functions if the autotarget toggle is enabled in settings. And only functions in token or template layers.",
 
     "walledtemplates.keybindings.unhideTemplates.name": "Temporarily Unhide Templates",
-    "walledtemplates.keybindings.unhideTemplates.hint": "When held, template borders and highlighting unhidden."
+    "walledtemplates.keybindings.unhideTemplates.hint": "When held, template borders and highlighting unhidden.",
+
+    "walledtemplates.keybindings.incrementElevation.name": "Increment Template Elevation",
+    "walledtemplates.keybindings.incrementElevation.hint": "Increases template elevation in grid steps. Either while template is placed or when hovering over template control.",
+
+    "walledtemplates.keybindings.decrementElevation.name": "Decrement Template Elevation",
+    "walledtemplates.keybindings.decrementElevation.hint": "Decreases template elevation in grid steps. Either while template is placed or when hovering over template control."
 
 }
