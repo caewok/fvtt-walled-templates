@@ -4,6 +4,7 @@
 Add flag and MeasuredTemplate config to disable autotargeting for specific template.
 Add keybinding to unhide template highlighting and borders. Add toggle to template configuration to force display of specific template highlighting and borders (flags: `forceBorder` and `forceHighlighting`). Closes #93, #95.
 Add toggle to template configuration to disable autotargeting for specific template (flag: `noAutotarget`).
+Add elevation tooltip.
 
 ### Bug fixes
 Incorporate PR #89 and #90 from @strongpauly. Thanks!
