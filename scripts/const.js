@@ -21,24 +21,27 @@ export const FLAGS = {
     /** @type {string} */
     ID: "attachedTokenId",
 
+    /** @type { x: {number}, y: {number}, elevation: {number} } */
+    // Difference between template and attached token.
     DELTAS: "attachedTokenDelta",
 
+    /** @type {Token} */
+    // Used to access item flag in `addDnd5eItemConfigurationToTemplate`.
     SPELL_TEMPLATE: "attachToken",
 
+    /** @type {boolean} */
     ROTATE: "rotateWithAttachedToken"
   },
 
   HIDE: {
     /** @type {boolean} */
-    BORDER: "hideBorder",
+    FORCE_BORDER: "forceBorder",
 
     /** @type {boolean} */
-    HIGHLIGHTING: "hideHighlighting"
+    FORCE_HIGHLIGHTING: "forceHighlighting"
   },
 
-  HEIGHT_ALGORITHM: "heightAlgorithm",
-  HEIGHT_CUSTOM_VALUE: "heightCustomValue",
-  HEIGHT_TOKEN_OVERRIDES: "attachedTokenOverridesHeight",
+  /** @type {boolean} */
   ADD_TOKEN_SIZE: "addTokenSize",
 
   /** @type {boolean} */
