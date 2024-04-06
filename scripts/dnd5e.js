@@ -35,10 +35,12 @@ export function addDnd5eItemConfigurationToTemplate(template) {
   const item = template.item;
   if ( !item ) return;
 
-  // Add item flags to the template(s)
+  // Constants
   const attachToken = item.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.SPELL_TEMPLATE);
   const templateD = template.document;
   const shape = templateD.t;
+
+  // Determine wall settings, falling back to global defaults.
   let wallsBlock = item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK);
   let wallRestriction = item.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION);
   if ( !wallsBlock
@@ -47,13 +49,18 @@ export function addDnd5eItemConfigurationToTemplate(template) {
     wallRestriction = Settings.get(Settings.KEYS.DEFAULT_WALL_RESTRICTION[shape]);
   }
 
-  // templateD.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, wallsBlock);
-  // templateD.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, wallRestriction);
+  // Determine hide settings, falling back to global defaults.
+  const hideBorder = item.getFlag(MODULE_ID, FLAGS.HIDE.BORDER) ?? LABELS.GLOBAL_DEFAULT;
+  const hideHighlighting = item.getFlag(MODULE_ID, FLAGS.HIDE.HIGHLIGHTING) ?? LABELS.GLOBAL_DEFAULT;
+
+  // Attach items to the template.
   templateD.updateSource({
     flags: {
       [MODULE_ID]: {
         [FLAGS.WALLS_BLOCK]: wallsBlock,
-        [FLAGS.WALL_RESTRICTION]: wallRestriction
+        [FLAGS.WALL_RESTRICTION]: wallRestriction,
+        [FLAGS.HIDE.BORDER]: hideBorder,
+        [FLAGS.HIDE.HIGHLIGHTING]: hideHighlighting
       }
     }
   });
@@ -121,7 +128,8 @@ async function render5eSpellTemplateConfig(app, html, data) {
   data.walledtemplates = {
     blockoptions: LABELS.SPELL_TEMPLATE.WALLS_BLOCK,
     walloptions: LABELS.SPELL_TEMPLATE.WALL_RESTRICTION,
-    attachtokenoptions: LABELS.SPELL_TEMPLATE.ATTACH_TOKEN
+    attachtokenoptions: LABELS.SPELL_TEMPLATE.ATTACH_TOKEN,
+    hideoptions: LABELS.TEMPLATE_HIDE
   };
 
   const template = `modules/${MODULE_ID}/templates/walled-templates-dnd5e-spell-template-config.html`;

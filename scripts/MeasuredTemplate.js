@@ -30,12 +30,32 @@ PATCHES.dnd5e = {};
  * @param {MeasuredTemplate} template
  * @returns {boolean} True if it can be hidden.
  */
-function _canHideTemplate(template) {
+function canHideTemplate(template) {
   return !(template.hover
     || template.isPreview
     || !template.visible
     || template.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
     || Settings.FORCE_TEMPLATE_DISPLAY);
+}
+
+/**
+ * Helper that tests the provided hide flag and the global defaults.
+ * @param {MeasuredTemplate} template
+ * @param {"BORDER"|"HIGHLIGHTING"} hideflag
+ * @returns {boolean} True if template component can be hidden.
+ */
+function canHideTemplateComponent(template, hideFlag) {
+  const HIDE = FLAGS.HIDE;
+
+  // Check for local token hover flag.
+  if ( Settings.get(Settings.KEYS.HIDE.SHOW_ON_HOVER)
+    && template.document.flags?.[MODULE_ID]?.[HIDE.TOKEN_HOVER] ) return false;
+
+  // Check for per-template setting.
+  const TYPES = HIDE.TYPES;
+  const local = template.document.getFlag(MODULE_ID, HIDE[hideFlag]);
+  if ( !local || local === TYPES.GLOBAL_DEFAULT ) return Settings.get(Settings.KEYS.HIDE[hideFlag]);
+  return (local === TYPES.ALWAYS);
 }
 
 /**
@@ -48,14 +68,11 @@ function _canHideTemplate(template) {
  * @param {PlaceableObject} object    The object instance being refreshed
  */
 function refreshMeasuredTemplate(template, flags) {
-  const canHide = _canHideTemplate(template);
+  const canHide = canHideTemplate(template);
 
   // Control the border visibility including border text.
   if ( flags.refreshTemplate || flags.refreshState ) {
-    if ( canHide
-      && Settings.get(Settings.KEYS.HIDE.BORDER)
-      && !template.document.getFlag(MODULE_ID, FLAGS.HIDE.FORCE_BORDER) ) {
-
+    if ( canHide && canHideTemplateComponent(template, "BORDER") ) {
       template.template.alpha = 0; // Don't mess with visible to fool automated animations into displaying.
       // This doesn't work: template.template.visible = false;
       template.ruler.visible = false;
@@ -69,14 +86,8 @@ function refreshMeasuredTemplate(template, flags) {
   // Control the highlight visibility by changing its alpha.
   if ( flags.refreshGrid || flags.refreshState ) {
     const hl = canvas.grid.getHighlightLayer(template.highlightId);
-    if ( canHide
-      && Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING)
-      && !template.document.getFlag(MODULE_ID, FLAGS.HIDE.FORCE_HIGHLIGHTING) ) {
-
-      hl.alpha = 0;
-    } else {
-      hl.alpha = template.document.hidden ? 0.5 : 1;
-    }
+    if ( canHide && canHideTemplateComponent(template, "HIGHLIGHTING") ) hl.alpha = 0;
+    else hl.alpha = template.document.hidden ? 0.5 : 1;
   }
 
   // Make the control icon visible to non-owners.
@@ -167,13 +178,13 @@ function preCreateMeasuredTemplateHook(templateD, updateData, _opts, _id) {
 const UPDATE_FLAGS = {
   WALLS_BLOCK: `flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`,
   WALL_RESTRICTION: `flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`,
-  FORCE_BORDER: `flags.${MODULE_ID}.${FLAGS.HIDE.FORCE_BORDER}`,
-  FORCE_HIGHLIGHTING: `flags.${MODULE_ID}.${FLAGS.HIDE.FORCE_HIGHLIGHTING}`,
+  HIDE_BORDER: `flags.${MODULE_ID}.${FLAGS.HIDE.BORDER}`,
+  HIDE_HIGHLIGHTING: `flags.${MODULE_ID}.${FLAGS.HIDE.HIGHLIGHTING}`,
   NO_AUTOTARGET: `flags.${MODULE_ID}.${FLAGS.NO_AUTOTARGET}`,
   ELEVATION: `flags.elevatedvision.elevation`
 };
 const WALL_FLAGS = [UPDATE_FLAGS.WALLS_BLOCK, UPDATE_FLAGS.WALL_RESTRICTION];
-const DISPLAY_FLAGS = [UPDATE_FLAGS.FORCE_BORDER, UPDATE_FLAGS.FORCE_HIGHLIGHTING];
+const DISPLAY_FLAGS = [UPDATE_FLAGS.HIDE_BORDER, UPDATE_FLAGS.HIDE_HIGHLIGHTING];
 
 function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
   const changed = new Set(Object.keys(flattenObject(data)));
@@ -303,9 +314,7 @@ function clone(wrapped) {
  * If the setting is set to hide, don't highlight grid unless hovering.
  */
 function highlightGrid(wrapped) {
-  if ( !_canHideTemplate(this)
-   || !Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING)
-   || this.document.getFlag(MODULE_ID, FLAGS.HIDE.FORCE_HIGHLIGHTING) ) return wrapped();
+  if ( !(canHideTemplate(this) && canHideTemplateComponent(this, "HIGHLIGHTING")) ) return wrapped();
 
   // Clear the existing highlight layer
   const grid = canvas.grid;

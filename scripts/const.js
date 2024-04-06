@@ -35,10 +35,18 @@ export const FLAGS = {
 
   HIDE: {
     /** @type {boolean} */
-    FORCE_BORDER: "forceBorder",
+    BORDER: "hideBorder",
 
     /** @type {boolean} */
-    FORCE_HIGHLIGHTING: "forceHighlighting"
+    HIGHLIGHTING: "hideHighlighting",
+
+    TYPES: {
+      GLOBAL_DEFAULT: "globalDefault",
+      ALWAYS: "alwaysHide",
+      NEVER: "alwaysShow"
+    },
+
+    TOKEN_HOVER: "tokenHover"
   },
 
   /** @type {boolean} */
@@ -60,6 +68,12 @@ export const LABELS = {
     move: "WALLS.Movement",
     sight: "WALLS.Sight",
     sound: "WALLS.Sound"
+  },
+
+  TEMPLATE_HIDE: {
+    globalDefault: "walledtemplates.MeasuredTemplateConfiguration.globalDefault",
+    alwaysHide: "walledtemplates.MeasuredTemplateConfiguration.alwaysHide",
+    alwaysShow: "walledtemplates.MeasuredTemplateConfiguration.alwaysShow"
   },
 
   SPELL_TEMPLATE: {},

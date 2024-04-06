@@ -11,6 +11,9 @@
     "walledtemplates.MeasuredTemplateConfiguration.walled": "Block template",
     "walledtemplates.MeasuredTemplateConfiguration.recurse": "Reflect/Spread template",
 
+    "walledtemplates.MeasuredTemplateConfiguration.alwaysHide": "Always Hide",
+    "walledtemplates.MeasuredTemplateConfiguration.alwaysShow": "Always Show",
+
     "walledtemplates.MeasuredTemplateConfiguration.attach-token.Name": "Attached Token?",
     "walledtemplates.MeasuredTemplateConfiguration.attach-token.Hint": "Connect this template so it moves along with the token.",
     "walledtemplates.MeasuredTemplateConfiguration.attach-token.useSelectedToken": "Attach last selected token",
@@ -23,11 +26,11 @@
     "walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Name": "Do not autotarget",
     "walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Hint": "When enabled, overrides settings to not target tokens with this template.",
 
-    "walledtemplates.MeasuredTemplateConfiguration.force-border.Name": "Show Border",
-    "walledtemplates.MeasuredTemplateConfiguration.force-border.Hint": "When enabled, overrides settings to always show the border of this template.",
+    "walledtemplates.MeasuredTemplateConfiguration.hide-border.Name": "Hide Border",
+    "walledtemplates.MeasuredTemplateConfiguration.hide-border.Hint": "Overrides settings to always show or hide the border of this template.",
 
-    "walledtemplates.MeasuredTemplateConfiguration.force-highlighting.Name": "Show Highlighting",
-    "walledtemplates.MeasuredTemplateConfiguration.force-highlighting.Hint": "When enabled, overrides settings to always show highlighting for this template.",
+    "walledtemplates.MeasuredTemplateConfiguration.hide-highlighting.Name": "Hide Highlighting",
+    "walledtemplates.MeasuredTemplateConfiguration.hide-highlighting.Hint": "Overrides settings to always show or hide highlighting for this template.",
 
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevation",
 

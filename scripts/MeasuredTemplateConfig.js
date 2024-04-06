@@ -28,6 +28,7 @@ function renderMeasuredTemplateConfigHook(app, html, data) {
   renderData[MODULE_ID] = {
     blockoptions: LABELS.WALLS_BLOCK,
     walloptions: LABELS.WALL_RESTRICTION,
+    hideoptions: LABELS.TEMPLATE_HIDE,
     attachedTokenName: tokenName(attachedToken) || game.i18n.localize("None"),
     hasAttachedToken: Boolean(attachedToken),
     rotateWithToken: Boolean(rotateWithToken)
