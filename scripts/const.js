@@ -44,7 +44,9 @@ export const FLAGS = {
       GLOBAL_DEFAULT: "globalDefault",
       ALWAYS: "alwaysHide",
       NEVER: "alwaysShow"
-    }
+    },
+
+    TOKEN_HOVER: "tokenHover"
   },
 
   /** @type {boolean} */

@@ -11,7 +11,7 @@ isEmpty
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { ACTIVE_EFFECT_ICON } from "./const.js";
+import { ACTIVE_EFFECT_ICON, FLAGS, MODULE_ID } from "./const.js";
 import { tokenBounds } from "./util.js";
 import { UserCloneTargets } from "./UserCloneTargets.js";
 import { Settings } from "./settings.js";
@@ -374,18 +374,16 @@ function _onHoverOut(wrapped, event, options) {
  * Skip if templates are not hidden, token is not visible, or show on hover not enabled.
  */
 function showHideTemplates(token, show = true) {
-  const HIDE = Settings.KEYS.HIDE;
-  if ( !Settings.get(HIDE.HIGHLIGHTING)
-    || !Settings.get(HIDE.SHOW_ON_HOVER)
-    || !token.isVisible ) return;
+  if ( !Settings.get(Settings.KEYS.HIDE.SHOW_ON_HOVER) || !token.isVisible ) return;
 
   const tBounds = tokenBounds(token);
+  const TOKEN_HOVER = FLAGS.HIDE.TOKEN_HOVER
   canvas.templates.placeables.forEach(t => {
-    // Show or hide the highlight layer. See refreshMeasuredTemplate hook in MeasuredTemplate.js.
-    show &&= t.boundsOverlap(tBounds);
-    const alpha = show ? (t.document.hidden ? 0.5 : 1) : 0;
-    const hl = canvas.grid.getHighlightLayer(t.highlightId);
-    hl.alpha = alpha;
+    const mod = t.document.flags[MODULE_ID] ??= {};
+    const showT = show && t.isVisible && t.boundsOverlap(tBounds);
+    const changed = mod[TOKEN_HOVER] !== show;
+    mod[TOKEN_HOVER] = showT;
+    if ( changed ) t.renderFlags.set({ refreshGrid: true });
   });
 }
 
