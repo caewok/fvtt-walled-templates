@@ -128,19 +128,4 @@ async function render5eSpellTemplateConfig(app, html, data) {
   const myHTML = await renderTemplate(template, data);
 
   html.find(".form-group.consumption").first().after(myHTML);
-
-  // Add new tab
-  const tabData = `
-  <a class="item" data-tab="walledtemplates">{{ localize "walledtemplates.MeasuredTemplateConfiguration.LegendTitle" }}
-  `
-  html.find(".sheet-navigation.tabs").children().last().after(tabData);
-
-  const tab = `
-  {{!-- Walled Templates Tab --}}
-  <div class="tab walledtemplates flexcol" data-group="primary" data-tab="walledtemplates">
-      Hello World!
-  </div>
-  `
-  html.find(".tab.effects.flexcol").children().last().after(tab);
-
 }
