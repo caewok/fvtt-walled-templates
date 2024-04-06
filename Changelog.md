@@ -1,3 +1,10 @@
+## 0.7.5
+
+### Features
+Change the template configuration to a dropdown so user can choose to always/never/use global defaults for hiding template border and highlighting. Add the same dropdown to dnd5e spell configuration to pass those choices to the spell template. Closes #98.
+
+
+
 ## 0.7.4
 
 ### Features
