@@ -46,6 +46,12 @@ function canHideTemplate(template) {
  */
 function canHideTemplateComponent(template, hideFlag) {
   const HIDE = FLAGS.HIDE;
+
+  // Check for local token hover flag.
+  if ( Settings.get(Settings.KEYS.HIDE.SHOW_ON_HOVER)
+    && template.document.flags?.[MODULE_ID]?.[HIDE.TOKEN_HOVER] ) return false;
+
+  // Check for per-template setting.
   const TYPES = HIDE.TYPES;
   const local = template.document.getFlag(MODULE_ID, HIDE[hideFlag]);
   if ( !local || local === TYPES.GLOBAL_DEFAULT ) return Settings.get(Settings.KEYS.HIDE[hideFlag]);
