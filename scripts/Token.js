@@ -124,10 +124,8 @@ async function detachTemplate(templateId, detachFromTemplate = true, removeActiv
 
   // Remove the active effect associated with this template (if any).
   if ( removeActiveEffect) {
-    const effect = this.actor.effects.find(e => e.origin.endsWith(templateId))
-    if(effect) {
-      await this.actor.deleteEmbeddedDocuments("ActiveEffect", [effect.id]);
-    }
+    const effect = this.actor.effects.find(e => e.origin?.endsWith(templateId));
+    if ( effect ) await this.actor.deleteEmbeddedDocuments("ActiveEffect", [effect.id]);
   }
 
   // Remove this token from the template
