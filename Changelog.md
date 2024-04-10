@@ -1,3 +1,8 @@
+## 0.7.6
+
+### Bug fixes
+Address "endsWith" function not defined when using "attach to caster" in dnd5e. Closes  #101.
+
 ## 0.7.5
 
 ### Features
