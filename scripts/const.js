@@ -16,6 +16,9 @@ export const FLAGS = {
   /** @type {object} */
   RECURSE_DATA: "recurseData",
 
+  /** @type {string}*/
+  ATTACHED_TEMPLATE_ID: "attachedTemplateId",
+
   ATTACHED_TOKEN: {
 
     /** @type {string} */
@@ -53,7 +56,10 @@ export const FLAGS = {
   ADD_TOKEN_SIZE: "addTokenSize",
 
   /** @type {boolean} */
-  NO_AUTOTARGET: "noAutotarget"
+  NO_AUTOTARGET: "noAutotarget",
+
+  /** @type {string} */
+  VERSION: "version"
 };
 
 export const LABELS = {
