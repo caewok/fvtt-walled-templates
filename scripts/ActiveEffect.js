@@ -5,6 +5,8 @@ fromUuid
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
+import { FLAGS, MODULE_ID } from "./const.js";
+
 export const PATCHES = {};
 PATCHES.BASIC = {};
 
@@ -14,10 +16,11 @@ PATCHES.BASIC = {};
  * @param {object} opts
  * @param {string} id
  */
-async function deleteActiveEffectHook(activeEffect, _opts, _id) {
-  if ( !activeEffect.origin || !activeEffect.origin.includes(CONFIG.MeasuredTemplate.objectClass.name) ) return;
-  const t = await fromUuid(activeEffect.origin);
-  if ( t ) t.object?.detachToken();
+function deleteActiveEffectHook(activeEffect, _opts, _id) {
+  const id = activeEffect.getFlag(MODULE_ID, FLAGS.ATTACHED_TEMPLATE_ID);
+  if ( !id ) return;
+  const t = canvas.templates.placeables.find(t => t.id === id);
+  t?.object?.detachToken();
 }
 
 PATCHES.BASIC.HOOKS = { deleteActiveEffect: deleteActiveEffectHook };
