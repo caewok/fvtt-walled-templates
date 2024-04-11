@@ -5,6 +5,7 @@ Add a toggle to force no autotargeting for a given spell template in dnd5e. Clos
 
 ### Bug fixes
 Address "endsWith" function not defined when using "attach to caster" in dnd5e. Closes  #101.
+Switch to storing a module-specific flag on active effects representing an attached template. Avoids conflicts with other modules that use the effect origin. Closes #102.
 
 ## 0.7.5
 
