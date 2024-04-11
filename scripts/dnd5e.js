@@ -49,6 +49,9 @@ export function addDnd5eItemConfigurationToTemplate(template) {
     wallRestriction = Settings.get(Settings.KEYS.DEFAULT_WALL_RESTRICTION[shape]);
   }
 
+  // Determine autotargeting, falling back to global.
+  const noAutotarget = item.getFlag(MODULE_ID, FLAGS.NO_AUTOTARGET) ?? false;
+
   // Determine hide settings, falling back to global defaults.
   const hideBorder = item.getFlag(MODULE_ID, FLAGS.HIDE.BORDER) ?? LABELS.GLOBAL_DEFAULT;
   const hideHighlighting = item.getFlag(MODULE_ID, FLAGS.HIDE.HIGHLIGHTING) ?? LABELS.GLOBAL_DEFAULT;
@@ -59,6 +62,7 @@ export function addDnd5eItemConfigurationToTemplate(template) {
       [MODULE_ID]: {
         [FLAGS.WALLS_BLOCK]: wallsBlock,
         [FLAGS.WALL_RESTRICTION]: wallRestriction,
+        [FLAGS.NO_AUTOTARGET]: noAutotarget,
         [FLAGS.HIDE.BORDER]: hideBorder,
         [FLAGS.HIDE.HIGHLIGHTING]: hideHighlighting
       }
