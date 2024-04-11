@@ -106,6 +106,9 @@ async function attachTemplate(template, effectData = {}, attachToTemplate = true
   effectData.id = template.id;
   effectData.icon ??= ACTIVE_EFFECT_ICON;
   effectData.name ??= `Measured Template ${templateShape}`;
+  effectData.flags ??= {};
+  effectData.flags[MODULE_ID] ??= {};
+  effectData.flags[MODULE_ID][FLAGS.ATTACHED_TEMPLATE_ID] = template.id;
   effectData.origin = template.document.uuid;
   return await this.actor.createEmbeddedDocuments("ActiveEffect", [effectData]);
 }
@@ -124,10 +127,8 @@ async function detachTemplate(templateId, detachFromTemplate = true, removeActiv
 
   // Remove the active effect associated with this template (if any).
   if ( removeActiveEffect) {
-    const effect = this.actor.effects.find(e => e.origin.endsWith(templateId))
-    if(effect) {
-      await this.actor.deleteEmbeddedDocuments("ActiveEffect", [effect.id]);
-    }
+    const effect = this.actor.effects.find(e => templateId && e.getFlag(MODULE_ID, FLAGS.ATTACHED_TEMPLATE_ID) === templateId);
+    if ( effect ) await this.actor.deleteEmbeddedDocuments("ActiveEffect", [effect.id]);
   }
 
   // Remove this token from the template
@@ -233,10 +234,12 @@ PATCHES.BASIC.METHODS = {
  */
 function attachedTemplates() {
   if ( !this?.actor?.effects ) return [];  // Issue #65, #77.
-  return this.actor.effects
-    .filter(e => e.origin && e.origin.includes("MeasuredTemplate"))
-    .map(e => fromUuidSync(e.origin)?.object)
-    .filter(t => Boolean(t)); // Drop undefined templates
+  const attachedIds = new Set();
+  this.actor.effects.forEach(e => {
+    const id = e.getFlag(MODULE_ID, FLAGS.ATTACHED_TEMPLATE_ID);
+    if ( id ) attachedIds.add(id);
+  });
+  return canvas.templates.placeables.filter(t => attachedIds.has(t.id));
 }
 
 PATCHES.BASIC.GETTERS = { attachedTemplates };
