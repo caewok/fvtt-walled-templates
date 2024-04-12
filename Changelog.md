@@ -1,6 +1,7 @@
 ## 0.7.7
 
 Provide `MeasuredTemplate.prototype.targetsWithinShape` method at all times, not just when autotargeting is enabled. Closes #104.
+Don't refresh targeting on a template not owned by the current user, to avoid refreshing targets incorrectly. Closes #105.
 
 ## 0.7.6
 
