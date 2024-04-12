@@ -600,8 +600,30 @@ function _getTooltipText() {
   return el > 0 ? `+${el} ${units}` : `${el} ${units}`;
 }
 
+/**
+ * New method: MeasuredTemplate.prototype.targetsWithinShape
+ * Return tokens within the template shape.
+ * @param {object} [opts]     Options that affect what counts as a target
+ * @param {boolean} [opts.onlyVisible=false]      If true, limit potential targets to visible tokens for the user
+ * @returns {Token[]}
+ */
+function targetsWithinShape({ onlyVisible = false } = {}) {
+  return canvas.tokens.placeables.filter(token => {
+    if ( onlyVisible && !token.visible ) return false;
+    if ( !token.hitArea ) return false; // Token not yet drawn. See Token.prototype._draw.
+
+    // Midi-qol; Walled Templates issue #28, issue #37.
+    if ( getProperty(token, "actor.flags.midi-qol.neverTarget")
+      || getProperty(token, "actor.system.details.type.custom")?.includes("NoTarget") ) return false;
+
+    const tBounds = tokenBounds(token);
+    return this.boundsOverlap(tBounds);
+  });
+}
+
 PATCHES.BASIC.METHODS = {
   boundsOverlap,
+  targetsWithinShape,
   attachToken,
   detachToken,
   _calculateAttachedTemplateOffset,
@@ -790,25 +812,12 @@ function acquireTargets({ tokens, checkShapeBounds = true, onlyVisible = false, 
   if ( broadcast ) user.broadcastActivity(broadcastOpts);
 }
 
-function targetsWithinShape({ onlyVisible = false } = {}) {
-  return canvas.tokens.placeables.filter(token => {
-    if ( onlyVisible && !token.visible ) return false;
-    if ( !token.hitArea ) return false; // Token not yet drawn. See Token.prototype._draw.
 
-    // Midi-qol; Walled Templates issue #28, issue #37.
-    if ( getProperty(token, "actor.flags.midi-qol.neverTarget")
-      || getProperty(token, "actor.system.details.type.custom")?.includes("NoTarget") ) return false;
-
-    const tBounds = tokenBounds(token);
-    return this.boundsOverlap(tBounds);
-  });
-}
 
 PATCHES.AUTOTARGET.METHODS = {
   autotargetTokens,
   releaseTargets,
-  acquireTargets,
-  targetsWithinShape
+  acquireTargets
 };
 
 // ----- NOTE: Helper functions ----- //

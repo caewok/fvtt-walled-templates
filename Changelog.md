@@ -1,3 +1,7 @@
+## 0.7.7
+
+Provide `MeasuredTemplate.prototype.targetsWithinShape` method at all times, not just when autotargeting is enabled. Closes #104.
+
 ## 0.7.6
 
 ### Features
