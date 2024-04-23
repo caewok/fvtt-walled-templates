@@ -128,6 +128,26 @@ function refreshMeasuredTemplate(template, flags) {
  * @param {PlaceableObject} object    The object instance being drawn
  */
 function drawMeasuredTemplate(template) {
+  // Add token elevation to the template if using Levels or Wall-Height modules
+  let moduleLevels = game.modules.get('levels');
+  let moduleWallHeight_active = game.modules.get('wall-height')?.active;
+  if ( moduleLevels && (moduleLevels.active || moduleWallHeight_active) ) {
+    // Copy the Levels method of getting the elevation so that the tool button for it is respected. Levels only sets its flags at preCreateMeasuredTemplate
+    if ( template.flags?.levels?.elevation !== undefined || template.flags?.[MODULE_ID]?.elevation !== undefined ) return;
+    const templateData = CONFIG.Levels.handlers.TemplateHandler.getTemplateData(false);
+    template.document.updateSource({
+      flags: { [MODULE_ID]: { elevation: templateData.elevation } }
+    });
+  } else if ( moduleWallHeight_active ) {
+    // If wall-height is active, but levels doesn't exist, we need a different approach. Take the elevation from the caster token
+    let parentToken = template.item?.parent ? template.item.parent.getActiveTokens().findLast((token, index) => token.controlled || index == 0 ) : canvas.tokens.controlled[0] ?? _token;
+    if ( parentToken ) {
+      template.document.updateSource({
+        flags: { [MODULE_ID]: { elevation: parentToken.document.elevation } }
+      });
+    }
+  }
+
   if ( !template.item ) return;
   addDnd5eItemConfigurationToTemplate(template);
 }
