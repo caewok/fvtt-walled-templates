@@ -108,11 +108,13 @@ export const ACTIVE_EFFECT_ICON = `modules/${MODULE_ID}/assets/ruler-combined-so
 
 export const SHAPE_KEYS = ["circle", "cone", "ray", "rect"];
 
-export const MODULES_ACTIVE = {
-  DRAG_RULER: false
+export const MODULES = {
+  DRAG_RULER: { ACTIVE: false, ID: "drag-ruler" },
+  TOKEN_MAGIC: { ACTIVE: false, ID: "tokenmagic" }
 };
 
 // Hook init b/c game.modules is not initialized at start.
 Hooks.once("init", function () {
-  MODULES_ACTIVE.DRAG_RULER = game.modules.get("drag-ruler")?.active;
+  MODULES.DRAG_RULER.ACTIVE = game.modules.get(MODULES.DRAG_RULER.ID)?.active;
+  MODULES.TOKEN_MAGIC.ACTIVE = game.modules.get(MODULES.TOKEN_MAGIC.ID)?.active;
 });
