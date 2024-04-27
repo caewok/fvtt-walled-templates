@@ -11,7 +11,7 @@ PIXI
 
 import { WalledTemplateShape } from "./template_shapes/WalledTemplateShape.js";
 import { log, gridShapeForTopLeft, tokenBounds } from "./util.js";
-import { MODULE_ID, FLAGS } from "./const.js";
+import { MODULE_ID, FLAGS, MODULES } from "./const.js";
 import { Settings } from "./settings.js";
 import { Square } from "./geometry/RegularPolygon/Square.js";
 import { UserCloneTargets } from "./UserCloneTargets.js";
@@ -72,12 +72,13 @@ function refreshMeasuredTemplate(template, flags) {
 
   // Control the border visibility including border text.
   if ( flags.refreshTemplate || flags.refreshState ) {
+    log(`refreshMeasuredTemplate|template alpha ${template.template.alpha}`);
     if ( canHide && canHideTemplateComponent(template, "BORDER") ) {
       template.template.alpha = 0; // Don't mess with visible to fool automated animations into displaying.
       // This doesn't work: template.template.visible = false;
       template.ruler.visible = false;
     } else {
-      template.template.alpha = 1;
+      template.template.alpha = MODULES.TOKEN_MAGIC.ACTIVE ? (template.document.getFlag(MODULES.TOKEN_MAGIC.ID, "templateData")?.opacity ?? 1) : 1;
       // This doesn't work: template.template.visible = true;
       template.ruler.visible = true;
     }
@@ -86,6 +87,7 @@ function refreshMeasuredTemplate(template, flags) {
   // Control the highlight visibility by changing its alpha.
   if ( flags.refreshGrid || flags.refreshState ) {
     const hl = canvas.grid.getHighlightLayer(template.highlightId);
+    log(`refreshMeasuredTemplate|highlight layer alpha ${hl.alpha}`);
     if ( canHide && canHideTemplateComponent(template, "HIGHLIGHTING") ) hl.alpha = 0;
     else hl.alpha = template.document.hidden ? 0.5 : 1;
   }
@@ -472,6 +474,8 @@ PATCHES.BASIC.WRAPS = {
  * @return {Boolean}
  */
 function boundsOverlap(bounds) {
+  if ( !this.shape?.getBounds ) return false; // Issue #110.
+
   const tBounds = bounds.translate(-this.x, -this.y);
 
   if ( Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) {
