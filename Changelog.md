@@ -2,6 +2,7 @@
 Catch when a template shape is undefined or incorrectly defined such that it does not have a `getBounds` method. Avoids `getBounds` undefined error that may be related to TokenMagic module.
 When unhiding a template, set template alpha to the TokenMagic alpha setting for the template if that module is active and the flag is present. Closes #110.
 When checking if a template should be hidden, hide the template if TokenMagic is active and the template is set to observe global defaults and TokenMagic setting is set to hide the template.
+The template shape is now set to top/bottom elevation of the template elevation, so that Wall Height walls not within the elevation of the template do not block. Closes in part #100.
 
 ## 0.7.7
 Provide `MeasuredTemplate.prototype.targetsWithinShape` method at all times, not just when autotargeting is enabled. Closes #104.
