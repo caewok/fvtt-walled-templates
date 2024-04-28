@@ -54,7 +54,10 @@ function canHideTemplateComponent(template, hideFlag) {
   // Check for per-template setting.
   const TYPES = HIDE.TYPES;
   const local = template.document.getFlag(MODULE_ID, HIDE[hideFlag]);
-  if ( !local || local === TYPES.GLOBAL_DEFAULT ) return Settings.get(Settings.KEYS.HIDE[hideFlag]);
+  if ( !local || local === TYPES.GLOBAL_DEFAULT ) {
+    if ( MODULES.TOKEN_MAGIC.ACTIVE ) return game.settings.get('tokenmagic', 'autohideTemplateElements');
+    return Settings.get(Settings.KEYS.HIDE[hideFlag]);
+  }
   return (local === TYPES.ALWAYS);
 }
 
