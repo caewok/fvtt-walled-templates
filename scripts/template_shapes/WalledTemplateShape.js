@@ -244,12 +244,12 @@ export class WalledTemplateShape {
     // Default to treating template as infinite in vertical directions
     // Do this after initialization b/c something is flipping them around. Likely Wall Height.
     cfg.source.object ??= {};
-    cfg.source.object.b ??= Number.POSITIVE_INFINITY;
-    cfg.source.object.t ??= Number.NEGATIVE_INFINITY;
+    cfg.source.object.b = this.template.elevationE;
+    cfg.source.object.t = this.template.elevationE;
 
     // Need to also set origin, for reasons.
-    this.origin.b = Number.POSITIVE_INFINITY;
-    this.origin.t = Number.NEGATIVE_INFINITY;
+    this.origin.b = this.template.elevationE;
+    this.origin.t = this.template.elevationE;
 
     let sweepClass = this.sweepClass;
     if ( sweepClass === LightWallSweep && !this.options.lastReflectedEdge) sweepClass = ClockwiseSweepShape;
