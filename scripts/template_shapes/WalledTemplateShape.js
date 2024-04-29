@@ -247,7 +247,7 @@ export class WalledTemplateShape {
     let wallHasTopAbove = Number.NEGATIVE_INFINITY;
     // If Levels or Wall-Height modules are active, use the elevation flags set by levels or this module
     let elevation = this.template.document.getFlag('levels', 'elevation') ?? this.template.document.getFlag(MODULE_ID, 'elevation');
-    if ( elevation ) { wallHasBottomBelow = elevation; wallHasTopAbove = elevation; }
+    if ( elevation !== undefined ) { wallHasBottomBelow = elevation; wallHasTopAbove = elevation; }
     cfg.source.object ??= {};
     cfg.source.object.b ??= wallHasBottomBelow;
     cfg.source.object.t ??= wallHasTopAbove;
