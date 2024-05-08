@@ -45,11 +45,13 @@ export const FLAGS = {
 
     TYPES: {
       GLOBAL_DEFAULT: "globalDefault",
-      ALWAYS: "alwaysHide",
-      NEVER: "alwaysShow"
+      ALWAYS_HIDE: "alwaysHide",
+      ALWAYS_SHOW: "alwaysShow"
     },
 
-    TOKEN_HOVER: "tokenHover"
+    TOKEN_HOVER: "tokenHover", // Whether user is currently hovering over a token within this template.
+
+    SHOW_ON_HOVER: "showOnHover" // Template-specific show/hide hover setting.
   },
 
   /** @type {boolean} */

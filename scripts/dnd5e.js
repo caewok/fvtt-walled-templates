@@ -55,6 +55,7 @@ export function addDnd5eItemConfigurationToTemplate(template) {
   // Determine hide settings, falling back to global defaults.
   const hideBorder = item.getFlag(MODULE_ID, FLAGS.HIDE.BORDER) ?? LABELS.GLOBAL_DEFAULT;
   const hideHighlighting = item.getFlag(MODULE_ID, FLAGS.HIDE.HIGHLIGHTING) ?? LABELS.GLOBAL_DEFAULT;
+  const showOnHover = item.getFlag(MODULE_ID, FLAGS.HIDE.SHOW_ON_HOVER) ?? LABELS.GLOBAL_DEFAULT;
 
   // Attach items to the template.
   templateD.updateSource({
@@ -64,7 +65,8 @@ export function addDnd5eItemConfigurationToTemplate(template) {
         [FLAGS.WALL_RESTRICTION]: wallRestriction,
         [FLAGS.NO_AUTOTARGET]: noAutotarget,
         [FLAGS.HIDE.BORDER]: hideBorder,
-        [FLAGS.HIDE.HIGHLIGHTING]: hideHighlighting
+        [FLAGS.HIDE.HIGHLIGHTING]: hideHighlighting,
+        [FLAGS.HIDE.SHOW_ON_HOVER]: showOnHover
       }
     }
   });

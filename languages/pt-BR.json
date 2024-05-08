@@ -32,6 +32,9 @@
     "walledtemplates.MeasuredTemplateConfiguration.hide-highlighting.Name": "Esconder Destaque",
     "walledtemplates.MeasuredTemplateConfiguration.hide-highlighting.Hint": "Subscreve configurações configurações que sempre mostram ou escondem os destaques para este modelo.",
 
+    "walledtemplates.MeasuredTemplateConfiguration.show-hover.Name": "Mostrar ao passar o mouse",
+    "walledtemplates.MeasuredTemplateConfiguration.show-hover.Hint": "Subscreve configurações que sempre mostram ou escondem o modelo ao passar o mouse sobre um token dentro do modelo.",
+
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevação",
 
     "walledtemplates.dnd5e-spell-config.attach-token.Name": "Anexar?",
