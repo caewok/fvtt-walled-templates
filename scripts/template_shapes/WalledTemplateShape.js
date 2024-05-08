@@ -243,13 +243,20 @@ export class WalledTemplateShape {
     // Add in elevation for Wall Height to use
     // Default to treating template as infinite in vertical directions
     // Do this after initialization b/c something is flipping them around. Likely Wall Height.
+    let wallHasBottomBelow = Number.POSITIVE_INFINITY;
+    let wallHasTopAbove = Number.NEGATIVE_INFINITY;
+    // If Levels or Wall-Height modules are active, use the elevation flags set by levels or this module
+    let elevation = this.template.document.getFlag('levels', 'elevation') ?? this.template.elevationE;
+    if ( elevation !== undefined ) { wallHasBottomBelow = elevation; wallHasTopAbove = elevation; }
     cfg.source.object ??= {};
-    cfg.source.object.b = this.template.elevationE;
-    cfg.source.object.t = this.template.elevationE;
+
+    cfg.source.object.b ??= wallHasBottomBelow;
+    cfg.source.object.t ??= wallHasTopAbove;
 
     // Need to also set origin, for reasons.
-    this.origin.b = this.template.elevationE;
-    this.origin.t = this.template.elevationE;
+    this.origin.b = wallHasBottomBelow;
+    this.origin.t = wallHasTopAbove;
+
 
     let sweepClass = this.sweepClass;
     if ( sweepClass === LightWallSweep && !this.options.lastReflectedEdge) sweepClass = ClockwiseSweepShape;
