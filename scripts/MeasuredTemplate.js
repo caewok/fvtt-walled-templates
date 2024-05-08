@@ -1,10 +1,14 @@
 /* globals
 canvas,
+CONFIG,
 flattenObject,
+game,
 getProperty,
 isEmpty,
 MouseInteractionManager,
-PIXI
+PIXI,
+PreciseText,
+_token
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
@@ -48,8 +52,7 @@ function canHideTemplateComponent(template, hideFlag) {
   const HIDE = FLAGS.HIDE;
 
   // Check for local token hover flag.
-  if ( Settings.get(Settings.KEYS.HIDE.SHOW_ON_HOVER)
-    && template.document.flags?.[MODULE_ID]?.[HIDE.TOKEN_HOVER] ) return false;
+  if ( template.document.flags?.[MODULE_ID]?.[HIDE.TOKEN_HOVER] ) return false;
 
   // Check for per-template setting.
   const TYPES = HIDE.TYPES;
@@ -58,7 +61,7 @@ function canHideTemplateComponent(template, hideFlag) {
     if ( MODULES.TOKEN_MAGIC.ACTIVE ) return game.settings.get('tokenmagic', 'autohideTemplateElements');
     return Settings.get(Settings.KEYS.HIDE[hideFlag]);
   }
-  return (local === TYPES.ALWAYS);
+  return (local === TYPES.ALWAYS_HIDE);
 }
 
 /**
@@ -133,6 +136,26 @@ function refreshMeasuredTemplate(template, flags) {
  * @param {PlaceableObject} object    The object instance being drawn
  */
 function drawMeasuredTemplate(template) {
+  // Add token elevation to the template if using Levels or Wall-Height modules
+  let moduleLevels = game.modules.get('levels');
+  let moduleWallHeight_active = game.modules.get('wall-height')?.active;
+  if ( moduleLevels && (moduleLevels.active || moduleWallHeight_active) ) {
+    // Copy the Levels method of getting the elevation so that the tool button for it is respected. Levels only sets its flags at preCreateMeasuredTemplate
+    if ( template.flags?.levels?.elevation !== undefined || template.flags?.[MODULE_ID]?.elevation !== undefined ) return;
+    const templateData = CONFIG.Levels.handlers.TemplateHandler.getTemplateData(false);
+    template.document.updateSource({
+      flags: { [MODULE_ID]: { elevation: templateData.elevation } }
+    });
+  } else if ( moduleWallHeight_active ) {
+    // If wall-height is active, but levels doesn't exist, we need a different approach. Take the elevation from the caster token
+    let parentToken = template.item?.parent ? template.item.parent.getActiveTokens().findLast((token, index) => token.controlled || index == 0 ) : canvas.tokens.controlled[0] ?? _token;
+    if ( parentToken ) {
+      template.document.updateSource({
+        flags: { [MODULE_ID]: { elevation: parentToken.document.elevation } }
+      });
+    }
+  }
+
   if ( !template.item ) return;
   addDnd5eItemConfigurationToTemplate(template);
 }
@@ -192,6 +215,7 @@ const WALL_FLAGS = [UPDATE_FLAGS.WALLS_BLOCK, UPDATE_FLAGS.WALL_RESTRICTION];
 const DISPLAY_FLAGS = [UPDATE_FLAGS.HIDE_BORDER, UPDATE_FLAGS.HIDE_HIGHLIGHTING];
 
 function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
+  if ( !templateD.object ) return;
   const changed = new Set(Object.keys(flattenObject(data)));
   const rf = templateD.object.renderFlags;
   if ( WALL_FLAGS.some(k => changed.has(k)) ) rf.set({ refreshShape: true });
@@ -340,6 +364,12 @@ function _onDragLeftStart(wrapped, event) {
 
   // Store token and template clones separately.
   const tokenClones = event.interactionData.clones;
+
+  // See issue #112 and Discord https://ptb.discord.com/channels/915186263609454632/1167221795103985764/1235614818304655465
+  const oldControllableObjects = this.layer.options.controllableObjects;
+  if ( !this.layer.controlled.length ) this.layer.options.controllableObjects = false;
+  wrapped(event);
+  this.layer.options.controllableObjects = oldControllableObjects;
   wrapped(event);
   event.interactionData.attachedTemplateClones ??= new Map();
 
@@ -551,9 +581,9 @@ async function detachToken(detachFromToken = true) {
 
   // It is possible that the document gets destroyed while we are waiting around for the flag.
   try { await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ID);
-  } catch(error ) {}
+  } catch( _error ) { /* empty */ }
   try { await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.DELTAS);
-  } catch(error) {}
+  } catch( _error) { /* empty */ }
 
   if ( detachFromToken && attachedToken ) await attachedToken.detachTemplate(this, false);
 }
@@ -615,6 +645,7 @@ function _getTooltipText() {
  * @returns {Token[]}
  */
 function targetsWithinShape({ onlyVisible = false } = {}) {
+  const statusesToIgnore = CONFIG[MODULE_ID].autotargetStatusesToIgnore;
   return canvas.tokens.placeables.filter(token => {
     if ( onlyVisible && !token.visible ) return false;
     if ( !token.hitArea ) return false; // Token not yet drawn. See Token.prototype._draw.
@@ -623,6 +654,10 @@ function targetsWithinShape({ onlyVisible = false } = {}) {
     if ( getProperty(token, "actor.flags.midi-qol.neverTarget")
       || getProperty(token, "actor.system.details.type.custom")?.includes("NoTarget") ) return false;
 
+    // Ignore certain statuses. See issue #108.
+    if ( token.actor.statuses.intersects(statusesToIgnore) ) return false;
+
+    // Test the token boundary.
     const tBounds = tokenBounds(token);
     return this.boundsOverlap(tBounds);
   });
@@ -701,7 +736,25 @@ function refreshMeasuredTemplateHook(template, flags) {
   if ( flags.retarget && template.owner ) template.autotargetTokens();
 }
 
-PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook };
+/**
+ * Hook when a token has a status effect added or removed.
+ * Refresh the autotarget.
+ * @param {Token} token       The token affected.
+ * @param {string} statusId   The status effect ID being applied, from CONFIG.specialStatusEffects.
+ * @param {boolean} active    Is the special status effect now active?
+ */
+function applyTokenStatusEffect(token, statusId, _active) {
+  if ( !CONFIG[MODULE_ID].autotargetStatusesToIgnore.has(statusId) ) return;
+
+  // If the token is within the template boundary, trigger a retargeting.
+  const tBounds = tokenBounds(token);
+  canvas.templates.placeables.forEach(template => {
+    if ( template.boundsOverlap(tBounds) ) template.renderFlags.set({ retarget: true });
+  });
+}
+
+
+PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook, applyTokenStatusEffect };
 
 // ----- NOTE: Getters ----- //
 

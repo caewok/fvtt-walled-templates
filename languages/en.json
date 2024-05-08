@@ -32,6 +32,9 @@
     "walledtemplates.MeasuredTemplateConfiguration.hide-highlighting.Name": "Hide Highlighting",
     "walledtemplates.MeasuredTemplateConfiguration.hide-highlighting.Hint": "Overrides settings to always show or hide highlighting for this template.",
 
+    "walledtemplates.MeasuredTemplateConfiguration.show-hover.Name": "Show on Hover",
+    "walledtemplates.MeasuredTemplateConfiguration.show-hover.Hint": "Overrides settings to always or never show the template when hovering over a token within the template.",
+
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevation",
 
     "walledtemplates.dnd5e-spell-config.attach-token.Name": "Attach to?",

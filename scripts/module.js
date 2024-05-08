@@ -78,7 +78,13 @@ Hooks.once("init", function() {
      * (Placing directly on the corner will cause the LOS sweep to fail to round the corner.)
      * @type {number}
      */
-    cornerSpacer: 10
+    cornerSpacer: 10,
+
+    /**
+     * For autotarget, do not target tokens with these statuses.
+     * Use the id of the status in the set.
+     */
+    autotargetStatusesToIgnore: new Set(["dead"])
   };
 
   registerGeometry();

@@ -168,6 +168,17 @@ Hooks.once("ready", () => {
           that has an attached template.`
     })
 
+    .addEntry({
+      version: "0.7.9",
+      title: "Ignore statuses, override token hover",
+      body: `\
+          Added selection (always/never/global default) in the template configuration and, for dnd5e, in the spell configuration, to determine whether a
+          template should be revealed upon token hover.
+
+          Added "CONFIG.walledtemplates.autotargetStatusesToIgnore," which designates certain statuses that should be ignored by autotargeting.
+          This can be modified via macro or world script. It currently defaults to ignoring tokens with "dead" status.`
+    })
+
     .build()
     ?.render(true);
 });

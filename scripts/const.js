@@ -45,11 +45,13 @@ export const FLAGS = {
 
     TYPES: {
       GLOBAL_DEFAULT: "globalDefault",
-      ALWAYS: "alwaysHide",
-      NEVER: "alwaysShow"
+      ALWAYS_HIDE: "alwaysHide",
+      ALWAYS_SHOW: "alwaysShow"
     },
 
-    TOKEN_HOVER: "tokenHover"
+    TOKEN_HOVER: "tokenHover", // Whether user is currently hovering over a token within this template.
+
+    SHOW_ON_HOVER: "showOnHover" // Template-specific show/hide hover setting.
   },
 
   /** @type {boolean} */
@@ -110,11 +112,13 @@ export const SHAPE_KEYS = ["circle", "cone", "ray", "rect"];
 
 export const MODULES = {
   DRAG_RULER: { ACTIVE: false, ID: "drag-ruler" },
-  TOKEN_MAGIC: { ACTIVE: false, ID: "tokenmagic" }
+  TOKEN_MAGIC: { ACTIVE: false, ID: "tokenmagic" },
+  LEVELS: { ACTIVE: false, ID: "levels" }
 };
 
 // Hook init b/c game.modules is not initialized at start.
 Hooks.once("init", function () {
   MODULES.DRAG_RULER.ACTIVE = game.modules.get(MODULES.DRAG_RULER.ID)?.active;
   MODULES.TOKEN_MAGIC.ACTIVE = game.modules.get(MODULES.TOKEN_MAGIC.ID)?.active;
+  MODULES.LEVELS.ACTIVE = game.modules.get(MODULES.LEVELS.ID)?.active;
 });

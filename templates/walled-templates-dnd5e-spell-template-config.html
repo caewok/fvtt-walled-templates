@@ -77,5 +77,17 @@
       <p class="hint">
     </div>
 
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.show-hover.Name"}}
+        <i class="tip fas fa-info-circle" data-tooltip="walledtemplates.MeasuredTemplateConfiguration.show-hover.Hint"></i>
+      </label>
+      <div class="form-fields">
+        <select name="flags.walledtemplates.showOnHover">
+          {{ selectOptions walledtemplates.hideoptions selected=item.flags.walledtemplates.showOnHover localize=true }}
+        </select>
+      </div>
+      <p class="hint">
+    </div>
+
 {{/if}}
 
