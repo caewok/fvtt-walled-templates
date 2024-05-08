@@ -1,4 +1,4 @@
-## 0.8.0
+## 0.7.10
 Quick fix for erroneous duplicated call to `wrapped` in `_onDragLeftStart` method.
 
 ## 0.7.9
