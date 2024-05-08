@@ -242,6 +242,8 @@ function attachedTemplates() {
   return canvas.templates.placeables.filter(t => attachedIds.has(t.id));
 }
 
+
+
 PATCHES.BASIC.GETTERS = { attachedTemplates };
 
 // ----- NOTE: Wraps ----- //
@@ -377,14 +379,18 @@ function _onHoverOut(wrapped, event, options) {
  * Skip if templates are not hidden, token is not visible, or show on hover not enabled.
  */
 function showHideTemplates(token, show = true) {
-  if ( !Settings.get(Settings.KEYS.HIDE.SHOW_ON_HOVER) || !token.isVisible ) return;
-
+  if ( !token.isVisible ) return;
+  const showOnHoverSetting = Settings.get(Settings.KEYS.HIDE.SHOW_ON_HOVER);
   const tBounds = tokenBounds(token);
-  const TOKEN_HOVER = FLAGS.HIDE.TOKEN_HOVER
+  const { SHOW_ON_HOVER, TOKEN_HOVER, TYPES } = FLAGS.HIDE;
   canvas.templates.placeables.forEach(t => {
+    const hoverFlag = t.document.getFlag(MODULE_ID, SHOW_ON_HOVER) ?? TYPES.GLOBAL_DEFAULT;
+    const canShow = hoverFlag === TYPES.ALWAYS_SHOW || (hoverFlag === TYPES.GLOBAL_DEFAULT && showOnHoverSetting);
+
+    // Locally modify the template flags to indicate if there is a hovered token w/in the template.
     const mod = t.document.flags[MODULE_ID] ??= {};
-    const showT = show && t.isVisible && t.boundsOverlap(tBounds);
-    const changed = mod[TOKEN_HOVER] !== show;
+    const showT = show && canShow && t.isVisible && t.boundsOverlap(tBounds);
+    const changed = mod[TOKEN_HOVER] !== showT;
     mod[TOKEN_HOVER] = showT;
     if ( changed ) t.renderFlags.set({ refreshGrid: true });
   });

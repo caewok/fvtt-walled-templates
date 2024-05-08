@@ -52,8 +52,7 @@ function canHideTemplateComponent(template, hideFlag) {
   const HIDE = FLAGS.HIDE;
 
   // Check for local token hover flag.
-  if ( Settings.get(Settings.KEYS.HIDE.SHOW_ON_HOVER)
-    && template.document.flags?.[MODULE_ID]?.[HIDE.TOKEN_HOVER] ) return false;
+  if ( template.document.flags?.[MODULE_ID]?.[HIDE.TOKEN_HOVER] ) return false;
 
   // Check for per-template setting.
   const TYPES = HIDE.TYPES;
@@ -62,7 +61,7 @@ function canHideTemplateComponent(template, hideFlag) {
     if ( MODULES.TOKEN_MAGIC.ACTIVE ) return game.settings.get('tokenmagic', 'autohideTemplateElements');
     return Settings.get(Settings.KEYS.HIDE[hideFlag]);
   }
-  return (local === TYPES.ALWAYS);
+  return (local === TYPES.ALWAYS_HIDE);
 }
 
 /**
