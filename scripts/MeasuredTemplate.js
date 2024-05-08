@@ -361,6 +361,12 @@ function _onDragLeftStart(wrapped, event) {
 
   // Store token and template clones separately.
   const tokenClones = event.interactionData.clones;
+
+  // See issue #112 and Discord https://ptb.discord.com/channels/915186263609454632/1167221795103985764/1235614818304655465
+  const oldControllableObjects = this.layer.options.controllableObjects;
+  if ( !this.layer.controlled.length ) this.layer.options.controllableObjects = false;
+  wrapped(event);
+  this.layer.options.controllableObjects = oldControllableObjects;
   wrapped(event);
   event.interactionData.attachedTemplateClones ??= new Map();
 
