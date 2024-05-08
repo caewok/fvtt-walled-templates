@@ -110,11 +110,13 @@ export const SHAPE_KEYS = ["circle", "cone", "ray", "rect"];
 
 export const MODULES = {
   DRAG_RULER: { ACTIVE: false, ID: "drag-ruler" },
-  TOKEN_MAGIC: { ACTIVE: false, ID: "tokenmagic" }
+  TOKEN_MAGIC: { ACTIVE: false, ID: "tokenmagic" },
+  LEVELS: { ACTIVE: false, ID: "levels" }
 };
 
 // Hook init b/c game.modules is not initialized at start.
 Hooks.once("init", function () {
   MODULES.DRAG_RULER.ACTIVE = game.modules.get(MODULES.DRAG_RULER.ID)?.active;
   MODULES.TOKEN_MAGIC.ACTIVE = game.modules.get(MODULES.TOKEN_MAGIC.ID)?.active;
+  MODULES.LEVELS.ACTIVE = game.modules.get(MODULES.LEVELS.ID)?.active;
 });
