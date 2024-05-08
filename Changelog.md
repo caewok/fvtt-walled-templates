@@ -1,5 +1,6 @@
 ## 0.7.9
 Attempt to catch when other modules mess with the template layers and temporarily revert to avoid errors on drag start. Closes #112.
+Add a `CONFIG.walledtemplates.autotargetStatusesToIgnore` that defines a set (modifiable by macro or world script) of token statuses to ignore when autotargeting. Closes #108.
 
 ## 0.7.8
 Catch when a template shape is undefined or incorrectly defined such that it does not have a `getBounds` method. Avoids `getBounds` undefined error that may be related to TokenMagic module.
