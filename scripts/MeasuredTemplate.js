@@ -212,6 +212,7 @@ const WALL_FLAGS = [UPDATE_FLAGS.WALLS_BLOCK, UPDATE_FLAGS.WALL_RESTRICTION];
 const DISPLAY_FLAGS = [UPDATE_FLAGS.HIDE_BORDER, UPDATE_FLAGS.HIDE_HIGHLIGHTING];
 
 function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
+  if ( !templateD.object ) return;
   const changed = new Set(Object.keys(flattenObject(data)));
   const rf = templateD.object.renderFlags;
   if ( WALL_FLAGS.some(k => changed.has(k)) ) rf.set({ refreshShape: true });
