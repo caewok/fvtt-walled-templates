@@ -370,7 +370,6 @@ function _onDragLeftStart(wrapped, event) {
   if ( !this.layer.controlled.length ) this.layer.options.controllableObjects = false;
   wrapped(event);
   this.layer.options.controllableObjects = oldControllableObjects;
-  wrapped(event);
   event.interactionData.attachedTemplateClones ??= new Map();
 
   // Only one clone will be created for this template; retrieve and store.
