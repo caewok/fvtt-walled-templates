@@ -162,7 +162,7 @@ export class LightWallSweep extends ClockwiseSweepShape {
     if ( Math.sign(foundry.utils.orient2dFast(a, b, wall.A)) === exclusionarySide
       && Math.sign(foundry.utils.orient2dFast(a, b, wall.B)) === exclusionarySide ) return false;
 
-    if ( (lightWall.id && wall.id === lightWall.id)|| !super._testWallInclusion(wall, bounds) ) return false;
+    if ( (lightWall.id && wall.id === lightWall.id) || !super._testWallInclusion(wall, bounds) ) return false;
     return !exclusionaryTriangle.lineSegmentIntersects(wall.A, wall.B, { inside: true });
   }
 }

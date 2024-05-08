@@ -1,0 +1,144 @@
+{
+    "walledtemplates.MeasuredTemplateConfiguration.LegendTitle": "Walled Templates",
+    "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name": "Paredes",
+    "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint": "Círculos/Quadrados: Espalhar; Linhas/Cones: Refletir.",
+
+    "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name": "Tipo de parede",
+    "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint": "Modelos ignoram paredes que não bloqueiam este tipo.",
+
+    "walledtemplates.MeasuredTemplateConfiguration.globalDefault": "Usar padrão global",
+    "walledtemplates.MeasuredTemplateConfiguration.unwalled": "Não bloquear modelo",
+    "walledtemplates.MeasuredTemplateConfiguration.walled": "Bloquear modelo",
+    "walledtemplates.MeasuredTemplateConfiguration.recurse": "Refletir/Espalhar modelo",
+
+    "walledtemplates.MeasuredTemplateConfiguration.alwaysHide": "Sempre Esconder",
+    "walledtemplates.MeasuredTemplateConfiguration.alwaysShow": "Sempre Exibir",
+
+    "walledtemplates.MeasuredTemplateConfiguration.attach-token.Name": "Anexar ao Token?",
+    "walledtemplates.MeasuredTemplateConfiguration.attach-token.Hint": "Conecta o modelo ao token, para que ele se mova junto do token.",
+    "walledtemplates.MeasuredTemplateConfiguration.attach-token.useSelectedToken": "Anexe ao último token selecionado",
+    "walledtemplates.MeasuredTemplateConfiguration.attach-token.useTargetedToken": "Anexe ao último token marcado",
+    "walledtemplates.MeasuredTemplateConfiguration.attach-token.removeToken": "Remover token anexado",
+
+    "walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Name": "Girar com token",
+    "walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Hint": "Quando o token girar, o modelo irá girar ao redor do token.",
+
+    "walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Name": "Não marcar automaticamente",
+    "walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Hint": "Subscreve configurações para não marcar tokens com este template.",
+
+    "walledtemplates.MeasuredTemplateConfiguration.hide-border.Name": "Esconder Borda",
+    "walledtemplates.MeasuredTemplateConfiguration.hide-border.Hint": "Subscreve configurações que sempre mostram ou escondem a borda deste modelo.",
+
+    "walledtemplates.MeasuredTemplateConfiguration.hide-highlighting.Name": "Esconder Destaque",
+    "walledtemplates.MeasuredTemplateConfiguration.hide-highlighting.Hint": "Subscreve configurações configurações que sempre mostram ou escondem os destaques para este modelo.",
+
+    "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevação",
+
+    "walledtemplates.dnd5e-spell-config.attach-token.Name": "Anexar?",
+    "walledtemplates.dnd5e-spell-config.attach-token.na": "Não",
+    "walledtemplates.dnd5e-spell-config.attach-token.caster": "Conjurador",
+    "walledtemplates.dnd5e-spell-config.attach-token.target": "Último Marcado",
+
+    "walledtemplates.dnd5e-spell-config.add-token-size.Name": "Adicionar Tamanho Token ao Modelo",
+    "walledtemplates.dnd5e-spell-config.add-token-size.Hint": "Se a habilidade originar do centro de um token, adiciona o tamanho do token (mín. de largura/altura) ao tamanho do modelo.",
+
+    "walledtemplates.settings.submenu.title": "Config. Padrão de Formas",
+
+    "walledtemplates.settings.submenu.circle.Name": "Círculo",
+    "walledtemplates.settings.submenu.cone.Name": "Cone",
+    "walledtemplates.settings.submenu.ray.Name": "Linha",
+    "walledtemplates.settings.submenu.rect.Name": "Quadrado",
+
+    "walledtemplates.settings.submenu.circle.Title": "Config. Padrão Modelo Círculo",
+    "walledtemplates.settings.submenu.cone.Title": "Config. Padrão Modelo Cone",
+    "walledtemplates.settings.submenu.ray.Title": "Config. Padrão Modelo Linha",
+    "walledtemplates.settings.submenu.rect.Title": "Config. Padrão Modelo Quadrado",
+
+    "walledtemplates.settings.submenu.circle.Description": "Config. padrão de modelo a menos que subscrita por uma magia específica (D&D5e) ou macro.",
+    "walledtemplates.settings.submenu.cone.Description": "Config. padrão de modelo a menos que subscrita por uma magia específica (D&D5e) ou macro.",
+    "walledtemplates.settings.submenu.ray.Description": "Config. padrão de modelo a menos que subscrita por uma magia específica (D&D5e) ou macro.",
+    "walledtemplates.settings.submenu.rect.Description": "Config. padrão de modelo a menos que subscrita por uma magia específica (D&D5e) ou macro.",
+
+    "walledtemplates.settings.submenu.autotarget-override.Name": "Subscrever Destaque/Auto-Marcar",
+    "walledtemplates.settings.submenu.autotarget-override.Hint": "Subscreve a configuração padrão para destaque/marcar automaticamente para este modelo.",
+
+    "walledtemplates.settings.default_circle.Name": "Paredes Bloqueiam",
+    "walledtemplates.settings.default_cone.Name": "Paredes Bloqueiam",
+    "walledtemplates.settings.default_ray.Name": "Paredes Bloqueiam",
+    "walledtemplates.settings.default_rect.Name": "Paredes Bloqueiam",
+
+    "walledtemplates.settings.default_circle.Hint": "Selecione o padrão para novos modelos de círculo. Círculos podem se espalhar mas não refletir.",
+    "walledtemplates.settings.default_cone.Hint": "Selecione o padrão para novos modelos de cone. Cones podem refletir mas não se espalhar.",
+    "walledtemplates.settings.default_ray.Hint": "Selecione o padrão para novos modelos de linha. Linhas podem refletir mas não se espalhar.",
+    "walledtemplates.settings.default_rect.Hint": "Selecione o padrão para novos modelos de quadrado. Quadrados podem se espalhar mas não refletir.",
+
+    "walledtemplates.settings.default-circle-wall-restriction.Name": "Restrição de Parede",
+    "walledtemplates.settings.default-cone-wall-restriction.Name": "Restrição de Parede",
+    "walledtemplates.settings.default-ray-wall-restriction.Name": "Restrição de Parede",
+    "walledtemplates.settings.default-rect-wall-restriction.Name": "Restrição de Parede",
+
+    "walledtemplates.settings.default-circle-wall-restriction.Hint": "Paredes que bloqueiam este tipo, bloquearão modelos de círculo.",
+    "walledtemplates.settings.default-cone-wall-restriction.Hint": "Paredes que bloqueiam este tipo, bloquearão modelos de cone.",
+    "walledtemplates.settings.default-ray-wall-restriction.Hint": "Paredes que bloqueiam este tipo, bloquearão modelos de linha.",
+    "walledtemplates.settings.default-rect-wall-restriction.Hint": "Paredes que bloqueiam este tipo, bloquearão modelos de quadrado.",
+
+    "walledtemplates.settings.unwalled": "Não-bloqueado por paredes",
+    "walledtemplates.settings.walled": "Bloqueado por paredes",
+    "walledtemplates.settings.recurse": "Refletido/Espalhado",
+
+    "walledtemplates.settings.autotarget-menu.Name": "Habilitar Auto-Marcar",
+    "walledtemplates.settings.autotarget-menu.Hint": "Quando a opção de alternância é selecionada, um botão de controle de alvo na barra de controle do modelo permitirá que você alterne entre marcar ou não marcar.",
+    "walledtemplates.settings.autotarget-menu.Choice.no": "Não marcar automaticamente",
+    "walledtemplates.settings.autotarget-menu.Choice.toggle": "Exibir alternância",
+    "walledtemplates.settings.autotarget-menu.Choice.yes": "Sempre marcar",
+
+    "walledtemplates.settings.autotarget-method.Name": "Método Destaque/Auto-Marcar method",
+    "walledtemplates.settings.autotarget-method.Hint": "Como destacar quadrados da grade e tokens marcados automaticamente em modelos.",
+    "walledtemplates.settings.autotarget-method.Method.center": "Centro do token dentro do modelo",
+    "walledtemplates.settings.autotarget-method.Method.overlap": "Área do token sobrepõe modelo",
+
+    "walledtemplates.settings.autotarget-area.Name": "Porcentagem Destaque/Auto-Marcar",
+    "walledtemplates.settings.autotarget-area.Hint": "Apenas para 'Área do token sobrepõe modelo'. Porcentagem de limites de token ou área de grade que deve se sobrepor ao modelo para contar. 0 significa qualquer contagem de sobreposição. (Dica: use as teclas de seta depois de clicar no quadrado para aumentar em passos de 0,01.)",
+
+    "walledtemplates.settings.snapGrid.Name": "Ajustar às interseções da grade",
+    "walledtemplates.settings.snapGrid.Hint": "Segure shift quando arrastar modelos para ajustar ao meio da interseção da grade, como um centro quadrado de grade.",
+
+    "walledtemplates.settings.diagonal-scaling-ray.Name": "Dimensionar Linhas Diagonais",
+    "walledtemplates.settings.diagonal-scaling-ray.Hint": "Dimensiona modelos de linha conforme a regra diagonal 5/5/5.",
+
+    "walledtemplates.settings.diagonal-scaling-cone.Name": "Dimensionar Cones Diagonais",
+    "walledtemplates.settings.diagonal-scaling-cone.Hint": "Dimensiona modelos de cone conforme a regra diagonal 5/5/5.",
+
+    "walledtemplates.settings.diagonal-scaling-circle.Name": "Converter Círculos em Quadrados",
+    "walledtemplates.settings.diagonal-scaling-circle.Hint": "Converte modelos de círculo para quadrados para melhor conformidade com a regra diagonal 5/5/5.",
+
+    "walledtemplates.settings.diagonal-scaling-rect.Name": "Não Utilizado: Retificação de Escala Diagonal",
+    "walledtemplates.settings.diagonal-scaling-rect.Hint": "Não utilizado",
+
+    "walledtemplates.settings.hideBorder.Name": "Esconder borda do modelo",
+    "walledtemplates.settings.hideBorder.Hint": "A menos que passe o mouse sobre o ícone de controle do modelo, não mostre a borda da forma do modelo.",
+
+    "walledtemplates.settings.hideHighlighting.Name": "Esconder destaque do modelo",
+    "walledtemplates.settings.hideHighlighting.Hint": "A menos que passe o mouse sobre o ícone de controle do modelo, não mostre a grade destacada do modelo.",
+
+     "walledtemplates.settings.showOnHover.Name": "Exibir ao passar o token",
+    "walledtemplates.settings.showOnHover.Hint": "Ao passar o mouse sobre um token, mostre o destaque da grade para todos os modelos ocultos que se sobrepõem à borda desse token.",
+
+    "walledtemplates.controls.autotarget.Title": "Auto-marcar tokens com modelo",
+
+    "walledtemplates.notifications.attach-last-selected-token": "Selecione um token para anexar.",
+    "walledtemplates.notifications.attach-last-targeted-token": "Selecione um token para anexar.",
+
+    "walledtemplates.keybindings.autoTarget.name": "Alternar Auto-Marcar de Modelo",
+    "walledtemplates.keybindings.autoTarget.hint": "Adia para outros usos da chave. Por exemplo, se definido como 'T', não funcionará se passar o mouse sobre um token. Também funciona apenas se a alternância de marcação automática estiver habilitada nas configurações. E funciona apenas em camadas de token ou modelo.",
+
+    "walledtemplates.keybindings.unhideTemplates.name": "Exibis Modelos Temporariamente",
+    "walledtemplates.keybindings.unhideTemplates.hint": "Quando pressionado, as bordas do modelo e o destaque são exibidos.",
+
+    "walledtemplates.keybindings.incrementElevation.name": "Aumentar Elevação do Modelo",
+    "walledtemplates.keybindings.incrementElevation.hint": "Aumenta a elevação do modelo em etapas da grade. Enquanto o modelo é colocado ou ao passar o mouse sobre o controle do modelo.",
+
+    "walledtemplates.keybindings.decrementElevation.name": "Dominuir Elevação do Modelo",
+    "walledtemplates.keybindings.decrementElevation.hint": "Diminui a elevação do modelo nas etapas da grade. Enquanto o modelo é colocado ou ao passar o mouse sobre o controle do modelo."
+
+}

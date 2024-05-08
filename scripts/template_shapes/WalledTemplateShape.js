@@ -246,15 +246,17 @@ export class WalledTemplateShape {
     let wallHasBottomBelow = Number.POSITIVE_INFINITY;
     let wallHasTopAbove = Number.NEGATIVE_INFINITY;
     // If Levels or Wall-Height modules are active, use the elevation flags set by levels or this module
-    let elevation = this.template.document.getFlag('levels', 'elevation') ?? this.template.document.getFlag(MODULE_ID, 'elevation');
+    let elevation = this.template.document.getFlag('levels', 'elevation') ?? this.template.elevationE;
     if ( elevation !== undefined ) { wallHasBottomBelow = elevation; wallHasTopAbove = elevation; }
     cfg.source.object ??= {};
+
     cfg.source.object.b ??= wallHasBottomBelow;
     cfg.source.object.t ??= wallHasTopAbove;
 
     // Need to also set origin, for reasons.
     this.origin.b = wallHasBottomBelow;
     this.origin.t = wallHasTopAbove;
+
 
     let sweepClass = this.sweepClass;
     if ( sweepClass === LightWallSweep && !this.options.lastReflectedEdge) sweepClass = ClockwiseSweepShape;
