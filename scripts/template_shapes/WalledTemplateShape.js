@@ -7,7 +7,7 @@ PIXI
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { MODULE_ID, FLAGS, LABELS } from "../const.js";
+import { MODULE_ID, FLAGS, LABELS, MODULES } from "../const.js";
 import { Point3d } from "../geometry/3d/Point3d.js";
 import { ClipperPaths } from "../geometry/ClipperPaths.js";
 import { Settings, debugPolygons } from "../settings.js";
@@ -246,17 +246,17 @@ export class WalledTemplateShape {
     let wallHasBottomBelow = Number.POSITIVE_INFINITY;
     let wallHasTopAbove = Number.NEGATIVE_INFINITY;
     // If Levels or Wall-Height modules are active, use the elevation flags set by levels or this module
-    let elevation = this.template.document.getFlag('levels', 'elevation') ?? this.template.elevationE;
+    let elevation;
+    if ( MODULES.LEVELS.ACTIVE ) elevation = this.template.document.getFlag('levels', 'elevation');
+    elevation ??=  this.template.elevationE;
     if ( elevation !== undefined ) { wallHasBottomBelow = elevation; wallHasTopAbove = elevation; }
     cfg.source.object ??= {};
-
     cfg.source.object.b ??= wallHasBottomBelow;
     cfg.source.object.t ??= wallHasTopAbove;
 
     // Need to also set origin, for reasons.
     this.origin.b = wallHasBottomBelow;
     this.origin.t = wallHasTopAbove;
-
 
     let sweepClass = this.sweepClass;
     if ( sweepClass === LightWallSweep && !this.options.lastReflectedEdge) sweepClass = ClockwiseSweepShape;
