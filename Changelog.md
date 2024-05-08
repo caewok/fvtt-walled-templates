@@ -1,3 +1,6 @@
+## 0.8.0
+Quick fix for erroneous duplicated call to `wrapped` in `_onDragLeftStart` method.
+
 ## 0.7.9
 Attempt to catch when other modules mess with the template layers and temporarily revert to avoid errors on drag start. Closes #112. Thanks @Michael (Discord)!
 Add a `CONFIG.walledtemplates.autotargetStatusesToIgnore` that defines a set (modifiable by macro or world script) of token statuses to ignore when autotargeting. Closes #108.
