@@ -1,10 +1,14 @@
 /* globals
 canvas,
+CONFIG,
 flattenObject,
+game,
 getProperty,
 isEmpty,
 MouseInteractionManager,
-PIXI
+PIXI,
+PreciseText,
+_token
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
@@ -578,9 +582,9 @@ async function detachToken(detachFromToken = true) {
 
   // It is possible that the document gets destroyed while we are waiting around for the flag.
   try { await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ID);
-  } catch(error ) {}
+  } catch( _error ) { /* empty */ }
   try { await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.DELTAS);
-  } catch(error) {}
+  } catch( _error) { /* empty */ }
 
   if ( detachFromToken && attachedToken ) await attachedToken.detachTemplate(this, false);
 }
