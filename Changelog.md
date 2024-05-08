@@ -1,3 +1,6 @@
+## 0.7.9
+Attempt to catch when other modules mess with the template layers and temporarily revert to avoid errors on drag start. Closes #112.
+
 ## 0.7.8
 Catch when a template shape is undefined or incorrectly defined such that it does not have a `getBounds` method. Avoids `getBounds` undefined error that may be related to TokenMagic module.
 When unhiding a template, set template alpha to the TokenMagic alpha setting for the template if that module is active and the flag is present. Closes #110.

@@ -646,6 +646,7 @@ function _getTooltipText() {
  * @returns {Token[]}
  */
 function targetsWithinShape({ onlyVisible = false } = {}) {
+  const statusesToIgnore = CONFIG[MODULE_ID].autotargetStatusesToIgnore;
   return canvas.tokens.placeables.filter(token => {
     if ( onlyVisible && !token.visible ) return false;
     if ( !token.hitArea ) return false; // Token not yet drawn. See Token.prototype._draw.
@@ -654,6 +655,10 @@ function targetsWithinShape({ onlyVisible = false } = {}) {
     if ( getProperty(token, "actor.flags.midi-qol.neverTarget")
       || getProperty(token, "actor.system.details.type.custom")?.includes("NoTarget") ) return false;
 
+    // Ignore certain statuses. See issue #108.
+    if ( token.actor.statuses.intersects(statusesToIgnore) ) return false;
+
+    // Test the token boundary.
     const tBounds = tokenBounds(token);
     return this.boundsOverlap(tBounds);
   });
@@ -732,7 +737,25 @@ function refreshMeasuredTemplateHook(template, flags) {
   if ( flags.retarget && template.owner ) template.autotargetTokens();
 }
 
-PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook };
+/**
+ * Hook when a token has a status effect added or removed.
+ * Refresh the autotarget.
+ * @param {Token} token       The token affected.
+ * @param {string} statusId   The status effect ID being applied, from CONFIG.specialStatusEffects.
+ * @param {boolean} active    Is the special status effect now active?
+ */
+function applyTokenStatusEffect(token, statusId, _active) {
+  if ( !CONFIG[MODULE_ID].autotargetStatusesToIgnore.has(statusId) ) return;
+
+  // If the token is within the template boundary, trigger a retargeting.
+  const tBounds = tokenBounds(token);
+  canvas.templates.placeables.forEach(template => {
+    if ( template.boundsOverlap(tBounds) ) template.renderFlags.set({ retarget: true });
+  });
+}
+
+
+PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook, applyTokenStatusEffect };
 
 // ----- NOTE: Getters ----- //
 
