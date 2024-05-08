@@ -1,6 +1,10 @@
 ## 0.7.9
-Attempt to catch when other modules mess with the template layers and temporarily revert to avoid errors on drag start. Closes #112.
+Attempt to catch when other modules mess with the template layers and temporarily revert to avoid errors on drag start. Closes #112. Thanks @Michael (Discord)!
 Add a `CONFIG.walledtemplates.autotargetStatusesToIgnore` that defines a set (modifiable by macro or world script) of token statuses to ignore when autotargeting. Closes #108.
+Add selection (always/never/global default) in the template configuration and, for dnd5e, the spell configuration to determine whether a template should be revealed upon token hover. Closes #111.
+
+Add Brazilian Portugese translation. Thanks @Kharmans!
+Potential fix for Levels and Wall Height issue. Closes #66. Thanks @morepurplemorebetter!
 
 ## 0.7.8
 Catch when a template shape is undefined or incorrectly defined such that it does not have a `getBounds` method. Avoids `getBounds` undefined error that may be related to TokenMagic module.
