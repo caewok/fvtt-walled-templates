@@ -122,7 +122,7 @@ WalledTemplateCircle.prototype._spread = WalledTemplateCircle.prototype._recurse
  * @param {Set<Wall>} wallSet     Walls to test
  * @param {Point} templateOrigin  Origin of the template
  */
-function extendCornerFromWalls(cornerKey, wallSet, templateOrigin) {
+export function extendCornerFromWalls(cornerKey, wallSet, templateOrigin) {
   const CORNER_SPACER = CONFIG[MODULE_ID]?.cornerSpacer ?? 10;
 
   if ( !wallSet.size ) return pointFromKey(cornerKey);

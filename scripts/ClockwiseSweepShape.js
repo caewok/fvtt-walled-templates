@@ -69,6 +69,20 @@ export class ClockwiseSweepShape extends ClockwiseSweepPolygon {
   }
 
   /**
+   * Get the super-set of walls which could potentially apply to this polygon.
+   * Define a custom collision test used by the Quadtree to obtain candidate Walls.
+   * @returns {Set<Wall>}
+   * @protected
+   */
+  _getWalls() {
+    const walls = super._getWalls();
+
+    // Keep only walls in the configuration set, if provided.
+    if ( !this.config.potentialWalls ) return walls;
+    return walls.intersect(this.config.potentialWalls);
+  }
+
+  /**
    * Determine the result for the sweep at a given vertex
    * @param {PolygonVertex} vertex      The target vertex
    * @param {EdgeSet} activeEdges       The set of active edges
