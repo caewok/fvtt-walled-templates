@@ -31,7 +31,7 @@ import { registerGeometry } from "./geometry/registration.js";
 import { ClockwiseSweepShape } from "./ClockwiseSweepShape.js";
 import { LightWallSweep } from "./ClockwiseSweepLightWall.js";
 import { WalledTemplateShape } from "./template_shapes/WalledTemplateShape.js";
-import { WalledTemplateCircle } from "./template_shapes/WalledTemplateCircle.js";
+import { WalledTemplateCircle, extendCornerFromWalls } from "./template_shapes/WalledTemplateCircle.js";
 import { WalledTemplateRectangle } from "./template_shapes/WalledTemplateRectangle.js";
 import { WalledTemplateCone } from "./template_shapes/WalledTemplateCone.js";
 import { WalledTemplateRay } from "./template_shapes/WalledTemplateRay.js";
@@ -101,6 +101,8 @@ Hooks.once("init", function() {
     WalledTemplateRay,
     WalledTemplateRoundedCone,
     WalledTemplateSquare,
+
+    extendCornerFromWalls,
 
     PATCHER,
 
