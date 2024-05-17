@@ -1,3 +1,8 @@
+## 0.7.11
+
+### Features
+Delete attached templates when their token is deleted from the scene. When a template is attached, respect its hide settings when the attached token is being moved/dragged. Thanks @gambit for the suggestions!
+
 ## 0.7.10
 Quick fix for erroneous duplicated call to `wrapped` in `_onDragLeftStart` method.
 
