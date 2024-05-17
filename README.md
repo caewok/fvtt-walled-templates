@@ -6,6 +6,8 @@
 ![Latest Release Download Count](https://img.shields.io/github/downloads/caewok/fvtt-walled-templates/latest/module.zip)
 ![All Downloads](https://img.shields.io/github/downloads/caewok/fvtt-walled-templates/total)
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/H2H3Y7IJW)
+
 # Walled Templates
 
 This module lets you toggle measured templates so that they can be blocked by walls. For example, if in your game system, walls block *fireball*, you can use this module to determine the extent of the fireball given one or more walls.
