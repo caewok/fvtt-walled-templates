@@ -1,3 +1,10 @@
+## 0.7.11
+
+### Features
+Delete attached templates when their token is deleted from the scene. Thanks @gambit for the suggestion!
+
+
+
 ## 0.7.10
 Quick fix for erroneous duplicated call to `wrapped` in `_onDragLeftStart` method.
 

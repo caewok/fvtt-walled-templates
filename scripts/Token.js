@@ -67,7 +67,7 @@ function updateTokenHook(tokenD, changed, _options, userId) {
 }
 
 /**
- * Hook destroyToken to remove attached template
+ * Hook destroyToken to remove and delete attached template.
  * @param {PlaceableObject} object    The object instance being destroyed
  */
 async function destroyTokenHook(token) {
@@ -75,8 +75,12 @@ async function destroyTokenHook(token) {
 
   // Issue #50: Don't remove the active effect for a deleted unlinked token.
   const isLinked = token.document.isLinked;
-  const promises = token.attachedTemplates.map(t => token.detachTemplate(t, true, isLinked));
-  await Promise.all(promises);
+  const promises = [];
+  for ( const t of token.attachedTemplates ) {
+    await token.detachTemplate(t, true, isLinked)
+    promises.push(t.document.delete());
+  }
+  await Promise.allSettled(promises);
 }
 
 PATCHES.BASIC.HOOKS = {
