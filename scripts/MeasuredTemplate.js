@@ -35,8 +35,11 @@ PATCHES.dnd5e = {};
  * @returns {boolean} True if it can be hidden.
  */
 function canHideTemplate(template) {
+  // For attached templates, respect the hidden settings.
+  // For non-attached, we probably want the preview to display the template
+  const showPreview = template.isPreview && !template.attachedToken;
   return !(template.hover
-    || template.isPreview
+    || showPreview
     || !template.visible
     || template.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
     || Settings.FORCE_TEMPLATE_DISPLAY);
