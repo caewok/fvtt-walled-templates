@@ -1,6 +1,7 @@
 /* globals
 ClockwiseSweepPolygon,
-CollisionResult
+CollisionResult,
+foundry
 */
 "use strict";
 
@@ -62,7 +63,7 @@ export class ClockwiseSweepShape extends ClockwiseSweepPolygon {
     // Step 3 - Radial sweep over endpoints
     this._executeSweep();
 
-    this._sweepPoints = duplicate(this.points);
+    this._sweepPoints = foundry.utils.duplicate(this.points);
 
     // Step 4 - Constrain with boundary shapes
     this._constrainBoundaryShapes();

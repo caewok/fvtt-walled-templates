@@ -1,5 +1,5 @@
 /* globals
-duplicate
+foundry
 */
 
 "use strict";
@@ -89,8 +89,8 @@ export const LABELS = {
   GLOBAL_DEFAULT: "globalDefault"
 };
 
-LABELS.SPELL_TEMPLATE.WALLS_BLOCK = duplicate(LABELS.WALLS_BLOCK);
-LABELS.SPELL_TEMPLATE.WALL_RESTRICTION = duplicate(LABELS.WALL_RESTRICTION);
+LABELS.SPELL_TEMPLATE.WALLS_BLOCK = foundry.utils.duplicate(LABELS.WALLS_BLOCK);
+LABELS.SPELL_TEMPLATE.WALL_RESTRICTION = foundry.utils.duplicate(LABELS.WALL_RESTRICTION);
 LABELS.SPELL_TEMPLATE.WALLS_BLOCK.globalDefault = "walledtemplates.MeasuredTemplateConfiguration.globalDefault";
 LABELS.SPELL_TEMPLATE.WALL_RESTRICTION.globalDefault = "walledtemplates.MeasuredTemplateConfiguration.globalDefault";
 LABELS.SPELL_TEMPLATE.ATTACH_TOKEN = {
