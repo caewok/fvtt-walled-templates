@@ -1,7 +1,7 @@
 /* globals
 canvas,
 CONFIG,
-flattenObject,
+foundry,
 game,
 getProperty,
 isEmpty,
@@ -219,7 +219,7 @@ const DISPLAY_FLAGS = [UPDATE_FLAGS.HIDE_BORDER, UPDATE_FLAGS.HIDE_HIGHLIGHTING]
 
 function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
   if ( !templateD.object ) return;
-  const changed = new Set(Object.keys(flattenObject(data)));
+  const changed = new Set(Object.keys(foundry.utils.flattenObject(data)));
   const rf = templateD.object.renderFlags;
   if ( WALL_FLAGS.some(k => changed.has(k)) ) rf.set({ refreshShape: true });
   if ( DISPLAY_FLAGS.some(k => changed.has(k)) ) rf.set({

@@ -1,6 +1,6 @@
 /* globals
 canvas,
-flattenObject
+foundry,
 game,
 isEmpty
 */
@@ -81,7 +81,7 @@ export function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
     `flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`
   ];
 
-  const changed = new Set(Object.keys(flattenObject(data)));
+  const changed = new Set(Object.keys(foundry.utils.flattenObject(data)));
   if ( wtChangeFlags.some(k => changed.has(k)) ) templateD.object.renderFlags.set({
     refreshShape: true
   });
