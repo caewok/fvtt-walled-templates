@@ -1,13 +1,12 @@
 /* globals
 canvas,
 foundry,
-PIXI,
-PolygonEdge,
-PolygonVertex,
+PIXI
 */
 "use strict";
 
 import { ClockwiseSweepShape } from "./ClockwiseSweepShape.js";
+import { MODULE_ID } from "./const.js";
 
 /**
  * Extend Clockwise Sweep to sweep using a distant origin point to simulate a light wall.
@@ -19,12 +18,6 @@ export class LightWallSweep extends ClockwiseSweepShape {
    * @type {boolean}
    */
   #originContained = true;
-
-  /**
-   * Outermost boundary edges, which may be further out than canvas boundaries.
-   * @type {Edge[4]}
-   */
-  #boundaryEdges = [];
 
   /**
    * Compute the polygon using the origin and configuration options.
@@ -62,13 +55,13 @@ export class LightWallSweep extends ClockwiseSweepShape {
   _boundaryEdgesFromRectangle(rect) {
     // From CanvasEdges##defineBoundaries
     const define = (type, r) => {
-      const top = new Edge({x: r.x, y: r.y}, {x: r.right, y: r.y}, {id: `${type}Top`, type});
-      const right = new Edge({x: r.right, y: r.y}, {x: r.right, y: r.bottom}, {id: `${type}Right`, type});
-      const bottom = new Edge({x: r.right, y: r.bottom}, {x: r.x, y: r.bottom}, {id: `${type}Bottom`, type});
-      const left = new Edge({x: r.x, y: r.bottom}, {x: r.x, y: r.y}, {id: `${type}Left`, type});
+      const top = new foundry.canvas.edges.Edge({x: r.x, y: r.y}, {x: r.right, y: r.y}, {id: `${type}Top`, type});
+      const right = new foundry.canvas.edges.Edge({x: r.right, y: r.y}, {x: r.right, y: r.bottom}, {id: `${type}Right`, type});
+      const bottom = new foundry.canvas.edges.Edge({x: r.right, y: r.bottom}, {x: r.x, y: r.bottom}, {id: `${type}Bottom`, type});
+      const left = new foundry.canvas.edges.Edge({x: r.x, y: r.bottom}, {x: r.x, y: r.y}, {id: `${type}Left`, type});
       return [top, right, bottom, left];
     };
-    this.#boundaryEdges = define(`${MODULE_ID}.${this.config.source.sourceId}`, );
+    return define(`${MODULE_ID}.${this.config.source.sourceId}`, rect);
   }
 
   /**
@@ -78,7 +71,18 @@ export class LightWallSweep extends ClockwiseSweepShape {
   _identifyEdges() {
     super._identifyEdges();
     if ( this.#originContained ) return;
-    this._boundaryEdgesFromRectangle().forEach(edge => this.edges.add(edge));
+
+    // Construct a new boundary rectangle.
+    const rect = canvas.dimensions.rect;
+    const xMinMax = Math.minMax(this.origin.x, rect.left, rect.right);
+    const yMinMax = Math.minMax(this.origin.y, rect.top, rect.bottom);
+    const encompassingRect = new PIXI.Rectangle(
+      xMinMax.min - 2,
+      yMinMax.min - 2,
+      xMinMax.max - xMinMax.min + 4,
+      yMinMax.max - yMinMax.min + 4
+    );
+    this._boundaryEdgesFromRectangle(encompassingRect).forEach(edge => this.edges.add(edge));
   }
 
   /**
@@ -116,10 +120,9 @@ export class LightWallSweep extends ClockwiseSweepShape {
     const cfg = this.config;
 
     if ( !cfg.lightWall ) return console.error("LightWallSweep requires a wall!");
+    if ( cfg.lightWall instanceof Wall ) cfg.lightWall = cfg.lightWall.edge;
 
-    const { A, B } = cfg.lightWall;
-    const a = new PIXI.Point(A.x, A.y);
-    const b = new PIXI.Point(B.x, B.y);
+    const { a, b } = cfg.lightWall;
     cfg.exclusionaryTriangle = new PIXI.Polygon([origin, a, b]);
     cfg.exclusionarySide = Math.sign(foundry.utils.orient2dFast(a, b, origin));
     const av = a.subtract(origin);

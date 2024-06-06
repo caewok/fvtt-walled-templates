@@ -23,17 +23,15 @@ PATCHES.BASIC = {};
 function createWallHook(document, options, _userId) {
   if (options.temporary) return;
 
-  const A = document._object.A;
-  const B = document._object.B;
+  const A = document.object.edge.a;
+  const B = document.object.edge.b;
   log(`Refreshing templates on createWall ${A.x},${A.y}|${B.x},${B.y}.`);
 
   canvas.templates.placeables.forEach(t => {
     const bbox = t.shape.getBounds().translate(t.x, t.y);
     if ( bbox.lineSegmentIntersects(A, B, { inside: true }) ) {
       log(`Wall ${document.id} intersects ${t.id}`);
-      t.renderFlags.set({
-        refreshShape: true
-      });
+      t.renderFlags.set({ refreshShape: true });
     }
   });
 }

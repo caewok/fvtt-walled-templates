@@ -240,9 +240,12 @@ function _getGridHighlightPositions(wrapper) {
   const positions = wrapper();
 
   // Debug
-  Draw = CONFIG.GeometryLib.Draw;
-  positions.forEach(p => Draw.point(p, { alpha: 0.4 }))
-  positions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.2 }))
+  if ( CONFIG[MODULE_ID].debug ) {
+    const Draw = CONFIG.GeometryLib.Draw;
+    Draw.clearDrawings();
+    positions.forEach(p => Draw.point(p, { alpha: 0.4 }))
+    positions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.2 }));
+  }
 
   // Reset shape.
   this.shape = oldShape;
@@ -254,8 +257,11 @@ function _getGridHighlightPositions(wrapper) {
   });
 
   // Debug
-  filteredPositions.forEach(p => Draw.point(p, { alpha: 0.8 }))
-  filteredPositions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.5 }))
+  if ( CONFIG[MODULE_ID].debug ) {
+    const Draw = CONFIG.GeometryLib.Draw;
+    filteredPositions.forEach(p => Draw.point(p, { alpha: 0.8 }))
+    filteredPositions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.5 }));
+  }
 
   return filteredPositions;
 }

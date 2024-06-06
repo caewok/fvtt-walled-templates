@@ -1,6 +1,7 @@
 /* globals
 canvas,
 CONFIG,
+fromUuidSync,
 game,
 Hooks
 */
@@ -109,11 +110,8 @@ Hooks.once("init", function() {
 
   // Add render flags to help with autotargeting and elevation of the template.
   CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.retarget = {};
-  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate = ["retarget", "refreshShape"];
-
-  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshElevation = { propagate: ["retarget", "refreshShape"]};
-  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate = ["retarget", "refreshShape", "refreshElevation"];
-
+  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate.push("retarget");
+  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate.push("refreshShape");
 
   // Tell modules that the module is set up
   Hooks.callAll(`${MODULE_ID}Ready`);

@@ -93,11 +93,17 @@ export class WalledTemplateCone extends WalledTemplateRay {
 
     // Skip sweep edges that form the edge of the cone projecting from origin.
     const sweepEdges = [...sweep.iterateEdges({ close: true })]
-      .filter(e => !orient2dFast(e.A, e.B, templateOrigin).almostEqual(0));
+      .filter(e => !orient2dFast(e.A, e.B, templateOrigin).almostEqual(0))
+      .map(e => {
+        return {
+          a: e.A, // For consistency with other edges.
+          b: e.B
+        };
+      });
 
     const lastReflectedEdge = this.options.lastReflectedEdge;
     const oLastReflected = lastReflectedEdge
-      ? Math.sign(orient2dFast(lastReflectedEdge.A, lastReflectedEdge.B, templateOrigin))
+      ? Math.sign(orient2dFast(lastReflectedEdge.a, lastReflectedEdge.b, templateOrigin))
       : undefined;
 
     // Build the left/right cone segments.
@@ -106,33 +112,33 @@ export class WalledTemplateCone extends WalledTemplateRay {
     // Locate walls that reflect the cone.
     // Walls must be within the sweep template or intersect the sweep template
     const reflectingEdges = [];
-    for ( const wall of sweep.edgesEncountered ) {
+    for ( const edge of sweep.edgesEncountered ) {
       // Don't reflect off of bounds
       // if ( this._boundaryWalls.has(wall) ) continue;
 
       if ( lastReflectedEdge ) {
         // Omit the last reflected.
-        if ( wall.id === lastReflectedEdge.id ) continue;
+        if ( edge.id === lastReflectedEdge.id ) continue;
 
         // Any reflecting wall must be on the side of the reflecting wall opposite the origin.
-        const oEdge = orient2dFast(wall.A, wall.B, templateOrigin);
+        const oEdge = orient2dFast(edge.a, edge.b, templateOrigin);
         if ( Math.sign(oEdge) === oLastReflected ) continue;
       }
 
       // Edge must be within distance of the template to use.
-      const closestEdgePoint = closestPointToSegment(templateOrigin, wall.A, wall.B);
+      const closestEdgePoint = closestPointToSegment(templateOrigin, edge.a, edge.b);
       const minDist2 = PIXI.Point.distanceSquaredBetween(templateOrigin, closestEdgePoint);
       if ( minDist2 > maxDist2 ) continue;
 
       // Shrink the wall to be inside the template if necessary.
       // Shrink the radius slightly to ensure the intersected point will count.
-      const circleIx = lineCircleIntersection(wall.A, wall.B, templateOrigin, maxDist - 2);
+      const circleIx = lineCircleIntersection(edge.a, edge.b, templateOrigin, maxDist - 2);
       const numIx = circleIx.intersections.length;
 
       // Need PIXI points later; easier to convert now. (towardsPoint, almostEqual)
-      const wallA = (!numIx || circleIx.aInside) ? new PIXI.Point(wall.A.x, wall.A.y)
+      const edgeA = (!numIx || circleIx.aInside) ? new PIXI.Point(edge.a.x, edge.a.y)
         : new PIXI.Point(circleIx.intersections[0].x, circleIx.intersections[0].y);
-      const wallB = (!numIx || circleIx.bInside) ? new PIXI.Point(wall.B.x, wall.B.y)
+      const edgeB = (!numIx || circleIx.bInside) ? new PIXI.Point(edge.b.x, edge.b.y)
         : new PIXI.Point(circleIx.intersections.at(-1).x, circleIx.intersections.at(-1).y);
 
       // Does the wall border a sweep edge?
@@ -150,17 +156,17 @@ export class WalledTemplateCone extends WalledTemplateRay {
       // If the intersection is within a pixel of the point, count it.
 
       // Determine the left and right wall endpoints, to match to the edge endpoints.
-      const oWallA = orient2dFast(dirRay.A, dirRay.B, wallA);
-      const oWallB = orient2dFast(dirRay.A, dirRay.B, wallB);
-      const [leftWallPoint, rightWallPoint] = oWallA > oWallB ? [wallA, wallB] : [wallB, wallA];
+      const oWallA = orient2dFast(dirRay.A, dirRay.B, edgeA);
+      const oWallB = orient2dFast(dirRay.A, dirRay.B, edgeB);
+      const [leftWallPoint, rightWallPoint] = oWallA > oWallB ? [edgeA, edgeB] : [edgeB, edgeA];
 
       // Draw line from the origin to each sweep edge point.
       for ( const sweepEdge of sweepEdges ) {
         // Left (CCW) and right (CW) edges of the emitted cone for this edge
-        const oEdgeA = orient2dFast(dirRay.A, dirRay.B, sweepEdge.A);
-        const oEdgeB = orient2dFast(dirRay.A, dirRay.B, sweepEdge.B);
+        const oEdgeA = orient2dFast(dirRay.A, dirRay.B, sweepEdge.a);
+        const oEdgeB = orient2dFast(dirRay.A, dirRay.B, sweepEdge.b);
         const [leftEdgePoint, rightEdgePoint] = oEdgeA > oEdgeB
-          ? [sweepEdge.A, sweepEdge.B] : [sweepEdge.B, sweepEdge.A];
+          ? [sweepEdge.a, sweepEdge.b] : [sweepEdge.b, sweepEdge.a];
 
         let leftIx;
         if ( leftEdgePoint.almostEqual(leftWallPoint, MIN_DIST_EPSILON) ) {
@@ -188,13 +194,12 @@ export class WalledTemplateCone extends WalledTemplateRay {
         }
         if ( !rightIx || rightIx.t0 > MIN_DIST_EPSILON ) continue;
 
-        const edge = {
-          A: new PIXI.Point(leftIx.x, leftIx.y),
-          B: new PIXI.Point(rightIx.x, rightIx.y),
-          wall,
-          id: wall.id
-        };
-        reflectingEdges.push(edge);
+        reflectingEdges.push({
+          a: PIXI.Point.fromObject(leftIx),
+          b: PIXI.Point.fromObject(rightIx),
+          edge: sweepEdge,
+          id: sweepEdge.id
+        });
       }
     }
     const numEdges = reflectingEdges.length;
@@ -221,7 +226,7 @@ export class WalledTemplateCone extends WalledTemplateRay {
       // Shallow copy the options for the new template.
       const opts = { ...this.options };
       opts.level += 1;
-      opts.reflectedWall = reflectingEdge;
+      opts.reflectedEdge = reflectingEdge;
       opts.reflectionRay = reflectionRay;
       opts.Rr = Rr;
       opts.lastReflectedEdge = reflectingEdge;
