@@ -764,7 +764,7 @@ function releaseTargets({ tokens, broadcast = true } = {}) {
   if ( !targetsToRelease.size ) return;
 
   // Release targets for this user.
-  const user = this.document.user;
+  const user = this.document.author;
   let targetFn = "setTarget";
   let userTargets = user.targets;
   let broadcastOpts = { targets: user.targets.ids };
@@ -814,7 +814,7 @@ function acquireTargets({ tokens, checkShapeBounds = true, onlyVisible = false, 
   if ( !targetsToAcquire.size ) return;
 
   // Acquire targets for this user.
-  const user = this.document.user;
+  const user = this.document.author;
   let targetFn = "setTarget";
   let userTargets = user.targets;
   let broadcastOpts = { targets: user.targets.ids };
