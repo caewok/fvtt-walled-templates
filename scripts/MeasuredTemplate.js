@@ -150,7 +150,7 @@ function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
     refreshTemplate: true,
     refreshGrid: true
   });
-  if ( changed.has(UPDATE_FLAGS.NO_AUTOTARGET) ) rf.set({ retarget: true });
+  if ( changed.has(UPDATE_FLAGS.NO_AUTOTARGET) ) rf.set({ refreshTargets: true });
   if ( changed.has(UPDATE_FLAGS.ELEVATION) ) rf.set({ refreshElevation: true });
 }
 
@@ -698,14 +698,14 @@ PATCHES.BASIC.GETTERS = { attachedToken, wallsBlock, autotarget: getAutotarget }
 // ----- Note: Hooks ----- //
 
 /**
- * Hook template refresh to address the retarget renderFlag.
+ * Hook template refresh to address the refreshTargets renderFlag.
  * Target tokens after drawing/refreshing the template.
  * See MeasuredTemplate.prototype._applyRenderFlags.
  * @param {PlaceableObject} object    The object instance being refreshed
  * @param {RenderFlags} flags
  */
 function refreshMeasuredTemplateHook(template, flags) {
-  if ( flags.retarget && template.isOwner ) template.autotargetTokens();
+  if ( flags.refreshTargets && template.isOwner ) template.autotargetTokens();
 }
 
 /**
@@ -718,10 +718,10 @@ function refreshMeasuredTemplateHook(template, flags) {
 function applyTokenStatusEffect(token, statusId, _active) {
   if ( !CONFIG[MODULE_ID].autotargetStatusesToIgnore.has(statusId) ) return;
 
-  // If the token is within the template boundary, trigger a retargeting.
+  // If the token is within the template boundary, trigger a refreshTargetsing.
   const tBounds = tokenBounds(token);
   canvas.templates.placeables.forEach(template => {
-    if ( template.boundsOverlap(tBounds) ) template.renderFlags.set({ retarget: true });
+    if ( template.boundsOverlap(tBounds) ) template.renderFlags.set({ refreshTargets: true });
   });
 }
 

@@ -109,8 +109,8 @@ Hooks.once("init", function() {
   };
 
   // Add render flags to help with autotargeting and elevation of the template.
-  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.retarget = {};
-  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate.push("retarget");
+  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshTargets = {};
+  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate.push("refreshTargets");
   CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate.push("refreshShape");
 
   // Tell modules that the module is set up
@@ -210,7 +210,7 @@ Hooks.on("getSceneControlButtons", controls => {
     active: Settings.get(AUTOTARGET.ENABLED),
     onClick: toggle => { // eslint-disable-line no-unused-vars
       Settings.toggle(AUTOTARGET.ENABLED);
-      canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
+      canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshTargets: true }));
     }
   });
 });
