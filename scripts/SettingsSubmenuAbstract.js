@@ -77,6 +77,8 @@ export class SettingsSubmenuAbstract extends FormApplication {
       s.isRange = (setting.type === Number) && s.range;
       s.isNumber = setting.type === Number;
       s.filePickerType = s.filePicker === true ? "any" : s.filePicker;
+      s.dataField = setting.type instanceof foundry.data.fields.DataField ? setting.type : null;
+      s.input = setting.input;
 
       settings.push(s);
     }
