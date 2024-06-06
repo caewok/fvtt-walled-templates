@@ -216,8 +216,6 @@ Hooks.on("getSceneControlButtons", controls => {
  * When loading a new scene, check if any version updates are required.
  */
 Hooks.on("canvasReady", function(canvas) {
-
-
   // Migrate attached templates to new version.
   if ( !canvas.scene.getFlag(MODULE_ID, FLAGS.VERSION) ) {
     // For every token, check the actor effect origin for attached templates.
@@ -234,6 +232,7 @@ Hooks.on("canvasReady", function(canvas) {
     Promise.allSettled(promises).then((results) => canvas.scene.setFlag(MODULE_ID, FLAGS.VERSION, game.modules.get(MODULE_ID).version));
   }
 
+  // token.hitArea not defined as of `canvasReady`. So trigger on later hook.
   Hooks.once("visibilityRefresh", canvasVisibility => {
     log("Refreshing autotargeting.");
     Settings.refreshAutotargeting();
