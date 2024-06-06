@@ -3,7 +3,6 @@ canvas,
 CONFIG,
 foundry,
 game,
-getProperty,
 MouseInteractionManager,
 PIXI,
 PreciseText,
@@ -622,8 +621,8 @@ function targetsWithinShape({ onlyVisible = false } = {}) {
     if ( !token.hitArea ) return false; // Token not yet drawn. See Token.prototype._draw.
 
     // Midi-qol; Walled Templates issue #28, issue #37.
-    if ( getProperty(token, "actor.flags.midi-qol.neverTarget")
-      || getProperty(token, "actor.system.details.type.custom")?.includes("NoTarget") ) return false;
+    if ( foundry.utils.getProperty(token, "actor.flags.midi-qol.neverTarget")
+      || foundry.utils.getProperty(token, "actor.system.details.type.custom")?.includes("NoTarget") ) return false;
 
     // Ignore certain statuses. See issue #108.
     if ( token.actor.statuses.intersects(statusesToIgnore) ) return false;
