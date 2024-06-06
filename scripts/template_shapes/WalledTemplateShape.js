@@ -56,9 +56,6 @@ export class WalledTemplateShape {
   /** @type {ClockwiseSweepShape|LightWallSweep} */
   sweepClass = ClockwiseSweepShape;
 
-  /** @type {Set<Wall>} */
-  _boundaryWalls = new Set();
-
   /**
    * @param {MeasuredTemplate} template   The underlying measured template
    * @param {WalledTemplateOptions} [opts]
@@ -71,7 +68,6 @@ export class WalledTemplateShape {
     this.direction = direction ?? this.template.ray.angle;
     this.options.level = level ??  0; // For recursion, what level of recursion are we at?
     this.options.padding = padding || 0;
-    this._boundaryWalls = new Set([...canvas.walls.outerBounds, ...canvas.walls.innerBounds]);
   }
 
   /** @type {string} */

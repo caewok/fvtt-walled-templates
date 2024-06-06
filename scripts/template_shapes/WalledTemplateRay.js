@@ -75,7 +75,7 @@ export class WalledTemplateRay extends WalledTemplateShape {
     // Sort walls by closest collision to the template origin, skipping those that do not intersect.
     const wallRays = [];
     for ( const edge of sweep.edgesEncountered) {
-      if ( this._boundaryWalls.has(edge) ) continue;
+      // if ( this._boundaryWalls.has(edge) ) continue;
       const ix = foundry.utils.lineSegmentIntersection(dirRay.A, dirRay.B, edge.A, edge.B);
       if ( !ix ) continue;
       const wallRay = new Ray(edge.A, edge.B);

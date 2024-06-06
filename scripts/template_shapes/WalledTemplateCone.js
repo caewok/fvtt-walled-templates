@@ -100,7 +100,7 @@ export class WalledTemplateCone extends WalledTemplateRay {
     const reflectingEdges = [];
     for ( const wall of sweep.edgesEncountered ) {
       // Don't reflect off of bounds
-      if ( this._boundaryWalls.has(wall) ) continue;
+      // if ( this._boundaryWalls.has(wall) ) continue;
 
       if ( lastReflectedEdge ) {
         // Omit the last reflected.
