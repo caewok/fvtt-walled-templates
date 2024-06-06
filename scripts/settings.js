@@ -362,7 +362,7 @@ export class Settings extends ModuleSettingsAbstract {
   }
 
   static refreshAutotargeting() {
-    canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
+    canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshTargets: true }));
   }
 
   static async toggleAutotarget() {

@@ -1,4 +1,5 @@
 /* globals
+CONFIG,
 PIXI
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -17,6 +18,12 @@ export class WalledTemplateSquare extends WalledTemplateCircle {
    * @returns {PIXI.Rectangle}
    */
   calculateOriginalShape({ distance } = {}) {
+    distance ??= this.distance;
+
+    // Convert to degrees and grid units for Foundry method.
+    distance = CONFIG.GeometryLib.utils.pixelsToGridUnits(distance);
+
+    // TODO: Redo for v12's grid settings.
     // Based on 5-5-5, the square's width should equate to the circle's diameter.
     // (Consider the diameter of the circle in the X-Y directions.)
     distance ??= this.distance;

@@ -1,10 +1,8 @@
 /* globals
 canvas,
 CONFIG,
-flattenObject,
+foundry,
 game,
-getProperty,
-isEmpty,
 MouseInteractionManager,
 PIXI,
 PreciseText,
@@ -28,44 +26,7 @@ PATCHES.dnd5e = {};
 
 // ----- NOTE: Hooks ----- //
 
-/**
- * Helper that tests if a template can be hidden.
- * Does not test all options.
- * @param {MeasuredTemplate} template
- * @returns {boolean} True if it can be hidden.
- */
-function canHideTemplate(template) {
-  // For attached templates, respect the hidden settings.
-  // For non-attached, we probably want the preview to display the template
-  const showPreview = template.isPreview && !template.attachedToken;
-  return !(template.hover
-    || showPreview
-    || !template.visible
-    || template.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
-    || Settings.FORCE_TEMPLATE_DISPLAY);
-}
 
-/**
- * Helper that tests the provided hide flag and the global defaults.
- * @param {MeasuredTemplate} template
- * @param {"BORDER"|"HIGHLIGHTING"} hideflag
- * @returns {boolean} True if template component can be hidden.
- */
-function canHideTemplateComponent(template, hideFlag) {
-  const HIDE = FLAGS.HIDE;
-
-  // Check for local token hover flag.
-  if ( template.document.flags?.[MODULE_ID]?.[HIDE.TOKEN_HOVER] ) return false;
-
-  // Check for per-template setting.
-  const TYPES = HIDE.TYPES;
-  const local = template.document.getFlag(MODULE_ID, HIDE[hideFlag]);
-  if ( !local || local === TYPES.GLOBAL_DEFAULT ) {
-    if ( MODULES.TOKEN_MAGIC.ACTIVE ) return game.settings.get('tokenmagic', 'autohideTemplateElements');
-    return Settings.get(Settings.KEYS.HIDE[hideFlag]);
-  }
-  return (local === TYPES.ALWAYS_HIDE);
-}
 
 /**
  * On refresh, control the ruler (text) visibility.
@@ -95,7 +56,7 @@ function refreshMeasuredTemplate(template, flags) {
 
   // Control the highlight visibility by changing its alpha.
   if ( flags.refreshGrid || flags.refreshState ) {
-    const hl = canvas.grid.getHighlightLayer(template.highlightId);
+    const hl = canvas.interface.grid.getHighlightLayer(template.highlightId);
     log(`refreshMeasuredTemplate|highlight layer alpha ${hl.alpha}`);
     if ( canHide && canHideTemplateComponent(template, "HIGHLIGHTING") ) hl.alpha = 0;
     else hl.alpha = template.document.hidden ? 0.5 : 1;
@@ -112,7 +73,7 @@ function refreshMeasuredTemplate(template, flags) {
   // Display the elevation tooltip if the control icon, border, or highlight is visible.
   if ( flags.refreshTemplate || flags.refreshState || flags.refreshGrid ) {
     const toolTipVisible = template.template.alpha > 0                              // Border visible
-      || canvas.grid.getHighlightLayer(template.highlightId).alpha > 0              // Highlight visible
+      || canvas.interface.grid.getHighlightLayer(template.highlightId).alpha > 0              // Highlight visible
       || (template.visible && template.layer.active && !template.document.hidden);  // Control icon visible
     template.tooltip.visible = toolTipVisible;
   }
@@ -127,6 +88,101 @@ function refreshMeasuredTemplate(template, flags) {
     if ( tt !== template.tooltip.text ) template.tooltip.text = tt;
   }
 }
+
+/**
+ * Hook preCreateMeasuredTemplate to
+ * @param {MeasuredTemplateDocument} template
+ * @param {Object} data
+ * @param {Object} opt { temporary: Boolean, renderSheet: Boolean, render: Boolean }
+ * @param {string} id
+ */
+function preCreateMeasuredTemplateHook(templateD, updateData, _opts, _id) {
+  log("Hooking preCreateMeasuredTemplate", templateD, updateData);
+
+  const { t, distance, direction } = templateD;
+  const updates = {};
+
+  // Only create if the id does not already exist
+  if (typeof templateD.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
+    // In v10, setting the flag throws an error about not having id
+    // template.setFlag(MODULE_ID, "enabled", Settings.get(Settings.KEYS.DEFAULT_WALLED));
+    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = Settings.get(Settings.KEYS.DEFAULT_WALLS_BLOCK[t]);
+  }
+
+  if ( typeof templateD.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
+    updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = Settings.get(Settings.KEYS.DEFAULT_WALL_RESTRICTION[t]);
+  }
+
+  if ( (t === "ray" || t === "cone") && Settings.get(Settings.KEYS.DIAGONAL_SCALING[t]) ) {
+    // Extend rays or cones to conform to 5-5-5 diagonal, if applicable.
+    // See dndHelpers for original:
+    // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L78
+    updates.distance = scaleDiagonalDistance(direction, distance);
+  }
+
+  if ( !foundry.utils.isEmpty(updates) ) templateD.updateSource(updates);
+}
+
+/**
+ * Hook updateMeasuredTemplate to set render flag based on change to the WalledTemplate config.
+ * @param {Document} document                       The existing Document which was updated
+ * @param {object} change                           Differential data that was used to update the document
+ * @param {DocumentModificationContext} options     Additional options which modified the update request
+ * @param {string} userId                           The ID of the User who triggered the update workflow
+ */
+const UPDATE_FLAGS = {
+  WALLS_BLOCK: `flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`,
+  WALL_RESTRICTION: `flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`,
+  HIDE_BORDER: `flags.${MODULE_ID}.${FLAGS.HIDE.BORDER}`,
+  HIDE_HIGHLIGHTING: `flags.${MODULE_ID}.${FLAGS.HIDE.HIGHLIGHTING}`,
+  NO_AUTOTARGET: `flags.${MODULE_ID}.${FLAGS.NO_AUTOTARGET}`,
+  ELEVATION: `flags.elevatedvision.elevation`
+};
+const WALL_FLAGS = [UPDATE_FLAGS.WALLS_BLOCK, UPDATE_FLAGS.WALL_RESTRICTION];
+const DISPLAY_FLAGS = [UPDATE_FLAGS.HIDE_BORDER, UPDATE_FLAGS.HIDE_HIGHLIGHTING];
+
+function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
+  if ( !templateD.object ) return;
+  const changed = new Set(Object.keys(foundry.utils.flattenObject(data)));
+  const rf = templateD.object.renderFlags;
+  if ( WALL_FLAGS.some(k => changed.has(k)) ) rf.set({ refreshShape: true });
+  if ( DISPLAY_FLAGS.some(k => changed.has(k)) ) rf.set({
+    refreshTemplate: true,
+    refreshGrid: true
+  });
+  if ( changed.has(UPDATE_FLAGS.NO_AUTOTARGET) ) rf.set({ refreshTargets: true });
+  if ( changed.has(UPDATE_FLAGS.ELEVATION) ) rf.set({ refreshElevation: true });
+}
+
+/**
+ * Hook destroyMeasuredTemplate to remove attached token
+ * @param {PlaceableObject} object    The object instance being destroyed
+ */
+async function destroyMeasuredTemplateHook(template) {
+  if ( template._original ) return;
+  await template.detachToken();
+}
+
+/**
+ * Hook hoverMeasuredTemplate to trigger template hiding
+ * @param {MeasuredTemplate} template
+ * @param {boolean} hovering
+ */
+function hoverMeasuredTemplateHook(template, _hovering) {
+  if ( Settings.get(Settings.KEYS.HIDE.BORDER) ) template.renderFlags.set({ refreshTemplate: true });
+  if ( Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING) ) template.renderFlags.set({ refreshGrid: true });
+}
+
+
+PATCHES.BASIC.HOOKS = {
+  refreshMeasuredTemplate,
+  preCreateMeasuredTemplate: preCreateMeasuredTemplateHook,
+  updateMeasuredTemplate: updateMeasuredTemplateHook,
+  destroyMeasuredTemplate: destroyMeasuredTemplateHook,
+  hoverMeasuredTemplate: hoverMeasuredTemplateHook
+};
+
+// ----- NOTE: dnd5e Hooks ----- //
 
 /**
  * Hook drawMeasuredTemplate to monitor if a template has been created with an item.
@@ -165,98 +221,7 @@ function drawMeasuredTemplate(template) {
 
 PATCHES.dnd5e.HOOKS = { drawMeasuredTemplate };
 
-/**
- * Hook preCreateMeasuredTemplate to
- * @param {MeasuredTemplateDocument} template
- * @param {Object} data
- * @param {Object} opt { temporary: Boolean, renderSheet: Boolean, render: Boolean }
- * @param {string} id
- */
-function preCreateMeasuredTemplateHook(templateD, updateData, _opts, _id) {
-  log("Hooking preCreateMeasuredTemplate", templateD, updateData);
 
-  const { t, distance, direction } = templateD;
-  const updates = {};
-
-  // Only create if the id does not already exist
-  if (typeof templateD.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
-    // In v10, setting the flag throws an error about not having id
-    // template.setFlag(MODULE_ID, "enabled", Settings.get(Settings.KEYS.DEFAULT_WALLED));
-    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = Settings.get(Settings.KEYS.DEFAULT_WALLS_BLOCK[t]);
-  }
-
-  if ( typeof templateD.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
-    updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = Settings.get(Settings.KEYS.DEFAULT_WALL_RESTRICTION[t]);
-  }
-
-  if ( (t === "ray" || t === "cone") && Settings.get(Settings.KEYS.DIAGONAL_SCALING[t]) ) {
-    // Extend rays or cones to conform to 5-5-5 diagonal, if applicable.
-    // See dndHelpers for original:
-    // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L78
-    updates.distance = scaleDiagonalDistance(direction, distance);
-  }
-
-  if ( !isEmpty(updates) ) templateD.updateSource(updates);
-}
-
-/**
- * Hook updateMeasuredTemplate to set render flag based on change to the WalledTemplate config.
- * @param {Document} document                       The existing Document which was updated
- * @param {object} change                           Differential data that was used to update the document
- * @param {DocumentModificationContext} options     Additional options which modified the update request
- * @param {string} userId                           The ID of the User who triggered the update workflow
- */
-const UPDATE_FLAGS = {
-  WALLS_BLOCK: `flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`,
-  WALL_RESTRICTION: `flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`,
-  HIDE_BORDER: `flags.${MODULE_ID}.${FLAGS.HIDE.BORDER}`,
-  HIDE_HIGHLIGHTING: `flags.${MODULE_ID}.${FLAGS.HIDE.HIGHLIGHTING}`,
-  NO_AUTOTARGET: `flags.${MODULE_ID}.${FLAGS.NO_AUTOTARGET}`,
-  ELEVATION: `flags.elevatedvision.elevation`
-};
-const WALL_FLAGS = [UPDATE_FLAGS.WALLS_BLOCK, UPDATE_FLAGS.WALL_RESTRICTION];
-const DISPLAY_FLAGS = [UPDATE_FLAGS.HIDE_BORDER, UPDATE_FLAGS.HIDE_HIGHLIGHTING];
-
-function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
-  if ( !templateD.object ) return;
-  const changed = new Set(Object.keys(flattenObject(data)));
-  const rf = templateD.object.renderFlags;
-  if ( WALL_FLAGS.some(k => changed.has(k)) ) rf.set({ refreshShape: true });
-  if ( DISPLAY_FLAGS.some(k => changed.has(k)) ) rf.set({
-    refreshTemplate: true,
-    refreshGrid: true
-  });
-  if ( changed.has(UPDATE_FLAGS.NO_AUTOTARGET) ) rf.set({ retarget: true });
-  if ( changed.has(UPDATE_FLAGS.ELEVATION) ) rf.set({ refreshElevation: true });
-}
-
-/**
- * Hook destroyMeasuredTemplate to remove attached token
- * @param {PlaceableObject} object    The object instance being destroyed
- */
-async function destroyMeasuredTemplateHook(template) {
-  if ( template._original ) return;
-  await template.detachToken();
-}
-
-/**
- * Hook hoverMeasuredTemplate to trigger template hiding
- * @param {MeasuredTemplate} template
- * @param {boolean} hovering
- */
-function hoverMeasuredTemplateHook(template, _hovering) {
-  if ( Settings.get(Settings.KEYS.HIDE.BORDER) ) template.renderFlags.set({ refreshTemplate: true });
-  if ( Settings.get(Settings.KEYS.HIDE.HIGHLIGHTING) ) template.renderFlags.set({ refreshGrid: true });
-}
-
-
-PATCHES.BASIC.HOOKS = {
-  refreshMeasuredTemplate,
-  preCreateMeasuredTemplate: preCreateMeasuredTemplateHook,
-  updateMeasuredTemplate: updateMeasuredTemplateHook,
-  destroyMeasuredTemplate: destroyMeasuredTemplateHook,
-  hoverMeasuredTemplate: hoverMeasuredTemplateHook
-};
 
 // ----- NOTE: Wraps ----- //
 
@@ -267,40 +232,42 @@ PATCHES.BASIC.HOOKS = {
 function _getGridHighlightPositions(wrapper) {
   if ( Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) return wrapper();
 
-  // Replicate most of _getGridHighlightPositions but include all.
-  const grid = canvas.grid.grid;
-  const d = canvas.dimensions;
-  const {x, y, distance} = this.document;
-
-  // Get number of rows and columns
-  const [maxRow, maxCol] = grid.getGridPositionFromPixels(d.width, d.height);
-  const gridDistance = (distance * 1.5) / d.distance;
-  let nRows = Math.ceil(gridDistance / (d.size / grid.h));
-  let nCols = Math.ceil(gridDistance / (d.size / grid.w));
-  [nRows, nCols] = [Math.min(nRows, maxRow), Math.min(nCols, maxCol)];
-
-  // Get the offset of the template origin relative to the top-left grid space
-  const [tx, ty] = grid.getTopLeft(x, y);
-  const [row0, col0] = grid.getGridPositionFromPixels(tx, ty);
-
-  // Identify grid coordinates covered by the template Graphics
-  const positions = [];
-  for ( let r = -nRows; r < nRows; r++ ) {
-    for ( let c = -nCols; c < nCols; c++ ) {
-      const [gx, gy] = grid.getPixelsFromGridPosition(row0 + r, col0 + c);
-      positions.push({x: gx, y: gy});
-    }
-  }
+  // Determine all the grid positions that could be under the shape.
+  // Temporarily change the shape to bounds that are expanded by one grid square.
+  const oldShape = this.shape;
+  this.shape = oldShape.getBounds().pad(canvas.grid.sizeX, canvas.grid.sizeY);
+  const positions = wrapper();
 
   // Debug
-  // positions.forEach(p => Draw.point(p))
-  // positions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.5 }))
+  if ( CONFIG[MODULE_ID].debug ) {
+    const Draw = CONFIG.GeometryLib.Draw;
+    Draw.clearDrawings();
+    positions.forEach(p => Draw.point(p, { alpha: 0.4 }))
+    positions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.2 }));
+  }
 
-  return positions.filter(p => {
+  // Reset shape.
+  this.shape = oldShape;
+
+  // Filter positions to fit the actual shape.
+  const filteredPositions = positions.filter(p => {
     const shape = gridShapeForTopLeft(p);
     return this.boundsOverlap(shape);
   });
+
+  // Debug
+  if ( CONFIG[MODULE_ID].debug ) {
+    const Draw = CONFIG.GeometryLib.Draw;
+    filteredPositions.forEach(p => Draw.point(p, { alpha: 0.8 }))
+    filteredPositions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.5 }));
+  }
+
+  return filteredPositions;
 }
+
+/**
+ * Get all the grid positions under the given shape.
+ *
 
 /**
  * Wrap MeasuredTemplate.prototype._computeShape
@@ -340,23 +307,6 @@ function clone(wrapped) {
   clone.renderFlags.set({ refreshShape: true });
   return clone;
 }
-
-/**
- * Mixed wrap of MeasuredTemplate.prototype.highlightGrid
- * If the setting is set to hide, don't highlight grid unless hovering.
- */
-function highlightGrid(wrapped) {
-  if ( !(canHideTemplate(this) && canHideTemplateComponent(this, "HIGHLIGHTING")) ) return wrapped();
-
-  // Clear the existing highlight layer
-  const grid = canvas.grid;
-  const hl = grid.getHighlightLayer(this.highlightId);
-  hl.clear();
-}
-
-PATCHES.BASIC.MIXES = { _getGridHighlightPositions, highlightGrid };
-
-// ----- Autotarget Wraps ----- //
 
 /**
  * Wrap MeasuredTemplate.prototype._onDragLeftStart
@@ -483,7 +433,6 @@ function _draw(wrapped) {
   this.tooltip ||= this.addChild(this._drawTooltip());
 }
 
-
 PATCHES.BASIC.WRAPS = {
   _computeShape,
   _canDrag,
@@ -493,10 +442,29 @@ PATCHES.BASIC.WRAPS = {
   _onDragLeftCancel,
   _onDragLeftDrop,
   destroy,
-  // _applyRenderFlags,
   _canHover,
-  _draw
+  _draw,
+  _getGridHighlightPositions
 };
+
+// ----- NOTE: Mixed wraps ----- //
+
+/**
+ * Mixed wrap of MeasuredTemplate.prototype.highlightGrid
+ * If the setting is set to hide, don't highlight grid unless hovering.
+ */
+function highlightGrid(wrapped) {
+  if ( !(canHideTemplate(this) && canHideTemplateComponent(this, "HIGHLIGHTING")) ) return wrapped();
+
+  // Clear the existing highlight layer
+  const hl = canvas.interface.grid.getHighlightLayer(this.highlightId);
+  hl.clear();
+}
+
+PATCHES.BASIC.MIXES = { highlightGrid };
+
+// ----- NOTE: Autotarget Wraps ----- //
+
 
 
 // ----- NOTE: Methods ----- //
@@ -583,9 +551,9 @@ async function detachToken(detachFromToken = true) {
 
   // It is possible that the document gets destroyed while we are waiting around for the flag.
   try { await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ID);
-  } catch( _error ) { /* empty */ }
+  } catch( _error ) { /* empty */ } // eslint-disable-line no-unused-vars
   try { await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.DELTAS);
-  } catch( _error) { /* empty */ }
+  } catch( _error) { /* empty */ } // eslint-disable-line no-unused-vars
 
   if ( detachFromToken && attachedToken ) await attachedToken.detachTemplate(this, false);
 }
@@ -653,8 +621,8 @@ function targetsWithinShape({ onlyVisible = false } = {}) {
     if ( !token.hitArea ) return false; // Token not yet drawn. See Token.prototype._draw.
 
     // Midi-qol; Walled Templates issue #28, issue #37.
-    if ( getProperty(token, "actor.flags.midi-qol.neverTarget")
-      || getProperty(token, "actor.system.details.type.custom")?.includes("NoTarget") ) return false;
+    if ( foundry.utils.getProperty(token, "actor.flags.midi-qol.neverTarget")
+      || foundry.utils.getProperty(token, "actor.system.details.type.custom")?.includes("NoTarget") ) return false;
 
     // Ignore certain statuses. See issue #108.
     if ( token.actor.statuses.intersects(statusesToIgnore) ) return false;
@@ -674,6 +642,8 @@ PATCHES.BASIC.METHODS = {
   _drawTooltip,
   _getTooltipText
  };
+
+ // ----- NOTE: Static methods ----- //
 
 /**
  * New method: MeasuredTemplate._getTextStyle
@@ -728,14 +698,14 @@ PATCHES.BASIC.GETTERS = { attachedToken, wallsBlock, autotarget: getAutotarget }
 // ----- Note: Hooks ----- //
 
 /**
- * Hook template refresh to address the retarget renderFlag.
+ * Hook template refresh to address the refreshTargets renderFlag.
  * Target tokens after drawing/refreshing the template.
  * See MeasuredTemplate.prototype._applyRenderFlags.
  * @param {PlaceableObject} object    The object instance being refreshed
  * @param {RenderFlags} flags
  */
 function refreshMeasuredTemplateHook(template, flags) {
-  if ( flags.retarget && template.owner ) template.autotargetTokens();
+  if ( flags.refreshTargets && template.isAuthor ) template.autotargetTokens();
 }
 
 /**
@@ -748,13 +718,12 @@ function refreshMeasuredTemplateHook(template, flags) {
 function applyTokenStatusEffect(token, statusId, _active) {
   if ( !CONFIG[MODULE_ID].autotargetStatusesToIgnore.has(statusId) ) return;
 
-  // If the token is within the template boundary, trigger a retargeting.
+  // If the token is within the template boundary, trigger a refreshTargetsing.
   const tBounds = tokenBounds(token);
   canvas.templates.placeables.forEach(template => {
-    if ( template.boundsOverlap(tBounds) ) template.renderFlags.set({ retarget: true });
+    if ( template.boundsOverlap(tBounds) ) template.renderFlags.set({ refreshTargets: true });
   });
 }
-
 
 PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook, applyTokenStatusEffect };
 
@@ -795,7 +764,7 @@ function releaseTargets({ tokens, broadcast = true } = {}) {
   if ( !targetsToRelease.size ) return;
 
   // Release targets for this user.
-  const user = this.document.user;
+  const user = this.document.author;
   let targetFn = "setTarget";
   let userTargets = user.targets;
   let broadcastOpts = { targets: user.targets.ids };
@@ -845,7 +814,7 @@ function acquireTargets({ tokens, checkShapeBounds = true, onlyVisible = false, 
   if ( !targetsToAcquire.size ) return;
 
   // Acquire targets for this user.
-  const user = this.document.user;
+  const user = this.document.author;
   let targetFn = "setTarget";
   let userTargets = user.targets;
   let broadcastOpts = { targets: user.targets.ids };
@@ -885,6 +854,45 @@ PATCHES.AUTOTARGET.METHODS = {
 // ----- NOTE: Helper functions ----- //
 
 /**
+ * Helper that tests if a template can be hidden.
+ * Does not test all options.
+ * @param {MeasuredTemplate} template
+ * @returns {boolean} True if it can be hidden.
+ */
+function canHideTemplate(template) {
+  // For attached templates, respect the hidden settings.
+  // For non-attached, we probably want the preview to display the template
+  const showPreview = template.isPreview && !template.attachedToken;
+  return !(template.hover
+    || showPreview
+    || !template.visible
+    || template.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
+    || Settings.FORCE_TEMPLATE_DISPLAY);
+}
+
+/**
+ * Helper that tests the provided hide flag and the global defaults.
+ * @param {MeasuredTemplate} template
+ * @param {"BORDER"|"HIGHLIGHTING"} hideflag
+ * @returns {boolean} True if template component can be hidden.
+ */
+function canHideTemplateComponent(template, hideFlag) {
+  const HIDE = FLAGS.HIDE;
+
+  // Check for local token hover flag.
+  if ( template.document.flags?.[MODULE_ID]?.[HIDE.TOKEN_HOVER] ) return false;
+
+  // Check for per-template setting.
+  const TYPES = HIDE.TYPES;
+  const local = template.document.getFlag(MODULE_ID, HIDE[hideFlag]);
+  if ( !local || local === TYPES.GLOBAL_DEFAULT ) {
+    if ( MODULES.TOKEN_MAGIC.ACTIVE ) return game.settings.get('tokenmagic', 'autohideTemplateElements');
+    return Settings.get(Settings.KEYS.HIDE[hideFlag]);
+  }
+  return (local === TYPES.ALWAYS_HIDE);
+}
+
+/**
  * Return the intersection of the bounds shape with the template shape.
  * Bounds shape should already be translated to the template {0, 0} origin.
  * @param {PIXI.Rectangle|Hexagon|Square}           tBounds
@@ -915,4 +923,3 @@ function scaleDiagonalDistance(direction, distance) {
   const diagonalScale = Math.abs(Math.sin(dirRadians)) + Math.abs(Math.cos(dirRadians));
   return diagonalScale * distance;
 }
-

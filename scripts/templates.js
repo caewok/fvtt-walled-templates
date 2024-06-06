@@ -1,8 +1,7 @@
 /* globals
 canvas,
-flattenObject
-game,
-isEmpty
+foundry,
+game
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
@@ -65,7 +64,7 @@ export function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
     }
   }
 
-  if ( !isEmpty(updates) ) templateD.updateSource(updates);
+  if ( !foundry.utils.isEmpty(updates) ) templateD.updateSource(updates);
 }
 
 /**
@@ -81,7 +80,7 @@ export function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
     `flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`
   ];
 
-  const changed = new Set(Object.keys(flattenObject(data)));
+  const changed = new Set(Object.keys(foundry.utils.flattenObject(data)));
   if ( wtChangeFlags.some(k => changed.has(k)) ) templateD.object.renderFlags.set({
     refreshShape: true
   });

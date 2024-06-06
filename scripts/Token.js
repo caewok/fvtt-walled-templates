@@ -5,8 +5,7 @@ CONST,
 Color,
 foundry,
 fromUuidSync,
-game,
-isEmpty
+game
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
@@ -59,7 +58,7 @@ function updateTokenHook(tokenD, changed, _options, userId) {
   const updates = [];
   for ( const template of token.attachedTemplates ) {
     const templateData = template._calculateAttachedTemplateOffset(changed);
-    if ( isEmpty(templateData) ) continue;
+    if ( foundry.utils.isEmpty(templateData) ) continue;
     templateData._id = template.id;
     updates.push(templateData);
   }

@@ -16,13 +16,13 @@ export class WalledTemplateRay extends WalledTemplateShape {
    * @param {WalledTemplateOptions} [opts]
    * @param {number} [opts.direction]   Direction of the ray, in radians
    * @param {number} [opts.width]       Width of the ray, in pixel units
-   * @param {Wall} [opts.reflectedWall] Wall that the ray is reflected off of, when using recursion
+   * @param {Wall} [opts.reflectedEdge] Edge that the ray is reflected off of, when using recursion
    * @param {Ray}  [opts.reflectionRay] Ray describing the reflection
    * @param {PIXI.Point} [opts.Rr]      Point used in calculating the reflection incidence
    */
   constructor(template, opts = {}) {
     super(template, opts);
-    this.options.reflectedWall = opts.reflectedWall;
+    this.options.reflectedEdge = opts.reflectedEdge;
     this.options.reflectionRay = opts.reflectionRay;
     this.options.Rr = opts.Rr;
   }
@@ -37,7 +37,12 @@ export class WalledTemplateRay extends WalledTemplateShape {
     direction ??= this.direction;
     distance ??= this.distance;
     width ??= this.width;
-    return CONFIG.MeasuredTemplate.objectClass.getRayShape(direction, distance, width);
+
+    // Convert to degrees and grid units for Foundry method.
+    direction = Math.toDegrees(direction);
+    distance = CONFIG.GeometryLib.utils.pixelsToGridUnits(distance);
+    width = CONFIG.GeometryLib.utils.pixelsToGridUnits(width);
+    return CONFIG.MeasuredTemplate.objectClass.getRayShape(distance, direction, width);
   }
 
   /**
@@ -73,35 +78,37 @@ export class WalledTemplateRay extends WalledTemplateShape {
     const dirRay = Ray.fromAngle(this.origin.x, this.origin.y, this.direction, this.distance);
 
     // Sort walls by closest collision to the template origin, skipping those that do not intersect.
-    const wallRays = [];
+    let closestReflectingEdge;
     for ( const edge of sweep.edgesEncountered) {
-      if ( this._boundaryWalls.has(edge) ) continue;
-      const ix = foundry.utils.lineSegmentIntersection(dirRay.A, dirRay.B, edge.A, edge.B);
+      // if ( this._boundaryWalls.has(edge) ) continue;
+      const ix = foundry.utils.lineSegmentIntersection(dirRay.A, dirRay.B, edge.a, edge.b);
       if ( !ix ) continue;
-      const wallRay = new Ray(edge.A, edge.B);
-      wallRay._reflectionPoint = ix;
-      wallRay._reflectionDistance = PIXI.Point.distanceBetween(this.origin, ix);
-      if ( wallRay._reflectionDist <= 1 ) continue;
 
-      // If the wall intersection is beyond the template, ignore.
-      if ( this.distance < wallRay._reflectionDistance ) continue;
+      // If the edge intersection is beyond the template, ignore.
+      const reflectionDistance = PIXI.Point.distanceBetween(this.origin, ix);
+      if ( reflectionDistance <= 1 || this.distance < reflectionDistance ) continue;
 
-      wallRays.push(wallRay);
+      // Keep only if this is the closest encountered thus far.
+      if ( closestReflectingEdge && reflectionDistance >= closestReflectingEdge._reflectionDistance ) continue;
+
+      // Construct a copy to keep for futher calculations.
+      const reflectingEdge = edge.clone();
+      reflectingEdge._reflectionPoint = ix;
+      reflectingEdge._reflectionDistance = reflectionDistance;
+      closestReflectingEdge = reflectingEdge;
     }
-    if ( !wallRays.length ) return [];
+    if ( !closestReflectingEdge ) return [];
 
-    // Only reflect off the first wall encountered.
-    wallRays.sort((a, b) => a._reflectionDistance - b._reflectionDistance);
-    const reflectedWall = wallRays[0];
-    const reflectionPoint = new PIXI.Point(reflectedWall._reflectionPoint.x, reflectedWall._reflectionPoint.y);
-    const reflection = this.constructor.reflectRayOffEdge(dirRay, reflectedWall, reflectionPoint);
+    // Construct the reflection off the closest wall.
+    closestReflectingEdge._reflectionPoint = PIXI.Point.fromObject(closestReflectingEdge._reflectionPoint);
+    const reflection = this.constructor.reflectRayOffEdge(dirRay, closestReflectingEdge, closestReflectingEdge._reflectionPoint);
     if ( !reflection ) return [];
     const { reflectionRay, Rr } = reflection;
 
     // Set the new origin to be just inside the reflecting wall, to avoid using sweep
     // on the wrong side of the wall.
     // Need to move at least 2 pixels to avoid rounding issues.
-    const reflectedOrigin = reflectionPoint.add(Rr.normalize());
+    const reflectedOrigin = closestReflectingEdge._reflectionPoint.add(Rr.normalize());
     // This version would be on the wall: const reflectedOrigin = reflectionPoint;
 
     //   Draw.segment(reflectionRay);
@@ -110,12 +117,12 @@ export class WalledTemplateRay extends WalledTemplateShape {
     // Shallow copy the options for the new template.
     const opts = { ...this.options };
     opts.level += 1;
-    opts.reflectedWall = reflectedWall;
+    opts.reflectedEdge = closestReflectingEdge;
     opts.reflectionRay = reflectionRay;
     opts.Rr = Rr;
     opts.direction = reflectionRay.angle;
     opts.origin = new Point3d(reflectedOrigin.x, reflectedOrigin.y, this.origin.z);
-    opts.distance = this.distance - reflectedWall._reflectionDistance;
+    opts.distance = this.distance - closestReflectingEdge._reflectionDistance;
     const rayTemplate = new this.constructor(this.template, opts);
     return [rayTemplate];
   }
@@ -125,23 +132,22 @@ export class WalledTemplateRay extends WalledTemplateShape {
    * See:
    * https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
    * http://paulbourke.net/geometry/reflected/
-   * @param {Ray|Segment} ray     Ray to reflect off the edge
-   * @param {Ray|Segment} edge    Segment with A and B endpoints
+   * @param {Ray|Segment} ray     Ray to reflect off the edge; has A and B endpoint
+   * @param {Edge} edge           Segment with a and b endpoints
    * @returns {null|{ reflectionPoint: {PIXI.Point}, reflectionRay: {Ray}, Rr: {PIXI.Point} }}
    */
   static reflectRayOffEdge(ray, edge, reflectionPoint) {
     if ( !reflectionPoint ) {
-      const ix = foundry.utils.lineLineIntersection(ray.A, ray.B, edge.A, edge.B);
+      const ix = foundry.utils.lineLineIntersection(ray.A, ray.B, edge.a, edge.b);
       if ( !ix ) return null;
       reflectionPoint = new PIXI.Point(ix.x, ix.y);
     }
 
     // Calculate the normals for the edge; pick the one closest to the origin of the ray.
-    const dx = edge.B.x - edge.A.x;
-    const dy = edge.B.y - edge.A.y;
+    const delta = edge.b.subtract(edge.a, PIXI.Point.tmp);
     const normals = [
-      new PIXI.Point(-dy, dx),
-      new PIXI.Point(dy, -dx)].map(n => n.normalize());
+      new PIXI.Point(-delta.y, delta.x),
+      new PIXI.Point(delta.y, -delta.x)].map(n => n.normalize());
     const N = PIXI.Point.distanceSquaredBetween(ray.A, reflectionPoint.add(normals[0]))
       < PIXI.Point.distanceSquaredBetween(ray.A, reflectionPoint.add(normals[1]))
       ? normals[0] : normals[1];
