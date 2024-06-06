@@ -4,7 +4,6 @@ CONFIG,
 foundry,
 game,
 getProperty,
-isEmpty,
 MouseInteractionManager,
 PIXI,
 PreciseText,
@@ -196,7 +195,7 @@ function preCreateMeasuredTemplateHook(templateD, updateData, _opts, _id) {
     updates.distance = scaleDiagonalDistance(direction, distance);
   }
 
-  if ( !isEmpty(updates) ) templateD.updateSource(updates);
+  if ( !foundry.utils.isEmpty(updates) ) templateD.updateSource(updates);
 }
 
 /**
@@ -267,40 +266,29 @@ PATCHES.BASIC.HOOKS = {
 function _getGridHighlightPositions(wrapper) {
   if ( Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) return wrapper();
 
-  // Replicate most of _getGridHighlightPositions but include all.
-  const grid = canvas.grid;
-  const d = canvas.dimensions;
-  const {x, y, distance} = this.document;
-
-  // Get number of rows and columns
-  const [maxRow, maxCol] = grid.getGridPositionFromPixels(d.width, d.height);
-  const gridDistance = (distance * 1.5) / d.distance;
-  let nRows = Math.ceil(gridDistance / (d.size / grid.h));
-  let nCols = Math.ceil(gridDistance / (d.size / grid.w));
-  [nRows, nCols] = [Math.min(nRows, maxRow), Math.min(nCols, maxCol)];
-
-  // Get the offset of the template origin relative to the top-left grid space
-  const [tx, ty] = grid.getTopLeft(x, y);
-  const [row0, col0] = grid.getGridPositionFromPixels(tx, ty);
-
-  // Identify grid coordinates covered by the template Graphics
-  const positions = [];
-  for ( let r = -nRows; r < nRows; r++ ) {
-    for ( let c = -nCols; c < nCols; c++ ) {
-      const [gx, gy] = grid.getPixelsFromGridPosition(row0 + r, col0 + c);
-      positions.push({x: gx, y: gy});
-    }
-  }
+  // Determine all the grid positions that could be under the shape.
+  // Temporarily change the shape to bounds that are expanded by one grid square.
+  const oldShape = this.shape;
+  this.shape = oldShape.getBounds().pad(canvas.grid.sizeX, canvas.grid.sizeY);
+  const positions = wrapper();
 
   // Debug
   // positions.forEach(p => Draw.point(p))
   // positions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.5 }))
 
+  // Reset shape.
+  this.shape = oldShape;
+
+  // Filter positions to fit the actual shape.
   return positions.filter(p => {
     const shape = gridShapeForTopLeft(p);
     return this.boundsOverlap(shape);
   });
 }
+
+/**
+ * Get all the grid positions under the given shape.
+ *
 
 /**
  * Wrap MeasuredTemplate.prototype._computeShape
@@ -353,7 +341,8 @@ function highlightGrid(wrapped) {
   hl.clear();
 }
 
-PATCHES.BASIC.MIXES = { _getGridHighlightPositions, highlightGrid };
+PATCHES.BASIC.WRAPS = { _getGridHighlightPositions };
+PATCHES.BASIC.MIXES = { highlightGrid };
 
 // ----- Autotarget Wraps ----- //
 

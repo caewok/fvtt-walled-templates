@@ -1,8 +1,7 @@
 /* globals
 canvas,
 foundry,
-game,
-isEmpty
+game
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
@@ -65,7 +64,7 @@ export function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
     }
   }
 
-  if ( !isEmpty(updates) ) templateD.updateSource(updates);
+  if ( !foundry.utils.isEmpty(updates) ) templateD.updateSource(updates);
 }
 
 /**
