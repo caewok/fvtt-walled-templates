@@ -705,7 +705,7 @@ PATCHES.BASIC.GETTERS = { attachedToken, wallsBlock, autotarget: getAutotarget }
  * @param {RenderFlags} flags
  */
 function refreshMeasuredTemplateHook(template, flags) {
-  if ( flags.refreshTargets && template.isOwner ) template.autotargetTokens();
+  if ( flags.refreshTargets && template.isAuthor ) template.autotargetTokens();
 }
 
 /**

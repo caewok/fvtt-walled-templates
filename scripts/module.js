@@ -192,9 +192,6 @@ Hooks.once("ready", async function() {
     });
   });
 
-  log("Refreshing autotargeting.");
-  Settings.refreshAutotargeting();
-
 });
 
 Hooks.on("getSceneControlButtons", controls => {
@@ -218,10 +215,11 @@ Hooks.on("getSceneControlButtons", controls => {
 /**
  * When loading a new scene, check if any version updates are required.
  */
-Hooks.on("canvasReady", async function(canvas) {
+Hooks.on("canvasReady", function(canvas) {
+
+
   // Migrate attached templates to new version.
-  const sceneVersion = canvas.scene.getFlag(MODULE_ID, FLAGS.VERSION);
-  if ( !sceneVersion ) {
+  if ( !canvas.scene.getFlag(MODULE_ID, FLAGS.VERSION) ) {
     // For every token, check the actor effect origin for attached templates.
     // Add flag for attached template.
     const promises = [];
@@ -233,7 +231,11 @@ Hooks.on("canvasReady", async function(canvas) {
         promises.push(effect.setFlag(MODULE_ID, FLAGS.ATTACHED_TEMPLATE_ID, attachedTemplate.id));
       }
     }
-    await Promise.allSettled(promises);
-    await canvas.scene.setFlag(MODULE_ID, FLAGS.VERSION, game.modules.get(MODULE_ID).version);
+    Promise.allSettled(promises).then((results) => canvas.scene.setFlag(MODULE_ID, FLAGS.VERSION, game.modules.get(MODULE_ID).version));
   }
+
+  Hooks.once("visibilityRefresh", canvasVisibility => {
+    log("Refreshing autotargeting.");
+    Settings.refreshAutotargeting();
+  });
 });
