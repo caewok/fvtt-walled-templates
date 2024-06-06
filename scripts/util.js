@@ -69,11 +69,11 @@ export function tokenName(token) {
  * @return {PIXI.Rectangle|Hexagon}
  */
 export function tokenBounds(token) {
-  if ( canvas.grid.isHexagonal ) return Square.fromToken(token); // Will return PIXI.Rectangle if not even width/height.
-  return _hexGridShape(token);
+  if ( canvas.grid.isHexagonal ) return hexGridShape(token);
+  return Square.fromToken(token); // Will return PIXI.Rectangle if not even width/height.
 }
 
-function _hexGridShape(token) {
+function hexGridShape(token) {
   // Canvas.grid.grid.getBorderPolygon will return null if width !== height.
   const { w, h } = token;
   if ( w !== h || (w === 1 && h === 1) ) return Hexagon.fromToken(token);
