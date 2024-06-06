@@ -95,7 +95,7 @@ function refreshMeasuredTemplate(template, flags) {
 
   // Control the highlight visibility by changing its alpha.
   if ( flags.refreshGrid || flags.refreshState ) {
-    const hl = canvas.grid.getHighlightLayer(template.highlightId);
+    const hl = canvas.interface.grid.getHighlightLayer(template.highlightId);
     log(`refreshMeasuredTemplate|highlight layer alpha ${hl.alpha}`);
     if ( canHide && canHideTemplateComponent(template, "HIGHLIGHTING") ) hl.alpha = 0;
     else hl.alpha = template.document.hidden ? 0.5 : 1;
@@ -112,7 +112,7 @@ function refreshMeasuredTemplate(template, flags) {
   // Display the elevation tooltip if the control icon, border, or highlight is visible.
   if ( flags.refreshTemplate || flags.refreshState || flags.refreshGrid ) {
     const toolTipVisible = template.template.alpha > 0                              // Border visible
-      || canvas.grid.getHighlightLayer(template.highlightId).alpha > 0              // Highlight visible
+      || canvas.interface.grid.getHighlightLayer(template.highlightId).alpha > 0              // Highlight visible
       || (template.visible && template.layer.active && !template.document.hidden);  // Control icon visible
     template.tooltip.visible = toolTipVisible;
   }
@@ -349,8 +349,7 @@ function highlightGrid(wrapped) {
   if ( !(canHideTemplate(this) && canHideTemplateComponent(this, "HIGHLIGHTING")) ) return wrapped();
 
   // Clear the existing highlight layer
-  const grid = canvas.grid;
-  const hl = grid.getHighlightLayer(this.highlightId);
+  const hl = canvas.interface.grid.getHighlightLayer(this.highlightId);
   hl.clear();
 }
 

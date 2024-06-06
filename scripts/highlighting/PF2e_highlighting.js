@@ -34,7 +34,7 @@ export function WalledTemplatesPF2eHighlightGrid(wrapped) {
   if (!this.id || !this.shape) return;
 
   // Clear existing highlight
-  const highlightLayer = grid.getHighlightLayer(`Template.${this.id}`)?.clear();
+  const highlightLayer = canvas.interface.grid.getHighlightLayer(`Template.${this.id}`)?.clear();
   if ( !highlightLayer ) return; // *** NEW: Break early if no highlight layer
 
   // Get the center of the grid position occupied by the template
