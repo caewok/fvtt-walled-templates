@@ -268,7 +268,7 @@ function _getGridHighlightPositions(wrapper) {
   if ( Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) return wrapper();
 
   // Replicate most of _getGridHighlightPositions but include all.
-  const grid = canvas.grid.grid;
+  const grid = canvas.grid;
   const d = canvas.dimensions;
   const {x, y, distance} = this.document;
 

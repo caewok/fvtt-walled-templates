@@ -32,8 +32,8 @@ export function log(...args) {
  */
 export function gridShapeForPixel(p) {
   // Get the upper left corner of the grid for the pixel
-  const [gx, gy] = canvas.grid.getTopLeft(p.x, p.y);
-  return gridShapeForTopLeft({x: gx, y: gy});
+  const tl = canvas.grid.getTopLeftPoint(p);
+  return gridShapeForTopLeft(tl);
 }
 
 /**
@@ -42,15 +42,12 @@ export function gridShapeForPixel(p) {
  * @param {Point} p   Top left corner of the grid square.
  * @return {PIXI.Rectangle|Hexagon}  Rectangle for square or gridless; hexagon for hex grids.
  */
-export function gridShapeForTopLeft(p) {
-  if ( canvas.scene.grid.type === CONST.GRID_TYPES.GRIDLESS
-    || canvas.scene.grid.type === CONST.GRID_TYPES.SQUARE ) {
-
-    return Square.fromTopLeft(p, canvas.dimensions.size);
-  }
-
-  const { h, w } = canvas.grid.grid;
-  return Hexagon.fromTopLeft(p, undefined, { width: w, height: h });
+export function gridShapeForTopLeft(tl) {
+  if ( canvas.grid.isHexagonal ) return Hexagon.fromTopLeft(tl, undefined, {
+    width: canvas.grid.sizeX,
+    height: canvas.grid.sizeY
+  });
+  return Square.fromTopLeft(tl, canvas.dimensions.size);
 }
 
 /**
@@ -72,10 +69,7 @@ export function tokenName(token) {
  * @return {PIXI.Rectangle|Hexagon}
  */
 export function tokenBounds(token) {
-  if ( canvas.scene.grid.type === CONST.GRID_TYPES.GRIDLESS
-    || canvas.scene.grid.type === CONST.GRID_TYPES.SQUARE ) {
-    return Square.fromToken(token); // Will return PIXI.Rectangle if not even width/height.
-  }
+  if ( canvas.grid.isHexagonal ) return Square.fromToken(token); // Will return PIXI.Rectangle if not even width/height.
   return _hexGridShape(token);
 }
 
@@ -86,12 +80,13 @@ function _hexGridShape(token) {
 
   // Get the top left corner
   const c = token.center;
-  const [tlx, tly] = canvas.grid.grid.getTopLeft(c.x, c.y);
-  const points = canvas.grid.grid.getBorderPolygon(w, h, 0); // TO-DO: Should a border be included to improve calc?
-  const pointsTranslated = [];
+  const tl = canvas.grid.getTopLeftPoint(c);
+  const points = canvas.grid.getShape();
   const ln = points.length;
+  const pointsTranslated = new Array(ln);
   for ( let i = 0; i < ln; i += 2) {
-    pointsTranslated.push(points[i] + tlx, points[i+1] + tly);
+    pointsTranslated[i] = points[i] + tl.x;
+    pointsTranslated[i+1] = points[i+1] + tl.y;
   }
   return new PIXI.Polygon(pointsTranslated);
 }
