@@ -26,10 +26,13 @@ export class WalledTemplateCircle extends WalledTemplateShape {
    * Calculate the original template shape from base Foundry.
    * Implemented by subclass.
    * @param {object} [opts]     Optional values to temporarily override the ones in this instance.
+   * @param {number;pixels} [opts.distance]   Radius
    * @returns {PIXI.Circle}
    */
   calculateOriginalShape({ distance } = {}) {
+    // Convert to degrees and grid units for Foundry method.
     distance ??= this.distance;
+    distance =  CONFIG.GeometryLib.utils.pixelsToGridUnits(distance);
     return CONFIG.MeasuredTemplate.objectClass.getCircleShape(distance);
     // Pad the circle by one pixel so it better covers expected grid spaces?
     // (Rounding tends to drop spaces on the edge.)
@@ -40,7 +43,7 @@ export class WalledTemplateCircle extends WalledTemplateShape {
    * Keeping the origin in the same place, pad the shape by adding (or subtracting) to it
    * in a border all around it, including the origin (for cones, rays, rectangles).
    * Implemented by subclass.
-   * @param {number} [padding]    Optional padding value, if not using the one for this instance.
+   * @param {number; pixels} [padding]    Optional padding value, if not using the one for this instance.
    * @returns {PIXI.Circle}
    */
   calculatePaddedShape(padding) {

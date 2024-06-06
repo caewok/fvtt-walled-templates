@@ -37,7 +37,12 @@ export class WalledTemplateRay extends WalledTemplateShape {
     direction ??= this.direction;
     distance ??= this.distance;
     width ??= this.width;
-    return CONFIG.MeasuredTemplate.objectClass.getRayShape(direction, distance, width);
+
+    // Convert to degrees and grid units for Foundry method.
+    direction = Math.toDegrees(direction);
+    distance = CONFIG.GeometryLib.utils.pixelsToGridUnits(distance);
+    width = CONFIG.GeometryLib.utils.pixelsToGridUnits(width);
+    return CONFIG.MeasuredTemplate.objectClass.getRayShape(distance, direction, width);
   }
 
   /**

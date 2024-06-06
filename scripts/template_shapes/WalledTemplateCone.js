@@ -35,13 +35,21 @@ export class WalledTemplateCone extends WalledTemplateRay {
    * Calculate the original template shape from base Foundry.
    * Implemented by subclass.
    * @param {object} [opts]     Optional values to temporarily override the ones in this instance.
+   * @param {number;pixels} [opts.direction]    Direction (rotation) of the cone
+   * @param {number;radians} [opts.angle]       Angle of the cone
+   * @param {number;pixels} [opts.distance]     Radius of the cone
    * @returns {PIXI.Polygon}
    */
   calculateOriginalShape({ direction, angle, distance } = {}) {
     direction ??= this.direction;
     angle ??= this.angle;
     distance ??= this.distance;
-    return CONFIG.MeasuredTemplate.objectClass.getConeShape(direction, angle, distance);
+
+    // Convert to degrees and grid units for Foundry method.
+    direction = Math.toDegrees(direction);
+    angle = Math.toDegrees(angle);
+    distance = CONFIG.GeometryLib.utils.pixelsToGridUnits(distance);
+    return CONFIG.MeasuredTemplate.objectClass.getConeShape(distance, direction, angle);
   }
 
   /**

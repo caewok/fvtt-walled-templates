@@ -35,19 +35,32 @@ export class WalledTemplateShape {
   /** @type {Point3d} */
   origin = new Point3d(0, 0, 0);
 
-  /** @type {number} */
+  /** @type {number; degrees} */
+  get angleDegrees() { return this.template.document.angle; }
+
+  /** @type {number; radians} */
+  get angle() { return Math.toRadians(this.angleDegrees); }
+
+  /** @type {number; pixels} */
+  get width() { return CONFIG.GeometryLib.utils.gridUnitsToPixels(this.template.document.width); }
+
+  /** @type {number; pixel units} */
   distance = 0;
 
-  /** @type {number} */
-  direction = 0;
+  /** @type {number; radians} */
+  direction = 0; // In MeasuredTemplateDocument, rotation is equivalent to direction.
+
+  /** @type {string} */
+  get t() { return this.template.document.t; }
 
   /**
-   * Options used primarily by recursion for reflect and spread algorithms
+   * Options used primarily by recursion for reflect and spread algorithms for sub-templates
    * @typedef {object} WalledTemplateOptions
-   * @property {Point3d} origin     Center point of the template or sub-template
-   * @property {number} distance    Length of the template or sub-template, in pixel units
-   * @property {number} direction   Ray direction of the template or sub-template, in radians
-   * @property {number} level       What level of recursion we are on
+   * @property {Point3d} origin             Center point of the template, in 3 dimensions
+   * @property {number; pixels} distance    Radius/length of the template, in pixel units
+   * @property {number; radians} direction  Ray direction of the template, in radians
+   * @property {number} level               What level of recursion we are on
+   * @property {number; pixels} padding     Padding to add to the shape of the template, in pixel units
    */
 
   /** @type {WalledTemplateOptions} */
@@ -62,23 +75,23 @@ export class WalledTemplateShape {
    */
   constructor(template, { origin, distance, direction, level, padding } = {}) {
     this.template = template;
+
+    // Origin point
     this.origin.copyFrom(origin ?? { x: template.x, y: template.y, z: template.elevationZ });
     this.origin.roundDecimals(); // Avoid annoying issues with precision.
-    this.distance = distance ?? this.template.ray.distance;
-    this.direction = direction ?? this.template.ray.angle;
+
+    // Distance
+    distance ??= CONFIG.GeometryLib.utils.gridUnitsToPixels(this.template.document.distance);
+    this.distance = distance;
+
+    // Direction
+    direction ??= Math.toRadians(this.template.document.direction);
+    this.direction = direction;
+
+    // Options
     this.options.level = level ??  0; // For recursion, what level of recursion are we at?
     this.options.padding = padding || 0;
   }
-
-  /** @type {string} */
-  get t() { return this.template.document.t; }
-
-  /** @type {number} */
-  get angle() { return this.template.document.angle; }
-
-  /** @type {number} */
-  get width() { return this.template.document.width * canvas.dimensions.distancePixels; }
-
 
   /** @type {PIXI.Circle|PIXI.Rectangle|PIXI.Polygon} */
   get originalShape() {
@@ -139,7 +152,7 @@ export class WalledTemplateShape {
    * @param {object} [opts]     Optional values to temporarily override the ones in this instance.
    * @returns {PIXI.Circle|PIXI.Rectangle|PIXI.Polygon}
    */
-  calculateOriginalShape({ distance, angle, direction, width } = {}) {
+  calculateOriginalShape({ distance, angle, direction, width } = {}) { // eslint-disable-line no-unused-vars
     console.error("calculateOriginalShape must be implemented by subclass.");
   }
 
@@ -150,7 +163,7 @@ export class WalledTemplateShape {
    * @param {number} [padding]    Optional padding value, if not using the one for this instance.
    * @returns {PIXI.Circle|PIXI.Rectangle|PIXI.Polygon}
    */
-  calculatePaddedShape(padding) {
+  calculatePaddedShape(padding) { // eslint-disable-line no-unused-vars
     console.error("calculateOriginalShape must be implemented by subclass.");
   }
 
@@ -232,7 +245,8 @@ export class WalledTemplateShape {
       debug: debugPolygons(),
       type: this.wallRestriction,
       source: this,
-      boundaryShapes: this.translatedBoundaryShapes.map(shape => shape.toPolygon()), // TODO: Don't map to polygon if rectangle intersection with poly gets fixed.
+      boundaryShapes: this.translatedBoundaryShapes,
+      // boundaryShapes: this.translatedBoundaryShapes.map(shape => shape.toPolygon()), // TODO: Don't map to polygon if rectangle intersection with poly gets fixed.
       lightWall: this.options.lastReflectedEdge // Only used for cones
     };
 

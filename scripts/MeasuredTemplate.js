@@ -240,17 +240,24 @@ function _getGridHighlightPositions(wrapper) {
   const positions = wrapper();
 
   // Debug
-  // positions.forEach(p => Draw.point(p))
-  // positions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.5 }))
+  Draw = CONFIG.GeometryLib.Draw;
+  positions.forEach(p => Draw.point(p, { alpha: 0.4 }))
+  positions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.2 }))
 
   // Reset shape.
   this.shape = oldShape;
 
   // Filter positions to fit the actual shape.
-  return positions.filter(p => {
+  const filteredPositions = positions.filter(p => {
     const shape = gridShapeForTopLeft(p);
     return this.boundsOverlap(shape);
   });
+
+  // Debug
+  filteredPositions.forEach(p => Draw.point(p, { alpha: 0.8 }))
+  filteredPositions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.5 }))
+
+  return filteredPositions;
 }
 
 /**
