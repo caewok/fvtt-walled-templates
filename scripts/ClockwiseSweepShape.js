@@ -57,7 +57,7 @@ export class ClockwiseSweepShape extends ClockwiseSweepPolygon {
     // const l = this.points.length;
     // if ( (x === this.points[l-2]) && (y === this.points[l-1]) ) return this;
     if ( point.isEndpoint ) this.cornersEncountered.add(keyFromPoint(point.x, point.y));
-    point.cwEdges.forEach(edge => this.edgesEncountered.add(edge.wall));
+    point.cwEdges.forEach(edge => this.edgesEncountered.add(edge));
   }
 }
 

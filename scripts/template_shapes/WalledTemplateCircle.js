@@ -119,19 +119,19 @@ WalledTemplateCircle.prototype._spread = WalledTemplateCircle.prototype._recurse
  * If more than one wall at this corner, use the average vector between the
  * rightmost and leftmost walls on the side of the template origin.
  * @param {number} cornerKey      Key value for the corner
- * @param {Set<Wall>} wallSet     Walls to test
+ * @param {Set<Edge>} edgeSet     Edges to test
  * @param {Point} templateOrigin  Origin of the template
  */
-function extendCornerFromWalls(cornerKey, wallSet, templateOrigin) {
+function extendCornerFromWalls(cornerKey, edgeSet, templateOrigin) {
   const CORNER_SPACER = CONFIG[MODULE_ID]?.cornerSpacer ?? 10;
+  if ( !edgeSet.size ) return pointFromKey(cornerKey);
 
-  if ( !wallSet.size ) return pointFromKey(cornerKey);
-
-  const walls = [...wallSet].filter(w => w.wallKeys.has(cornerKey));
-  if ( !walls.length ) return pointFromKey(cornerKey); // Should not occur.
-  if ( walls.length === 1 ) {
-    const w = walls[0];
-    let [cornerPt, otherPt] = w.A.key === cornerKey ? [w.A, w.B] : [w.B, w.A];
+  // If only a single edge, move away from it.
+  const edges = [...edgeSet].filter(edge => edge.a.key === cornerKey || edge.b.key === cornerKey);
+  if ( !edges.length ) return pointFromKey(cornerKey); // Should not occur.
+  if ( edges.length === 1 ) {
+    const edge = edges[0];
+    let [cornerPt, otherPt] = edge.a.key === cornerKey ? [edge.a, edge.b] : [edge.b, edge.a];
     cornerPt = new PIXI.Point(cornerPt.x, cornerPt.y);
     otherPt = new PIXI.Point(otherPt.x, otherPt.y);
     const dist = PIXI.Point.distanceBetween(cornerPt, otherPt);
@@ -141,9 +141,9 @@ function extendCornerFromWalls(cornerKey, wallSet, templateOrigin) {
   // Segment with the smallest (incl. negative) orientation is ccw to the point
   // Segment with the largest orientation is cw to the point
   const orient = foundry.utils.orient2dFast;
-  const segments = [...walls].map(w => {
+  const segments = [...edges].map(edge => {
     // Construct new segment objects so walls are not modified.
-    const [cornerPt, otherPt] = w.A.key === cornerKey ? [w.A, w.B] : [w.B, w.A];
+    const [cornerPt, otherPt] = edge.a.key === cornerKey ? [edge.a, edge.b] : [edge.b, edge.a];
     const segment = {
       A: new PIXI.Point(cornerPt.x, cornerPt.y),
       B: new PIXI.Point(otherPt.x, otherPt.y)
