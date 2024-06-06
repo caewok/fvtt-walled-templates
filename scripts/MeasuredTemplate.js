@@ -27,44 +27,7 @@ PATCHES.dnd5e = {};
 
 // ----- NOTE: Hooks ----- //
 
-/**
- * Helper that tests if a template can be hidden.
- * Does not test all options.
- * @param {MeasuredTemplate} template
- * @returns {boolean} True if it can be hidden.
- */
-function canHideTemplate(template) {
-  // For attached templates, respect the hidden settings.
-  // For non-attached, we probably want the preview to display the template
-  const showPreview = template.isPreview && !template.attachedToken;
-  return !(template.hover
-    || showPreview
-    || !template.visible
-    || template.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
-    || Settings.FORCE_TEMPLATE_DISPLAY);
-}
 
-/**
- * Helper that tests the provided hide flag and the global defaults.
- * @param {MeasuredTemplate} template
- * @param {"BORDER"|"HIGHLIGHTING"} hideflag
- * @returns {boolean} True if template component can be hidden.
- */
-function canHideTemplateComponent(template, hideFlag) {
-  const HIDE = FLAGS.HIDE;
-
-  // Check for local token hover flag.
-  if ( template.document.flags?.[MODULE_ID]?.[HIDE.TOKEN_HOVER] ) return false;
-
-  // Check for per-template setting.
-  const TYPES = HIDE.TYPES;
-  const local = template.document.getFlag(MODULE_ID, HIDE[hideFlag]);
-  if ( !local || local === TYPES.GLOBAL_DEFAULT ) {
-    if ( MODULES.TOKEN_MAGIC.ACTIVE ) return game.settings.get('tokenmagic', 'autohideTemplateElements');
-    return Settings.get(Settings.KEYS.HIDE[hideFlag]);
-  }
-  return (local === TYPES.ALWAYS_HIDE);
-}
 
 /**
  * On refresh, control the ruler (text) visibility.
@@ -126,43 +89,6 @@ function refreshMeasuredTemplate(template, flags) {
     if ( tt !== template.tooltip.text ) template.tooltip.text = tt;
   }
 }
-
-/**
- * Hook drawMeasuredTemplate to monitor if a template has been created with an item.
- * Pull necessary flags from that item, such as caster.
- *
- * A hook event that fires when a {@link PlaceableObject} is initially drawn.
- * The dispatched event name replaces "Object" with the named PlaceableObject subclass, i.e. "drawToken".
- * @event drawObject
- * @category PlaceableObject
- * @param {PlaceableObject} object    The object instance being drawn
- */
-function drawMeasuredTemplate(template) {
-  // Add token elevation to the template if using Levels or Wall-Height modules
-  let moduleLevels = game.modules.get('levels');
-  let moduleWallHeight_active = game.modules.get('wall-height')?.active;
-  if ( moduleLevels && (moduleLevels.active || moduleWallHeight_active) ) {
-    // Copy the Levels method of getting the elevation so that the tool button for it is respected. Levels only sets its flags at preCreateMeasuredTemplate
-    if ( template.flags?.levels?.elevation !== undefined || template.flags?.[MODULE_ID]?.elevation !== undefined ) return;
-    const templateData = CONFIG.Levels.handlers.TemplateHandler.getTemplateData(false);
-    template.document.updateSource({
-      flags: { [MODULE_ID]: { elevation: templateData.elevation } }
-    });
-  } else if ( moduleWallHeight_active ) {
-    // If wall-height is active, but levels doesn't exist, we need a different approach. Take the elevation from the caster token
-    let parentToken = template.item?.parent ? template.item.parent.getActiveTokens().findLast((token, index) => token.controlled || index == 0 ) : canvas.tokens.controlled[0] ?? _token;
-    if ( parentToken ) {
-      template.document.updateSource({
-        flags: { [MODULE_ID]: { elevation: parentToken.document.elevation } }
-      });
-    }
-  }
-
-  if ( !template.item ) return;
-  addDnd5eItemConfigurationToTemplate(template);
-}
-
-PATCHES.dnd5e.HOOKS = { drawMeasuredTemplate };
 
 /**
  * Hook preCreateMeasuredTemplate to
@@ -257,6 +183,47 @@ PATCHES.BASIC.HOOKS = {
   hoverMeasuredTemplate: hoverMeasuredTemplateHook
 };
 
+// ----- NOTE: dnd5e Hooks ----- //
+
+/**
+ * Hook drawMeasuredTemplate to monitor if a template has been created with an item.
+ * Pull necessary flags from that item, such as caster.
+ *
+ * A hook event that fires when a {@link PlaceableObject} is initially drawn.
+ * The dispatched event name replaces "Object" with the named PlaceableObject subclass, i.e. "drawToken".
+ * @event drawObject
+ * @category PlaceableObject
+ * @param {PlaceableObject} object    The object instance being drawn
+ */
+function drawMeasuredTemplate(template) {
+  // Add token elevation to the template if using Levels or Wall-Height modules
+  let moduleLevels = game.modules.get('levels');
+  let moduleWallHeight_active = game.modules.get('wall-height')?.active;
+  if ( moduleLevels && (moduleLevels.active || moduleWallHeight_active) ) {
+    // Copy the Levels method of getting the elevation so that the tool button for it is respected. Levels only sets its flags at preCreateMeasuredTemplate
+    if ( template.flags?.levels?.elevation !== undefined || template.flags?.[MODULE_ID]?.elevation !== undefined ) return;
+    const templateData = CONFIG.Levels.handlers.TemplateHandler.getTemplateData(false);
+    template.document.updateSource({
+      flags: { [MODULE_ID]: { elevation: templateData.elevation } }
+    });
+  } else if ( moduleWallHeight_active ) {
+    // If wall-height is active, but levels doesn't exist, we need a different approach. Take the elevation from the caster token
+    let parentToken = template.item?.parent ? template.item.parent.getActiveTokens().findLast((token, index) => token.controlled || index == 0 ) : canvas.tokens.controlled[0] ?? _token;
+    if ( parentToken ) {
+      template.document.updateSource({
+        flags: { [MODULE_ID]: { elevation: parentToken.document.elevation } }
+      });
+    }
+  }
+
+  if ( !template.item ) return;
+  addDnd5eItemConfigurationToTemplate(template);
+}
+
+PATCHES.dnd5e.HOOKS = { drawMeasuredTemplate };
+
+
+
 // ----- NOTE: Wraps ----- //
 
 /**
@@ -328,23 +295,6 @@ function clone(wrapped) {
   clone.renderFlags.set({ refreshShape: true });
   return clone;
 }
-
-/**
- * Mixed wrap of MeasuredTemplate.prototype.highlightGrid
- * If the setting is set to hide, don't highlight grid unless hovering.
- */
-function highlightGrid(wrapped) {
-  if ( !(canHideTemplate(this) && canHideTemplateComponent(this, "HIGHLIGHTING")) ) return wrapped();
-
-  // Clear the existing highlight layer
-  const hl = canvas.interface.grid.getHighlightLayer(this.highlightId);
-  hl.clear();
-}
-
-PATCHES.BASIC.WRAPS = { _getGridHighlightPositions };
-PATCHES.BASIC.MIXES = { highlightGrid };
-
-// ----- Autotarget Wraps ----- //
 
 /**
  * Wrap MeasuredTemplate.prototype._onDragLeftStart
@@ -471,7 +421,6 @@ function _draw(wrapped) {
   this.tooltip ||= this.addChild(this._drawTooltip());
 }
 
-
 PATCHES.BASIC.WRAPS = {
   _computeShape,
   _canDrag,
@@ -481,10 +430,29 @@ PATCHES.BASIC.WRAPS = {
   _onDragLeftCancel,
   _onDragLeftDrop,
   destroy,
-  // _applyRenderFlags,
   _canHover,
-  _draw
+  _draw,
+  _getGridHighlightPositions
 };
+
+// ----- NOTE: Mixed wraps ----- //
+
+/**
+ * Mixed wrap of MeasuredTemplate.prototype.highlightGrid
+ * If the setting is set to hide, don't highlight grid unless hovering.
+ */
+function highlightGrid(wrapped) {
+  if ( !(canHideTemplate(this) && canHideTemplateComponent(this, "HIGHLIGHTING")) ) return wrapped();
+
+  // Clear the existing highlight layer
+  const hl = canvas.interface.grid.getHighlightLayer(this.highlightId);
+  hl.clear();
+}
+
+PATCHES.BASIC.MIXES = { highlightGrid };
+
+// ----- NOTE: Autotarget Wraps ----- //
+
 
 
 // ----- NOTE: Methods ----- //
@@ -571,9 +539,9 @@ async function detachToken(detachFromToken = true) {
 
   // It is possible that the document gets destroyed while we are waiting around for the flag.
   try { await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ID);
-  } catch( _error ) { /* empty */ }
+  } catch( _error ) { /* empty */ } // eslint-disable-line no-unused-vars
   try { await this.document.unsetFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.DELTAS);
-  } catch( _error) { /* empty */ }
+  } catch( _error) { /* empty */ } // eslint-disable-line no-unused-vars
 
   if ( detachFromToken && attachedToken ) await attachedToken.detachTemplate(this, false);
 }
@@ -663,6 +631,8 @@ PATCHES.BASIC.METHODS = {
   _getTooltipText
  };
 
+ // ----- NOTE: Static methods ----- //
+
 /**
  * New method: MeasuredTemplate._getTextStyle
  * Get the text style that should be used for this Template's tooltip.
@@ -742,7 +712,6 @@ function applyTokenStatusEffect(token, statusId, _active) {
     if ( template.boundsOverlap(tBounds) ) template.renderFlags.set({ retarget: true });
   });
 }
-
 
 PATCHES.AUTOTARGET.HOOKS = { refreshMeasuredTemplate: refreshMeasuredTemplateHook, applyTokenStatusEffect };
 
@@ -873,6 +842,45 @@ PATCHES.AUTOTARGET.METHODS = {
 // ----- NOTE: Helper functions ----- //
 
 /**
+ * Helper that tests if a template can be hidden.
+ * Does not test all options.
+ * @param {MeasuredTemplate} template
+ * @returns {boolean} True if it can be hidden.
+ */
+function canHideTemplate(template) {
+  // For attached templates, respect the hidden settings.
+  // For non-attached, we probably want the preview to display the template
+  const showPreview = template.isPreview && !template.attachedToken;
+  return !(template.hover
+    || showPreview
+    || !template.visible
+    || template.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
+    || Settings.FORCE_TEMPLATE_DISPLAY);
+}
+
+/**
+ * Helper that tests the provided hide flag and the global defaults.
+ * @param {MeasuredTemplate} template
+ * @param {"BORDER"|"HIGHLIGHTING"} hideflag
+ * @returns {boolean} True if template component can be hidden.
+ */
+function canHideTemplateComponent(template, hideFlag) {
+  const HIDE = FLAGS.HIDE;
+
+  // Check for local token hover flag.
+  if ( template.document.flags?.[MODULE_ID]?.[HIDE.TOKEN_HOVER] ) return false;
+
+  // Check for per-template setting.
+  const TYPES = HIDE.TYPES;
+  const local = template.document.getFlag(MODULE_ID, HIDE[hideFlag]);
+  if ( !local || local === TYPES.GLOBAL_DEFAULT ) {
+    if ( MODULES.TOKEN_MAGIC.ACTIVE ) return game.settings.get('tokenmagic', 'autohideTemplateElements');
+    return Settings.get(Settings.KEYS.HIDE[hideFlag]);
+  }
+  return (local === TYPES.ALWAYS_HIDE);
+}
+
+/**
  * Return the intersection of the bounds shape with the template shape.
  * Bounds shape should already be translated to the template {0, 0} origin.
  * @param {PIXI.Rectangle|Hexagon|Square}           tBounds
@@ -903,4 +911,3 @@ function scaleDiagonalDistance(direction, distance) {
   const diagonalScale = Math.abs(Math.sin(dirRadians)) + Math.abs(Math.cos(dirRadians));
   return diagonalScale * distance;
 }
-
