@@ -15,67 +15,60 @@ import { ClockwiseSweepShape } from "./ClockwiseSweepShape.js";
  */
 export class LightWallSweep extends ClockwiseSweepShape {
   /**
+   * Is the origin contained within the canvas bounds?
+   * @type {boolean}
+   */
+  #originContained = true;
+
+  /**
+   * Outermost boundary edges, which may be further out than canvas boundaries.
+   * @type {Edge[4]}
+   */
+  #boundaryEdges = [];
+
+  /**
    * Compute the polygon using the origin and configuration options.
+   * Unlike super.compute, this version permits origins outside canvas bounds.
    * @returns {PointSourcePolygon}    The computed polygon
    * @override
    */
   compute() {
-    let t0 = performance.now();
-    const {angle, debug, radius} = this.config;
-
-    // Skip zero-angle or zero-radius polygons
-    if ( (radius === 0) || (angle === 0) ) {
-      this.points.length = 0;
-      this.bounds = new PIXI.Rectangle(0, 0, 0, 0);
-      return this;
+    if ( !this.#originContained ) {
+      // Lie to the parent class about the origin.
+      // So we can avoid overriding the entire compute.
+      const canvasCenter = canvas.dimensions.rect.center;
+      this.origin.x = canvasCenter.x;
+      this.origin.y = canvasCenter.y;
     }
-
-    // Clear the polygon bounds
-    this.bounds = undefined;
-
-    // Delegate computation to the implementation
-    this._compute();
-
-    // Cache the new polygon bounds
-    this.bounds = this.getBounds();
-
-    // Debugging and performance metrics
-    if ( debug ) {
-      let t1 = performance.now();
-      console.log(`Created ${this.constructor.name} in ${Math.round(t1 - t0)}ms`);
-      this.visualize();
-    }
-    return this;
+    return super.compute();
   }
 
-  _boundaryWallsFromRectangle(rect) {
-    // From WallsLayer.prototype.#defineBoundaries
-    const cls = getDocumentClass("Wall");
-    const ctx = {parent: canvas.scene};
-    const define = (name, r) => {
-      // Data model for the wall requires integers.
-      const x = Math.floor(r.x);
-      const y = Math.floor(r.y);
-      const right = Math.ceil(r.right);
-      const bottom = Math.ceil(r.bottom);
+  /**
+   * Perform the implementation-specific computation.
+   * Revert the origin from the temporary setting.
+   * @protected
+   */
+  _compute() {
+    if ( !this.#originContained ) {
+      this.origin.x = this.config.lightWallOrigin.x;
+      this.origin.y = this.config.lightWallOrigin.y;
+    }
+    super._compute();
+  }
 
-     //  if ( !Number.isInteger(x)
-//         || !Number.isInteger(y)
-//         || !Number.isInteger(right)
-//         || !Number.isInteger(bottom) ) {
-//         console.error("_boundaryWallsFromRectangle requires integers!", rect);
-//
-//       }
-
-      const docs = [
-        new cls({_id: `Bounds${name}Top`.padEnd(16, "0"), c: [x, y, right, y]}, ctx),
-        new cls({_id: `Bounds${name}Right`.padEnd(16, "0"), c: [right, y, right, bottom]}, ctx),
-        new cls({_id: `Bounds${name}Bottom`.padEnd(16, "0"), c: [right, bottom, x, bottom]}, ctx),
-        new cls({_id: `Bounds${name}Left`.padEnd(16, "0"), c: [x, bottom, x, y]}, ctx)
-      ];
-      return docs.map(d => new Wall(d));
+  /**
+   * Construct a set of outer boundary edges from a rectangle.
+   */
+  _boundaryEdgesFromRectangle(rect) {
+    // From CanvasEdges##defineBoundaries
+    const define = (type, r) => {
+      const top = new Edge({x: r.x, y: r.y}, {x: r.right, y: r.y}, {id: `${type}Top`, type});
+      const right = new Edge({x: r.right, y: r.y}, {x: r.right, y: r.bottom}, {id: `${type}Right`, type});
+      const bottom = new Edge({x: r.right, y: r.bottom}, {x: r.x, y: r.bottom}, {id: `${type}Bottom`, type});
+      const left = new Edge({x: r.x, y: r.bottom}, {x: r.x, y: r.y}, {id: `${type}Left`, type});
+      return [top, right, bottom, left];
     };
-    return define("Temp", rect);
+    this.#boundaryEdges = define(`${MODULE_ID}.${this.config.source.sourceId}`, );
   }
 
   /**
@@ -84,40 +77,33 @@ export class LightWallSweep extends ClockwiseSweepShape {
    */
   _identifyEdges() {
     super._identifyEdges();
-    const rect = canvas.dimensions.rect;
+    if ( this.#originContained ) return;
+    this._boundaryEdgesFromRectangle().forEach(edge => this.edges.add(edge));
+  }
 
-    if ( !rect.contains(this.origin) ) {
-      // Strip out the boundary edges
-      this.edges.forEach(e => {
-        if ( e._isBoundary ) this.edges.delete(e);
-      });
+  /**
+   * Test whether a wall should be included in the computed polygon for a given origin and type
+   * Skip all boundary walls if the origin is outside the boundary rectangle.
+   * Eliminate all walls within the exclusionary triangle.
+   * @param {Edge} edge                     The Edge being considered
+   * @param {Record<EdgeTypes, 0|1|2>} edgeTypes Which types of edges are being used? 0=no, 1=maybe, 2=always
+   * @param {PIXI.Rectangle} bounds         The overall bounding box
+   * @returns {boolean}                     Should the edge be included?
+   * @protected
+   */
+  _testEdgeInclusion(edge, edgeTypes, bounds) {
+    if ( !this._originContained && (edge.type === "innerBounds" || edge.type === "outerBounds") ) return false;
+    if ( !super._testEdgeInclusion(edge, edgeTypes, bounds) ) return false;
 
-      // Build new edges
-      const xMinMax = Math.minMax(this.origin.x, rect.left, rect.right);
-      const yMinMax = Math.minMax(this.origin.y, rect.top, rect.bottom);
-      const encompassingRect = new PIXI.Rectangle(
-        xMinMax.min - 2,
-        yMinMax.min - 2,
-        xMinMax.max - xMinMax.min + 4,
-        yMinMax.max - yMinMax.min + 4
-      );
-
-      // if ( Number.isNaN(encompassingRect.x)
-//         || Number.isNaN(encompassingRect.y)
-//         || Number.isNaN(encompassingRect.width)
-//         || Number.isNaN(encompassingRect.height) ) {
-//
-//         console.error("_identifyEdges boundary rect fail!", rect);
-//       }
-
-
-      const boundaries = this._boundaryWallsFromRectangle(encompassingRect);
-      for ( let boundary of boundaries ) {
-        const edge = PolygonEdge.fromWall(boundary, this.config.type);
-        edge._isBoundary = true;
-        this.edges.add(edge);
-      }
-    }
+    // Eliminate all edges on the same side as origin is to a|b
+    const { exclusionarySide, exclusionaryTriangle, lightWall } = this.config;
+    const triPts = exclusionaryTriangle.points;
+    const a = { x: triPts[2], y: triPts[3] };
+    const b = { x: triPts[4], y: triPts[5] };
+    if ( Math.sign(foundry.utils.orient2dFast(a, b, edge.a)) === exclusionarySide
+      && Math.sign(foundry.utils.orient2dFast(a, b, edge.b)) === exclusionarySide ) return false;
+    if ( edge.object && lightWall.id && edge.object.id === lightWall.id  ) return false;
+    return !exclusionaryTriangle.lineSegmentIntersects(edge.a, edge.b, { inside: true });
   }
 
   /**
@@ -146,23 +132,7 @@ export class LightWallSweep extends ClockwiseSweepShape {
       b
     ]);
     cfg.boundaryShapes.push(boundary);
-  }
-
-  /**
-   * Eliminate all walls within the exclusionary triangle.
-   * @inheritDoc
-   */
-  _testWallInclusion(wall, bounds) {
-    // Eliminate all walls on the same side as origin is to a|b
-    const { exclusionarySide, exclusionaryTriangle, lightWall } = this.config;
-    const triPts = exclusionaryTriangle.points;
-    const a = { x: triPts[2], y: triPts[3] };
-    const b = { x: triPts[4], y: triPts[5] };
-
-    if ( Math.sign(foundry.utils.orient2dFast(a, b, wall.A)) === exclusionarySide
-      && Math.sign(foundry.utils.orient2dFast(a, b, wall.B)) === exclusionarySide ) return false;
-
-    if ( (lightWall.id && wall.id === lightWall.id) || !super._testWallInclusion(wall, bounds) ) return false;
-    return !exclusionaryTriangle.lineSegmentIntersects(wall.A, wall.B, { inside: true });
+    this.#originContained = canvas.dimensions.rect.contains(origin);
+    this.config.lightWallOrigin = duplicate(origin);
   }
 }
