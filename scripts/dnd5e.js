@@ -141,5 +141,25 @@ async function render5eSpellTemplateConfig(app, html, data) {
   const template = TEMPLATES.DND5E;
   const myHTML = await renderTemplate(template, data);
 
-  html.find(".form-group.consumption").first().after(myHTML);
+  // Create a new tab entry for the module.
+  const newTab = document.createElement("a");
+  newTab.setAttribute("class", "item");
+  newTab.setAttribute("data-tab", MODULE_ID);
+  const legend = document.createTextNode(game.i18n.localize("walledtemplates.MeasuredTemplateConfiguration.LegendTitle"))
+  newTab.appendChild(legend);
+  const navTabs = html.find(".tabs")[0];
+  if ( !navTabs ) return;
+  navTabs.appendChild(newTab);
+
+  // Construct a new tab div.
+  const tabDiv = document.createElement("div");
+  tabDiv.setAttribute("class", `tab ${MODULE_ID}`);
+  tabDiv.setAttribute("data-group", "primary");
+  tabDiv.setAttribute("data-tab", MODULE_ID);
+  tabDiv.innerHTML = myHTML;
+  const sheetBodySection = html.find(".sheet-body")[0];
+  if ( !sheetBodySection) return;
+  sheetBodySection.appendChild(tabDiv)
+
+  //html.find(".form-group.consumption").first().after(myHTML);
 }
