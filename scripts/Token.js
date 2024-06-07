@@ -32,18 +32,68 @@ PATCHES.BASIC = {};
  * @param {PlaceableObject} object The PlaceableObject
  * @param {boolean} controlled     Whether the PlaceableObject is selected or not
  */
-function controlTokenHook(object, controlled) {
+function controlToken(object, controlled) {
   const user = game.user;
 
   if ( controlled ) user._lastSelected = object.document.uuid;
   else if ( user._lastSelected === object.document.uuid ) user._lastDeselected = object.document.uuid;
 }
 
+/**
+ * Hook preUpdateToken
+ * Pass through animation parameters so any attached template moves with the token animation.
+ * @param {Document} document                       The Document instance being updated
+ * @param {object} changed                          Differential data that will be used to update the document
+ * @param {Partial<DatabaseUpdateOperation>} options Additional options which modify the update request
+ * @param {string} userId                           The ID of the requesting user, always game.user.id
+ * @returns {boolean|void}                          Explicitly return false to prevent update of this Document
+ */
+function preUpdateToken(tokenD, changed, options, userId) {
+  const token = tokenD.object;
+  const attachedTemplates = token.attachedTemplates;
+  if ( !attachedTemplates.length ) return;
+
+  const props = (new Set(["x", "y", "elevation", "rotation"])).intersection(new Set(Object.keys(changed)));
+  if ( !props.size ) return;
+
+  options.animation ??= {};
+
+//   if ( options.animation.ontick ) {
+//     const ontickOriginal = opts.ontick;
+//     options.animation.ontick = (dt, anim, documentData, config) => {
+//       attachedTemplates.forEach(t => doTemplateAnimation(t, dt, anim, documentData, config));
+//       ontickOriginal(dt, anim, documentData, config);
+//     };
+//   } else {
+//     options.animation.ontick = (dt, anim, documentData, config) => {
+//       attachedTemplates.forEach(t => doTemplateAnimation(t, dt, anim, documentData, config));
+//     };
+//   }
+}
+
+function doTemplateAnimation(template, _dt, _anim, documentData, _config) {
+  const templateData = template._calculateAttachedTemplateOffset(documentData);
+
+  // Update the document
+  foundry.utils.mergeObject(template.document, templateData, { insertKeys: false });
+
+  // Refresh the Template
+  template.renderFlags.set({
+    refreshPosition: Object.hasOwn(templateData, "x") || Object.hasOwn(templateData, "y"),
+    refreshElevation: Object.hasOwn(templateData, "elevation"),
+    refreshShape: Object.hasOwn(templateData, "direction")
+  });
+}
 
 /**
  * Hook updateToken
+ * Update the position of attached templates.
+ * @param {Document} document                       The existing Document which was updated
+ * @param {object} changed                          Differential data that was used to update the document
+ * @param {Partial<DatabaseUpdateOperation>} options Additional options which modified the update request
+ * @param {string} userId                           The ID of the User who triggered the update workflow
  */
-function updateTokenHook(tokenD, changed, _options, userId) {
+function updateToken(tokenD, changed, _options, userId) {
   if ( userId !== game.user.id ) return;
 
   const token = tokenD.object;
@@ -52,6 +102,8 @@ function updateTokenHook(tokenD, changed, _options, userId) {
   if ( !attachedTemplates || !attachedTemplates.length ) return;
 
   // TODO: Update elevation, rotation
+
+
   const props = (new Set(["x", "y", "elevation", "rotation"])).intersection(new Set(Object.keys(changed)));
   if ( !props.size ) return;
 
@@ -65,11 +117,14 @@ function updateTokenHook(tokenD, changed, _options, userId) {
   if ( updates.length ) canvas.scene.updateEmbeddedDocuments("MeasuredTemplate", updates);
 }
 
+
+
+
 /**
  * Hook destroyToken to remove and delete attached template.
  * @param {PlaceableObject} object    The object instance being destroyed
  */
-async function destroyTokenHook(token) {
+async function destroyToken(token) {
   if ( token._original || !token.attachedTemplates.length ) return;
 
   // Issue #50: Don't remove the active effect for a deleted unlinked token.
@@ -83,9 +138,11 @@ async function destroyTokenHook(token) {
 }
 
 PATCHES.BASIC.HOOKS = {
-  controlToken: controlTokenHook,
-  updateToken: updateTokenHook,
-  destroyToken: destroyTokenHook };
+  controlToken,
+  preUpdateToken,
+  updateToken,
+  destroyToken
+};
 
 
 // ----- NOTE: Methods ----- //
@@ -251,46 +308,9 @@ PATCHES.BASIC.GETTERS = { attachedTemplates };
 
 // ----- NOTE: Wraps ----- //
 
-/**
- * Wrap Token.prototype.animate
- * Cannot just use the `preUpdate` hook b/c it does not pass back options to Token.prototype._updateData.
- */
-async function animate(wrapped, updateData, opts) {
-  const attachedTemplates = this.attachedTemplates;
-  if ( !attachedTemplates.length ) return wrapped(updateData, opts);
 
-  const props = (new Set(["x", "y", "elevation", "rotation"])).intersection(new Set(Object.keys(updateData)));
-  if ( !props.size ) return wrapped(updateData, opts);
 
-  if ( opts.ontick ) {
-    const ontickOriginal = opts.ontick;
-    opts.ontick = (dt, anim, documentData, config) => {
-      attachedTemplates.forEach(t => doTemplateAnimation(t, dt, anim, documentData, config));
 
-      ontickOriginal(dt, anim, documentData, config);
-    };
-  } else {
-    opts.ontick = (dt, anim, documentData, config) => {
-      attachedTemplates.forEach(t => doTemplateAnimation(t, dt, anim, documentData, config));
-    };
-  }
-
-  return wrapped(updateData, opts);
-}
-
-function doTemplateAnimation(template, _dt, _anim, documentData, _config) {
-  const templateData = template._calculateAttachedTemplateOffset(documentData);
-
-  // Update the document
-  foundry.utils.mergeObject(template.document, templateData, { insertKeys: false });
-
-  // Refresh the Template
-  template.renderFlags.set({
-    refreshPosition: Object.hasOwn(templateData, "x") || Object.hasOwn(templateData, "y"),
-    refreshElevation: Object.hasOwn(templateData, "elevation"),
-    refreshShape: Object.hasOwn(templateData, "direction")
-  });
-}
 
 /**
  * Wrap Token.prototype.clone
@@ -316,8 +336,10 @@ function _onDragLeftStart(wrapped, event) {
 
   // Trigger each attached template to drag.
   if ( !event.interactionData.clones ) return;
+  event[MODULE_ID] ??= {};
   for ( const clone of event.interactionData.clones ) {
     const attachedTemplates = clone.attachedTemplates;
+    event[MODULE_ID].draggedAttachedToken = clone;
     for ( const template of attachedTemplates ) template._onDragLeftStart(event);
   }
 }
@@ -421,7 +443,6 @@ function _refreshTarget(wrapped, reticule) {
 
 
 PATCHES.BASIC.WRAPS = {
-  animate,
   _onDragLeftStart,
   _onDragLeftMove,
   _onDragLeftDrop,

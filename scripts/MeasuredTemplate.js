@@ -287,15 +287,6 @@ function _computeShape(wrapped) {
 }
 
 /**
- * Wrap MeasuredTemplate.prototype._canDrag
- * Don't allow dragging of attached templates.
- */
-function _canDrag(wrapped, user, event) {
-  if ( this.attachedToken ) return false;
-  return wrapped(user, event);
-}
-
-/**
  * Wrap MeasuredTemplate.prototype.clone
  * Clone the shape
  * @returns {PlaceableObject}
@@ -431,6 +422,17 @@ function _canHover(wrapped, user, event) {
 function _draw(wrapped) {
   wrapped();
   this.tooltip ||= this.addChild(this._drawTooltip());
+}
+
+/**
+ * Wrap MeasuredTemplate.prototype._canDrag
+ * Don't allow dragging of attached templates.
+ */
+function _canDrag(wrapped, user, event) {
+  const res = wrapped(user, event);
+  if ( event[MODULE_ID]?.draggedAttachedToken ) return true;
+  if ( this.attachedToken ) return false;
+  return res;
 }
 
 PATCHES.BASIC.WRAPS = {
