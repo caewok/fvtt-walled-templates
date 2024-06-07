@@ -6,7 +6,7 @@ renderTemplate
 "use strict";
 
 import { log } from "./util.js";
-import { MODULE_ID, FLAGS, LABELS } from "./const.js";
+import { MODULE_ID, FLAGS, LABELS, TEMPLATES } from "./const.js";
 import { Settings } from "./settings.js";
 
 export const PATCHES_dnd5e = {};
@@ -138,7 +138,7 @@ async function render5eSpellTemplateConfig(app, html, data) {
     hideoptions: LABELS.TEMPLATE_HIDE
   };
 
-  const template = `modules/${MODULE_ID}/templates/walled-templates-dnd5e-spell-template-config.html`;
+  const template = TEMPLATES.DND5E;
   const myHTML = await renderTemplate(template, data);
 
   html.find(".form-group.consumption").first().after(myHTML);

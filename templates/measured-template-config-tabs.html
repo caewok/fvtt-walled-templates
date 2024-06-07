@@ -1,0 +1,28 @@
+<form autocomplete="off" class="flexcol">
+
+  <!-- Configuration Tabs -->
+  <nav class="sheet-tabs tabs" aria-role="{{localize 'SHEETS.FormNavLabel'}}">
+      <a class="item" data-tab="basic"><i class="fas fa-lightbulb"></i> {{localize "LIGHT.HeaderBasic"}}</a>
+      <a class="item" data-tab="walledtemplates"><i class="fas fa-play"></i> {{localize "LIGHT.HeaderAnimation"}}</a>
+  </nav>
+
+  <!-- Basic Tab -->
+
+  <div class="tab" data-tab="basic">
+    <!-- {{>"templates/scene/template-config.html"}} -->
+  </div>
+
+  <!-- Walled Templates Tab -->
+  <div class="tab" data-tab="walledtemplates">
+    <!-- {{>"modules/walledtemplates/templates/measured-template-config.html"}} -->
+
+    <!--
+    <button type="submit">
+        <i class="far fa-save"></i> {{submitText}}
+    </button>
+    -->
+  </div>
+
+  <!-- No footer button b/c the basic template already has the button -->
+
+</form>

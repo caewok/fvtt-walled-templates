@@ -10,7 +10,7 @@ ui
 "use strict";
 
 import { log, tokenName } from "./util.js";
-import { MODULE_ID, FLAGS, LABELS, NOTIFICATIONS } from "./const.js";
+import { MODULE_ID, FLAGS, LABELS, NOTIFICATIONS, TEMPLATES } from "./const.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
@@ -35,7 +35,7 @@ function renderMeasuredTemplateConfigHook(app, html, data) {
   };
 
   foundry.utils.mergeObject(data, renderData, { inplace: true });
-  renderMeasuredTemplateConfig(app, html, data);
+  // renderMeasuredTemplateConfig(app, html, data);
   activateListeners(app, html);
 }
 
@@ -53,7 +53,9 @@ PATCHES.BASIC.HOOKS = { renderMeasuredTemplateConfig: renderMeasuredTemplateConf
 export function defaultOptions(wrapper) {
   const options = wrapper();
   return foundry.utils.mergeObject(options, {
-    height: "auto"
+    height: "auto",
+    tabs: [{navSelector: ".tabs", initial: "basic" }],
+    template: TEMPLATES.CONFIG_TABS
   });
 }
 
@@ -82,7 +84,7 @@ async function renderMeasuredTemplateConfig(app, html, data) {
   log(`enabled flag is ${data.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK)}`);
   log("walledTemplatesRenderMeasuredTemplateConfig data after", data);
 
-  const template = `modules/${MODULE_ID}/templates/walled-templates-measured-template-config.html`;
+  const template = TEMPLATES.CONFIG_PARTIAL;
   const myHTML = await renderTemplate(template, data);
   log("config rendered HTML", myHTML);
   html.find(".form-group").last().after(myHTML);
