@@ -18,23 +18,23 @@ PATCHES.BASIC = {};
 // ----- Note: Hooks ----- //
 function renderMeasuredTemplateConfigHook(app, html, data) {
   // Look up the token. If present in the scene, consider it attached for the config.
-  const template = app.object.object;
-  const attachedToken = template.attachedToken;
-  let rotateWithToken = template.document.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ROTATE);
-  if (typeof rotateWithToken === 'undefined') {
-    rotateWithToken = true;
-  }
-  const renderData = {};
-  renderData[MODULE_ID] = {
-    blockoptions: LABELS.WALLS_BLOCK,
-    walloptions: LABELS.WALL_RESTRICTION,
-    hideoptions: LABELS.TEMPLATE_HIDE,
-    attachedTokenName: tokenName(attachedToken) || game.i18n.localize("None"),
-    hasAttachedToken: Boolean(attachedToken),
-    rotateWithToken: Boolean(rotateWithToken)
-  };
-
-  foundry.utils.mergeObject(data, renderData, { inplace: true });
+//   const template = app.object.object;
+//   const attachedToken = template.attachedToken;
+//   let rotateWithToken = template.document.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ROTATE);
+//   if (typeof rotateWithToken === 'undefined') {
+//     rotateWithToken = true;
+//   }
+//   const renderData = {};
+//   renderData[MODULE_ID] = {
+//     blockoptions: LABELS.WALLS_BLOCK,
+//     walloptions: LABELS.WALL_RESTRICTION,
+//     hideoptions: LABELS.TEMPLATE_HIDE,
+//     attachedTokenName: tokenName(attachedToken) || game.i18n.localize("None"),
+//     hasAttachedToken: Boolean(attachedToken),
+//     rotateWithToken: Boolean(rotateWithToken)
+//   };
+//
+//   foundry.utils.mergeObject(data, renderData, { inplace: true });
   // renderMeasuredTemplateConfig(app, html, data);
   activateListeners(app, html);
 }
@@ -50,17 +50,45 @@ PATCHES.BASIC.HOOKS = { renderMeasuredTemplateConfig: renderMeasuredTemplateConf
  * @param {Function} wrapper
  * @return {Object} See MeasuredTemplateConfig.defaultOptions.
  */
-export function defaultOptions(wrapper) {
+function defaultOptions(wrapper) {
   const options = wrapper();
   return foundry.utils.mergeObject(options, {
     height: "auto",
-    tabs: [{navSelector: ".tabs", initial: "basic" }],
+    tabs: [{navSelector: '.tabs[data-group="main"]', contentSelector: "form", initial: "basic"}],
     template: TEMPLATES.CONFIG_TABS
   });
 }
 
 PATCHES.BASIC.STATIC_WRAPS = { defaultOptions };
 
+/**
+ * Wrapper for MeasuredTemplateConfig#getData
+ */
+function getData(wrapper) {
+  const template = this.object.object;
+  const attachedToken = template.attachedToken;
+  const rotateWithToken = template.document.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ROTATE) ?? true;
+  return foundry.utils.mergeObject(wrapper(), {
+    [MODULE_ID]: {
+      blockoptions: LABELS.WALLS_BLOCK,
+      walloptions: LABELS.WALL_RESTRICTION,
+      hideoptions: LABELS.TEMPLATE_HIDE,
+      attachedTokenName: tokenName(attachedToken) || game.i18n.localize("None"),
+      hasAttachedToken: Boolean(attachedToken),
+      rotateWithToken: Boolean(rotateWithToken)
+    }
+  });
+}
+
+/**
+ * Method for MeasuredTemplateConfig#_onChangeTab
+ * Test
+ */
+function _onChangeTab(wrapper, event, tabs, active) {
+    wrapper(event, tabs, active);
+}
+
+PATCHES.BASIC.WRAPS = { getData, _onChangeTab };
 
 // ----- Note: Helper functions ----- //
 

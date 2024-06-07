@@ -1,28 +1,27 @@
 <form autocomplete="off" class="flexcol">
 
   <!-- Configuration Tabs -->
-  <nav class="sheet-tabs tabs" aria-role="{{localize 'SHEETS.FormNavLabel'}}">
+  <nav class="sheet-tabs tabs" data-group="main" aria-role="{{localize 'SHEETS.FormNavLabel'}}">
       <a class="item" data-tab="basic"><i class="fas fa-lightbulb"></i> {{localize "LIGHT.HeaderBasic"}}</a>
-      <a class="item" data-tab="walledtemplates"><i class="fas fa-play"></i> {{localize "LIGHT.HeaderAnimation"}}</a>
+      <a class="item" data-tab="animation"><i class="fas fa-play"></i> {{localize "LIGHT.HeaderAnimation"}}</a>
   </nav>
 
   <!-- Basic Tab -->
 
-  <div class="tab" data-tab="basic">
-    <!-- {{>"templates/scene/template-config.html"}} -->
+  <div class="tab" data-tab="basic" data-group="main">
+    Basic Tab!
+    {{> "modules/walledtemplates/templates/measured-template-config.html"}}
   </div>
 
   <!-- Walled Templates Tab -->
-  <div class="tab" data-tab="walledtemplates">
-    <!-- {{>"modules/walledtemplates/templates/measured-template-config.html"}} -->
-
-    <!--
-    <button type="submit">
-        <i class="far fa-save"></i> {{submitText}}
-    </button>
-    -->
+   <div class="tab" data-tab="animation" data-group="main">
+     Not basic tab!
+     {{> "modules/walledtemplates/templates/measured-template-config.html"}}
   </div>
 
   <!-- No footer button b/c the basic template already has the button -->
+  <footer class="sheet-footer">
+  This is the footer!
+  </footer>
 
 </form>
