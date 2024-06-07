@@ -110,7 +110,7 @@ export const TEMPLATES = {
   DND5E: `modules/${MODULE_ID}/templates/dnd5e-spell-template-config.html`,
   CONFIG_TABS: `modules/${MODULE_ID}/templates/measured-template-config-tabs.html`,
   CONFIG_PARTIAL: `modules/${MODULE_ID}/templates/measured-template-config.html`,
-  CONFIG_BASIC: "templates/scene/template-config.html"
+  CONFIG_BASIC: `modules/${MODULE_ID}/templates/foundry-template-config.html`
 };
 
 export const ACTIVE_EFFECT_ICON = `modules/${MODULE_ID}/assets/ruler-combined-solid-gray.svg`;

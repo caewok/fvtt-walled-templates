@@ -1,5 +1,10 @@
 {
     "walledtemplates.MeasuredTemplateConfiguration.LegendTitle": "Walled Templates",
+
+    "walledtemplates.MeasuredTemplateConfiguration.hint": "Configurações específicas do módulo Walled Template",
+    "walledtemplates.MeasuredTemplateConfiguration.legend.walls": "Paredes",
+    "walledtemplates.MeasuredTemplateConfiguration.legend.tokens": "Tokens",
+
     "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name": "Paredes",
     "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint": "Círculos/Quadrados: Espalhar; Linhas/Cones: Refletir.",
 

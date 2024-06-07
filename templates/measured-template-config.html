@@ -1,64 +1,4 @@
 <form autocomplete="off">
-    <div class="form-group">
-      <label>{{ localize "walledtemplates.MeasuredTemplateConfiguration.elevation.Name" }} <span class="units">({{gridUnits}})</span> </label>
-      <div class="form-fields">
-        <input type="number" placeholder="0" id="elevatedvisionElevationConfig" name="flags.elevatedvision.elevation" class="elevatedvision" value="{{ data.flags.elevatedvision.elevation }}"/>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name"}}&nbsp;
-         <i class="tip fas fa-info-circle" data-tooltip="walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint"></i>
-      </label>
-      <div class="form-fields">
-        <select name="flags.walledtemplates.wallsBlock">
-          {{ selectOptions walledtemplates.blockoptions selected=data.flags.walledtemplates.wallsBlock localize=true }}
-        </select>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name"}}
-        <i class="tip fas fa-info-circle" data-tooltip="walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint"></i>
-      </label>
-      <div class="form-fields">
-        <select name="flags.walledtemplates.wallRestriction">
-          {{ selectOptions walledtemplates.walloptions selected=data.flags.walledtemplates.wallRestriction localize=true }}
-        </select>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.attach-token.Name"}}
-        <i class="tip fas fa-info-circle" data-tooltip="walledtemplates.MeasuredTemplateConfiguration.attach-token.Hint"></i>
-      </label>
-      <div class="form-fields">
-        <span class="display-value"><em>{{walledtemplates.attachedTokenName}}</em></span>
-        <button type="button" data-type="token" data-target="data.entity" class="walledtemplates-entity-picker" id="walledtemplates-useSelectedToken" title="{{localize 'walledtemplates.MeasuredTemplateConfiguration.attach-token.useSelectedToken'}}"><i class="fas fa-user-alt fa-sm"></i></button>
-        <button type="button" data-type="token" data-target="data.entity" class="walledtemplates-entity-picker" id="walledtemplates-useTargetedToken" title="{{localize 'walledtemplates.MeasuredTemplateConfiguration.attach-token.useTargetedToken'}}"><i class="fas fa-crosshairs fa-sm"></i></button>
-        <button type="button" {{ disabled (not walledtemplates.hasAttachedToken) }} data-type="token" data-target="data.entity" class="walledtemplates-entity-picker" id="walledtemplates-removeAttachedToken" title="{{localize 'walledtemplates.MeasuredTemplateConfiguration.attach-token.removeToken'}}"><i class="fas fa-user-slash fa-sm"></i></button>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Name"}}
-        <i class="tip fas fa-info-circle" data-tooltip="walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Hint"></i>
-      </label>
-      <div class="form-fields">
-        <input type="checkbox" name="flags.walledtemplates.rotateWithAttachedToken" {{checked data.flags.walledtemplates.rotateWithToken}}/>
-      </div>
-      <p class="hint">
-    </div>
-
-    <div class="form-group">
-      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Name"}}
-        <i class="tip fas fa-info-circle" data-tooltip="walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Hint"></i>
-      </label>
-      <div class="form-fields">
-        <input type="checkbox" name="flags.walledtemplates.noAutotarget" {{checked data.flags.walledtemplates.noAutotarget}}/>
-      </div>
-      <p class="hint">
-    </div>
 
     <div class="form-group">
       <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.hide-border.Name"}}
@@ -95,4 +35,69 @@
       </div>
       <p class="hint">
     </div>
+
+    <fieldset>
+      <legend>{{localize "walledtemplates.MeasuredTemplateConfiguration.legend.walls"}}</legend>
+
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name"}}
+         <i class="tip fas fa-info-circle" data-tooltip="walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint"></i>
+      </label>
+      <div class="form-fields">
+        <select name="flags.walledtemplates.wallsBlock">
+          {{ selectOptions walledtemplates.blockoptions selected=data.flags.walledtemplates.wallsBlock localize=true }}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name"}}
+        <i class="tip fas fa-info-circle" data-tooltip="walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint"></i>
+      </label>
+      <div class="form-fields">
+        <select name="flags.walledtemplates.wallRestriction">
+          {{ selectOptions walledtemplates.walloptions selected=data.flags.walledtemplates.wallRestriction localize=true }}
+        </select>
+      </div>
+    </div>
+    </fieldset>
+    <br>
+
+    <fieldset>
+      <legend>{{localize "walledtemplates.MeasuredTemplateConfiguration.legend.tokens"}}</legend>
+
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Name"}}
+        <i class="tip fas fa-info-circle" data-tooltip="walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Hint"></i>
+      </label>
+      <div class="form-fields">
+        <input type="checkbox" name="flags.walledtemplates.noAutotarget" {{checked data.flags.walledtemplates.noAutotarget}}/>
+      </div>
+      <p class="hint">
+    </div>
+
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.attach-token.Name"}}
+        <i class="tip fas fa-info-circle" data-tooltip="walledtemplates.MeasuredTemplateConfiguration.attach-token.Hint"></i>
+      </label>
+      <div class="form-fields">
+        <span class="display-value"><em>{{walledtemplates.attachedTokenName}}</em></span>
+        <button type="button" data-type="token" data-target="data.entity" class="walledtemplates-entity-picker" id="walledtemplates-useSelectedToken" title="{{localize 'walledtemplates.MeasuredTemplateConfiguration.attach-token.useSelectedToken'}}"><i class="fas fa-user-alt fa-sm"></i></button>
+        <button type="button" data-type="token" data-target="data.entity" class="walledtemplates-entity-picker" id="walledtemplates-useTargetedToken" title="{{localize 'walledtemplates.MeasuredTemplateConfiguration.attach-token.useTargetedToken'}}"><i class="fas fa-crosshairs fa-sm"></i></button>
+        <button type="button" {{ disabled (not walledtemplates.hasAttachedToken) }} data-type="token" data-target="data.entity" class="walledtemplates-entity-picker" id="walledtemplates-removeAttachedToken" title="{{localize 'walledtemplates.MeasuredTemplateConfiguration.attach-token.removeToken'}}"><i class="fas fa-user-slash fa-sm"></i></button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>{{localize "walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Name"}}
+        <i class="tip fas fa-info-circle" data-tooltip="walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Hint"></i>
+      </label>
+      <div class="form-fields">
+        <input type="checkbox" name="flags.walledtemplates.rotateWithAttachedToken" {{checked data.flags.walledtemplates.rotateWithToken}}/>
+      </div>
+      <p class="hint">
+    </div>
+    </fieldset>
+    <br>
+
 </form>

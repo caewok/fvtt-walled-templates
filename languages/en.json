@@ -1,5 +1,10 @@
 {
     "walledtemplates.MeasuredTemplateConfiguration.LegendTitle": "Walled Templates",
+
+    "walledtemplates.MeasuredTemplateConfiguration.hint": "Settings specific to the Walled Template module",
+    "walledtemplates.MeasuredTemplateConfiguration.legend.walls": "Walls",
+    "walledtemplates.MeasuredTemplateConfiguration.legend.tokens": "Tokens",
+
     "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name": "Walls",
     "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint": "Circles/Rectangles: Spread; Rays/Cones: Reflect.",
 
@@ -20,7 +25,7 @@
     "walledtemplates.MeasuredTemplateConfiguration.attach-token.useTargetedToken": "Attach last targeted token",
     "walledtemplates.MeasuredTemplateConfiguration.attach-token.removeToken": "Remove attached token",
 
-    "walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Name": "Rotate with Token",
+    "walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Name": "Rotate with Attached",
     "walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Hint": "When token rotates, rotate this template around the token.",
 
     "walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Name": "Do not autotarget",
