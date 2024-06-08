@@ -141,9 +141,6 @@ Hooks.once("setup", function() {
   Settings.registerAll();
   Settings.toggleAutotarget();
   Settings.registerKeybindings();
-
-  const reg = WalledTemplateShape.shapeCodeRegister;
-  if ( Settings.get(Settings.KEYS.DIAGONAL_SCALING.circle) ) reg.set("circle", WalledTemplateSquare);
 });
 
 

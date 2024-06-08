@@ -35,35 +35,6 @@ export function preCreateMeasuredTemplateHook(templateD, updateData, opts, id) {
     updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = Settings.get(Settings.KEYS.DEFAULT_WALL_RESTRICTION[t]);
   }
 
-  if ( Settings.get(Settings.KEYS.DIAGONAL_SCALING[t]) ) {
-    if ( t === "circle" && ((distance / gridDist) >= 1) ) {
-      // Switch circles to squares if applicable
-      // Conforms with 5-5-5 diagonal rule.
-      // Only if the template is 1 grid unit or larger.
-      // See dndHelpers for original:
-      // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L91
-      const radiusPx = ( distance / gridDist ) * gridSize;
-
-      // Calculate the square's hypotenuse based on the 5-5-5 diagonal distance
-      const length = distance * 2;
-      const squareDist = Math.hypot(length, length);
-
-      log(`preCreateMeasuredTemplate: switching circle ${x},${y} distance ${distance} to rectangle ${x - radiusPx},${y - radiusPx} distance ${squareDist}`);
-
-      updates.x = templateD.x - radiusPx;
-      updates.y = templateD.y - radiusPx;
-      updates.direction = 45;
-      updates.distance = squareDist;
-      updates.t = "rect";
-
-    } else if ( t === "ray" || t === "cone" ) {
-      // Extend rays or cones to conform to 5-5-5 diagonal, if applicable.
-      // See dndHelpers for original:
-      // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L78
-      updates.distance = scaleDiagonalDistance(direction, distance);
-    }
-  }
-
   if ( !foundry.utils.isEmpty(updates) ) templateD.updateSource(updates);
 }
 
