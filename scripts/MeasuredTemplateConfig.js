@@ -31,29 +31,61 @@ function moveAllChildren(oldParent, newParent) {
 // ----- Note: Hooks ----- //
 async function renderMeasuredTemplateConfigHook(app, html, data) {
   // Look up the token. If present in the scene, consider it attached for the config.
-  const template = app.object.object;
-  const attachedToken = template.attachedToken;
-  let rotateWithToken = template.document.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ROTATE);
-  if (typeof rotateWithToken === 'undefined') {
-    rotateWithToken = true;
-  }
-  const renderData = {};
-  renderData[MODULE_ID] = {
-    blockoptions: LABELS.WALLS_BLOCK,
-    walloptions: LABELS.WALL_RESTRICTION,
-    hideoptions: LABELS.TEMPLATE_HIDE,
-    attachedTokenName: tokenName(attachedToken) || game.i18n.localize("None"),
-    hasAttachedToken: Boolean(attachedToken),
-    rotateWithToken: Boolean(rotateWithToken)
-  };
+//   const template = app.object.object;
+//   const attachedToken = template.attachedToken;
+//   let rotateWithToken = template.document.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ROTATE);
+//   if (typeof rotateWithToken === 'undefined') {
+//     rotateWithToken = true;
+//   }
+//   const renderData = {};
+//   renderData[MODULE_ID] = {
+//     blockoptions: LABELS.WALLS_BLOCK,
+//     walloptions: LABELS.WALL_RESTRICTION,
+//     hideoptions: LABELS.TEMPLATE_HIDE,
+//     attachedTokenName: tokenName(attachedToken) || game.i18n.localize("None"),
+//     hasAttachedToken: Boolean(attachedToken),
+//     rotateWithToken: Boolean(rotateWithToken)
+//   };
+//
+//   foundry.utils.mergeObject(data, renderData, { inplace: true });
 
-  foundry.utils.mergeObject(data, renderData, { inplace: true });
 
-  const form = html.find("form")[0];
-  if ( !form ) return;
 
+  // renderMeasuredTemplateConfig(app, html, data);
+  activateListeners(app, html);
+}
+
+PATCHES.BASIC.HOOKS = { renderMeasuredTemplateConfig: renderMeasuredTemplateConfigHook };
+
+/**
+ * Wrapper for MeasuredTemplateConfig.defaultOptions
+ * Make the template config window resize height automatically, to accommodate
+ * different parameters.
+ * @param {Function} wrapper
+ * @return {Object} See MeasuredTemplateConfig.defaultOptions.
+ */
+function defaultOptions(wrapper) {
+  const options = wrapper();
+  return foundry.utils.mergeObject(options, {
+    height: "auto",
+    tabs: [{navSelector: '.tabs[data-group="main"]', contentSelector: "form", initial: "basic"}],
+//    template: TEMPLATES.CONFIG_TABS
+  });
+}
+
+PATCHES.BASIC.STATIC_WRAPS = { defaultOptions };
+
+// ----- Note: Wraps ----- //
+
+/**
+ * Wrapper for MeasuredTemplatedConfig.prototype._renderInner
+ */
+async function _renderInner(wrapper, data) {
+  const html = await wrapper(data);
+  const form = html[0];
+  if ( !form ) return html;
   const button = html.find("button[type='submit']")[0];
-  if ( !button ) return;
+  if ( !button ) return html;
 
   // Remove the button from the form.
   form.removeChild(button);
@@ -125,36 +157,10 @@ async function renderMeasuredTemplateConfigHook(app, html, data) {
   form.appendChild(divWT);
   form.appendChild(footer);
 
-  // Add tab options to the application.
-  app.options.tabs = [{navSelector: '.tabs[data-group="main"]', contentSelector: "form", initial: "basic"}];
-  app._tabs = app._createTabHandlers();
-  app._activateCoreListeners(html);
-
-  // renderMeasuredTemplateConfig(app, html, data);
-  activateListeners(app, html);
+  return html;
 }
 
-PATCHES.BASIC.HOOKS = { renderMeasuredTemplateConfig: renderMeasuredTemplateConfigHook };
 
-// ----- Note: Wraps ----- //
-
-/**
- * Wrapper for MeasuredTemplateConfig.defaultOptions
- * Make the template config window resize height automatically, to accommodate
- * different parameters.
- * @param {Function} wrapper
- * @return {Object} See MeasuredTemplateConfig.defaultOptions.
- */
-function defaultOptions(wrapper) {
-  const options = wrapper();
-  return foundry.utils.mergeObject(options, {
-    height: "auto",
-//    tabs: [{navSelector: '.tabs[data-group="main"]', contentSelector: "form", initial: "basic"}],
-//    template: TEMPLATES.CONFIG_TABS
-  });
-}
-
-PATCHES.BASIC.STATIC_WRAPS = { defaultOptions };
 
 /**
  * Wrapper for MeasuredTemplateConfig#getData
@@ -183,7 +189,7 @@ function _onChangeTab(wrapper, event, tabs, active) {
     wrapper(event, tabs, active);
 }
 
-PATCHES.BASIC.WRAPS = { getData, _onChangeTab };
+PATCHES.BASIC.WRAPS = { getData, _onChangeTab, _renderInner};
 
 // ----- Note: Helper functions ----- //
 
