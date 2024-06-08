@@ -1,6 +1,7 @@
 /* globals
 canvas,
 CONFIG,
+fromUuidSync,
 game,
 Hooks
 */
@@ -21,7 +22,7 @@ await foundry.utils.benchmark(fn, 1e04, t)
 // Basics
 import { log } from "./util.js";
 import { Settings } from "./settings.js";
-import { MODULE_ID, FLAGS } from "./const.js";
+import { MODULE_ID, FLAGS, TEMPLATES } from "./const.js";
 
 // Patches
 import { initializePatching, registerAutotargeting, PATCHER } from "./patching.js";
@@ -108,15 +109,17 @@ Hooks.once("init", function() {
   };
 
   // Add render flags to help with autotargeting and elevation of the template.
-  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.retarget = {};
-  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate = ["retarget", "refreshShape"];
-
-  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshElevation = { propagate: ["retarget", "refreshShape"]};
-  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate = ["retarget", "refreshShape", "refreshElevation"];
-
+  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshTargets = {};
+  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate.push("refreshTargets");
+  CONFIG.MeasuredTemplate.objectClass.RENDER_FLAGS.refreshPosition.propagate.push("refreshShape");
 
   // Tell modules that the module is set up
   Hooks.callAll(`${MODULE_ID}Ready`);
+
+  // Must go later
+  const promises = [];
+  for ( const template of Object.values(TEMPLATES) ) promises.push(getTemplate(template)); // Async but not awaiting here.
+  Promise.allSettled(promises);
 });
 
 function initializeWalledTemplates(systemId) {
@@ -138,17 +141,17 @@ Hooks.once("setup", function() {
   Settings.registerAll();
   Settings.toggleAutotarget();
   Settings.registerKeybindings();
-
-  const reg = WalledTemplateShape.shapeCodeRegister;
-  if ( Settings.get(Settings.KEYS.DIAGONAL_SCALING.circle) ) reg.set("circle", WalledTemplateSquare);
 });
 
 
-Hooks.once("ready", async function() {
+Hooks.once("ready", function() {
   log("Ready...");
 
   // Check for whether children exist. See issue #18.
   if ( !canvas.templates?.objects?.children ) return;
+
+  // Ensure autotargeting is registered on setup.
+  registerAutotargeting();
 
   // Ensure every template has an enabled flag; set to world setting if missing.
   // Happens if templates were created without Walled Templates module enabled
@@ -180,22 +183,16 @@ Hooks.once("ready", async function() {
         Settings.get(KEYS.DEFAULT_WALL_RESTRICTION[shape])));
     }
   }
-  if ( promises.length ) await Promise.all(promises);
-
-  // Ensure autotargeting is registered on setup.
-  registerAutotargeting();
+  if ( promises.length ) Promise.all(promises);
 
   log("Refreshing templates on ready hook.");
   // Redraw templates once the canvas is loaded
   // Cannot use walls to draw templates until canvas.walls.quadtree is loaded.
-  canvas.templates.placeables.forEach(t => {
-    t.renderFlags.set({
-      refreshShape: true
-    });
-  });
-
-  log("Refreshing autotargeting.");
-  Settings.refreshAutotargeting();
+//   canvas.templates.placeables.forEach(t => {
+//     t.renderFlags.set({
+//       refreshShape: true
+//     });
+//   });
 
 });
 
@@ -212,7 +209,7 @@ Hooks.on("getSceneControlButtons", controls => {
     active: Settings.get(AUTOTARGET.ENABLED),
     onClick: toggle => { // eslint-disable-line no-unused-vars
       Settings.toggle(AUTOTARGET.ENABLED);
-      canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
+      canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshTargets: true }));
     }
   });
 });
@@ -220,10 +217,9 @@ Hooks.on("getSceneControlButtons", controls => {
 /**
  * When loading a new scene, check if any version updates are required.
  */
-Hooks.on("canvasReady", async function(canvas) {
+Hooks.on("canvasReady", function(canvas) {
   // Migrate attached templates to new version.
-  const sceneVersion = canvas.scene.getFlag(MODULE_ID, FLAGS.VERSION);
-  if ( !sceneVersion ) {
+  if ( !canvas.scene.getFlag(MODULE_ID, FLAGS.VERSION) ) {
     // For every token, check the actor effect origin for attached templates.
     // Add flag for attached template.
     const promises = [];
@@ -235,7 +231,12 @@ Hooks.on("canvasReady", async function(canvas) {
         promises.push(effect.setFlag(MODULE_ID, FLAGS.ATTACHED_TEMPLATE_ID, attachedTemplate.id));
       }
     }
-    await Promise.allSettled(promises);
-    await canvas.scene.setFlag(MODULE_ID, FLAGS.VERSION, game.modules.get(MODULE_ID).version);
+    Promise.allSettled(promises).then((results) => canvas.scene.setFlag(MODULE_ID, FLAGS.VERSION, game.modules.get(MODULE_ID).version));
   }
+
+  // token.hitArea not defined as of `canvasReady`. So trigger on later hook.
+  Hooks.once("visibilityRefresh", canvasVisibility => {
+    log("Refreshing autotargeting.");
+    Settings.refreshAutotargeting();
+  });
 });

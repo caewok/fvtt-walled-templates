@@ -1,4 +1,5 @@
 /* globals
+CONFIG
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
@@ -14,11 +15,15 @@ export class WalledTemplateRoundedCone extends WalledTemplateCone {
    * @returns {PIXI.Polygon}
    */
   calculateOriginalShape({ direction, angle, distance } = {}) {
+    if ( !this.template._getConeShape ) return super.originalShape({ direction, angle, distance }); // In case SWADE is not present.
     direction ??= this.direction;
     angle ??= this.angle;
     distance ??= this.distance;
-    if ( this.template._getConeShape ) return this.template._getConeShape(direction, angle, distance);
-    return super.originalShape({ direction, angle, distance }); // In case SWADE is not present.
-  }
 
+    // Convert to degrees and grid units for Foundry method.
+    direction = Math.toDegrees(direction);
+    angle = Math.toDegrees(angle);
+    distance = CONFIG.GeometryLib.utils.pixelsToGridUnits(distance);
+    return this.template._getConeShape(direction, angle, distance);
+  }
 }

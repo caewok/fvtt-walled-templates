@@ -1,5 +1,5 @@
 /* globals
-duplicate
+foundry
 */
 
 "use strict";
@@ -89,8 +89,8 @@ export const LABELS = {
   GLOBAL_DEFAULT: "globalDefault"
 };
 
-LABELS.SPELL_TEMPLATE.WALLS_BLOCK = duplicate(LABELS.WALLS_BLOCK);
-LABELS.SPELL_TEMPLATE.WALL_RESTRICTION = duplicate(LABELS.WALL_RESTRICTION);
+LABELS.SPELL_TEMPLATE.WALLS_BLOCK = foundry.utils.duplicate(LABELS.WALLS_BLOCK);
+LABELS.SPELL_TEMPLATE.WALL_RESTRICTION = foundry.utils.duplicate(LABELS.WALL_RESTRICTION);
 LABELS.SPELL_TEMPLATE.WALLS_BLOCK.globalDefault = "walledtemplates.MeasuredTemplateConfiguration.globalDefault";
 LABELS.SPELL_TEMPLATE.WALL_RESTRICTION.globalDefault = "walledtemplates.MeasuredTemplateConfiguration.globalDefault";
 LABELS.SPELL_TEMPLATE.ATTACH_TOKEN = {
@@ -104,6 +104,13 @@ export const NOTIFICATIONS = {
     ATTACH_TOKEN_NOT_SELECTED: "walledtemplates.notifications.attach-last-selected-token",
     ATTACH_TOKEN_NOT_TARGETED: "walledtemplates.notifications.attach-last-targeted-token"
   }
+};
+
+export const TEMPLATES = {
+  DND5E: `modules/${MODULE_ID}/templates/dnd5e-spell-template-config.html`,
+  CONFIG_TABS: `modules/${MODULE_ID}/templates/measured-template-config-tabs.html`,
+  CONFIG_PARTIAL: `modules/${MODULE_ID}/templates/measured-template-config.html`,
+  CONFIG_BASIC: `modules/${MODULE_ID}/templates/foundry-template-config.html`
 };
 
 export const ACTIVE_EFFECT_ICON = `modules/${MODULE_ID}/assets/ruler-combined-solid-gray.svg`;

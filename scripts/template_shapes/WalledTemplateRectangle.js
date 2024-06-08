@@ -22,7 +22,11 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
   calculateOriginalShape({ direction, distance } = {}) {
     direction ??= this.direction;
     distance ??= this.distance;
-    return CONFIG.MeasuredTemplate.objectClass.getRectShape(direction, distance);
+
+    // Convert to degrees and grid units for Foundry method.
+    direction = Math.toDegrees(direction);
+    distance = CONFIG.GeometryLib.utils.pixelsToGridUnits(distance);
+    return CONFIG.MeasuredTemplate.objectClass.getRectShape(distance, direction);
   }
 
   /**

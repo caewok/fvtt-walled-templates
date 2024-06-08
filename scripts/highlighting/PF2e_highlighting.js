@@ -34,7 +34,7 @@ export function WalledTemplatesPF2eHighlightGrid(wrapped) {
   if (!this.id || !this.shape) return;
 
   // Clear existing highlight
-  const highlightLayer = grid.getHighlightLayer(`Template.${this.id}`)?.clear();
+  const highlightLayer = canvas.interface.grid.getHighlightLayer(`Template.${this.id}`)?.clear();
   if ( !highlightLayer ) return; // *** NEW: Break early if no highlight layer
 
   // Get the center of the grid position occupied by the template
@@ -90,7 +90,7 @@ export function WalledTemplatesPF2eHighlightGrid(wrapped) {
   for (let a = -columnCount; a < columnCount; a++) {
     for (let b = -rowCount; b < rowCount; b++) {
       // Position of cell's top-left corner, in pixels
-      const [gx, gy] = canvas.grid.grid.getPixelsFromGridPosition(col0 + a, row0 + b);
+      const [gx, gy] = canvas.grid.getPixelsFromGridPosition(col0 + a, row0 + b);
       // Position of cell's center, in pixels
       const [cellCenterX, cellCenterY] = [
         gx + (dimensions.size * 0.5),

@@ -23,13 +23,11 @@ const KEYBINDINGS = {
 export const SETTINGS = {
   DEFAULT_WALLS_BLOCK: {},
   DEFAULT_WALL_RESTRICTION: {},
-  DIAGONAL_SCALING: {},
   HIDE: {
     BORDER: "hideBorder",
     HIGHLIGHTING: "hideHighlighting",
     SHOW_ON_HOVER: "showOnHover"
   },
-  SNAP_GRID: "snapGrid",
   CHANGELOG: "changelog"
 };
 
@@ -66,7 +64,6 @@ SETTINGS.DEFAULT_WALL_RESTRICTION.CHOICES = {
 for ( const shapeKey of SHAPE_KEYS ) {
   SETTINGS.DEFAULT_WALLS_BLOCK[shapeKey] = `default_${shapeKey}`;
   SETTINGS.DEFAULT_WALL_RESTRICTION[shapeKey] = `default-${shapeKey}-wall-restriction`;
-  SETTINGS.DIAGONAL_SCALING[shapeKey] = `diagonal-scaling-${shapeKey}`;
 
   // Override highlighting/autotarget for specific shapes.
   SETTINGS.AUTOTARGET[shapeKey] = {};
@@ -204,15 +201,6 @@ export class Settings extends ModuleSettingsAbstract {
       config: true
     });
 
-    register(KEYS.SNAP_GRID, {
-      name: localize(`${KEYS.SNAP_GRID}.Name`),
-      hint: localize(`${KEYS.SNAP_GRID}.Hint`),
-      type: Boolean,
-      default: false,
-      scope: "world",
-      config: true
-    });
-
     // ----- NOTE: Submenu ---- //
 
     for ( const shape of SHAPE_KEYS ) {
@@ -247,18 +235,6 @@ export class Settings extends ModuleSettingsAbstract {
           [KEYS.DEFAULT_WALL_RESTRICTION.CHOICES.SOUND]: game.i18n.localize("WALLS.Sound")
         }
       });
-
-      if ( shape !== "rect" ) {
-        register(KEYS.DIAGONAL_SCALING[shape], {
-          name: localize(`${KEYS.DIAGONAL_SCALING[shape]}.Name`),
-          hint: localize(`${KEYS.DIAGONAL_SCALING[shape]}.Hint`),
-          type: Boolean,
-          default: false,
-          scope: "world",
-          config: false,
-          tab: shape
-        });
-      }
 
       // ----- Overide the highlight/autotarget settings for this shape.
       register(KEYS.AUTOTARGET[shape].OVERRIDE, {
@@ -362,7 +338,7 @@ export class Settings extends ModuleSettingsAbstract {
   }
 
   static refreshAutotargeting() {
-    canvas.templates.placeables.forEach(t => t.renderFlags.set({ retarget: true }));
+    canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshTargets: true }));
   }
 
   static async toggleAutotarget() {
@@ -401,10 +377,8 @@ function changeHoveredTemplateElevation(amount) {
   if ( !(canvas.templates.active || canvas.tokens.active) ) return;
 
   for ( const t of canvas.templates.preview.children ) {
-    // Preview templates do not yet have ids
-    t.document.flags.elevatedvision ??= {};
-    t.document.flags.elevatedvision.elevation ??= 0;
-    t.document.flags.elevatedvision.elevation += amount;
+    // Preview so shouldn't need to do async update.
+    t.document.elevation += amount;
     t.renderFlags.set({ refreshElevation: true });
   }
 

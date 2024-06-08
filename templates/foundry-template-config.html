@@ -1,0 +1,74 @@
+    <p class="notes">{{ localize "CONTROLS.MeasureConfigHint" }}</p>
+
+    <div class="form-group">
+        <label>{{ localize "CONTROLS.MeasureType" }}</label>
+        <select name="t">
+            {{selectOptions templateTypes selected=data.t localize=true}}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>{{ localize "XCoord" }} <span class="units">({{ localize "Pixels" }})</span></label>
+        {{numberInput data.x name="x" step=1 placeholder="X"}}
+    </div>
+
+    <div class="form-group">
+        <label>{{ localize "YCoord" }} <span class="units">({{ localize "Pixels" }})</span></label>
+        {{numberInput data.y name="y" step=1 placeholder="Y"}}
+    </div>
+
+    <div class="form-group slim">
+        <label>{{localize "Elevation"}} <span class="units">({{gridUnits}})</span></label>
+        {{numberInput data.elevation name="elevation" placeholder=gridUnits}}
+    </div>
+
+    <div class="form-group">
+        <label>{{ localize "Sort" }}</label>
+        {{numberInput data.sort name="sort" step=1 placeholder=(localize "Sort")}}
+    </div>
+
+    <div class="form-group">
+        <label>{{ localize "Direction" }} <span class="units">({{ localize "Degrees" }})</span></label>
+        {{numberInput data.direction name="direction" placeholder=(localize "Direction")}}
+    </div>
+
+    <div class="form-group">
+        <label>{{ localize "Angle" }} <span class="units">({{ localize "Degrees" }})</span></label>
+        {{numberInput data.angle name="angle" placeholder=(localize "Angle")}}
+    </div>
+
+    <div class="form-group">
+        <label>{{ localize "Distance" }} <span class="units">({{gridUnits}})</span></label>
+        {{numberInput data.distance name="distance" placeholder=(localize "Distance") min=0}}
+    </div>
+
+    <div class="form-group">
+        <label>{{ localize "Width" }} <span class="units">({{gridUnits}})</span></label>
+        {{numberInput data.width name="width" placeholder=(localize "Width") min=0}}
+    </div>
+
+    <div class="form-group">
+        <label>{{ localize "TEMPLATE.BorderColor" }}</label>
+        <div class="form-fields">
+            <color-picker name="borderColor" value="{{data.borderColor}}"></color-picker>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>{{ localize "TEMPLATE.FillColor" }}</label>
+        <div class="form-fields">
+            <color-picker name="fillColor" value="{{data.fillColor}}"></color-picker>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>{{ localize "TEMPLATE.FillTexture" }}</label>
+        <div class="form-fields">
+            <file-picker name="texture" type="image" value="{{data.texture}}"></file-picker>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>{{localize "Hidden"}}</label>
+        <input type="checkbox" name="hidden" {{checked data.hidden}}/>
+    </div>

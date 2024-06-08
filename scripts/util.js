@@ -19,7 +19,7 @@ import { Square } from "./geometry/RegularPolygon/Square.js";
 export function log(...args) {
   try {
     if ( CONFIG[MODULE_ID].debug ) console.debug(MODULE_ID, "|", ...args);
-  } catch(e) {
+  } catch(e) { // eslint-disable-line no-unused-vars
     // Empty
   }
 }
@@ -32,8 +32,8 @@ export function log(...args) {
  */
 export function gridShapeForPixel(p) {
   // Get the upper left corner of the grid for the pixel
-  const [gx, gy] = canvas.grid.getTopLeft(p.x, p.y);
-  return gridShapeForTopLeft({x: gx, y: gy});
+  const tl = canvas.grid.getTopLeftPoint(p);
+  return gridShapeForTopLeft(tl);
 }
 
 /**
@@ -42,15 +42,12 @@ export function gridShapeForPixel(p) {
  * @param {Point} p   Top left corner of the grid square.
  * @return {PIXI.Rectangle|Hexagon}  Rectangle for square or gridless; hexagon for hex grids.
  */
-export function gridShapeForTopLeft(p) {
-  if ( canvas.scene.grid.type === CONST.GRID_TYPES.GRIDLESS
-    || canvas.scene.grid.type === CONST.GRID_TYPES.SQUARE ) {
-
-    return Square.fromTopLeft(p, canvas.dimensions.size);
-  }
-
-  const { h, w } = canvas.grid.grid;
-  return Hexagon.fromTopLeft(p, undefined, { width: w, height: h });
+export function gridShapeForTopLeft(tl) {
+  if ( canvas.grid.isHexagonal ) return Hexagon.fromTopLeft(tl, undefined, {
+    width: canvas.grid.sizeX,
+    height: canvas.grid.sizeY
+  });
+  return Square.fromTopLeft(tl, canvas.dimensions.size);
 }
 
 /**
@@ -72,26 +69,96 @@ export function tokenName(token) {
  * @return {PIXI.Rectangle|Hexagon}
  */
 export function tokenBounds(token) {
-  if ( canvas.scene.grid.type === CONST.GRID_TYPES.GRIDLESS
-    || canvas.scene.grid.type === CONST.GRID_TYPES.SQUARE ) {
-    return Square.fromToken(token); // Will return PIXI.Rectangle if not even width/height.
-  }
-  return _hexGridShape(token);
+  if ( canvas.grid.isHexagonal ) return hexGridShape(token);
+  return Square.fromToken(token); // Will return PIXI.Rectangle if not even width/height.
 }
 
-function _hexGridShape(token) {
+function hexGridShape(token) {
   // Canvas.grid.grid.getBorderPolygon will return null if width !== height.
   const { w, h } = token;
   if ( w !== h || (w === 1 && h === 1) ) return Hexagon.fromToken(token);
 
   // Get the top left corner
   const c = token.center;
-  const [tlx, tly] = canvas.grid.grid.getTopLeft(c.x, c.y);
-  const points = canvas.grid.grid.getBorderPolygon(w, h, 0); // TO-DO: Should a border be included to improve calc?
-  const pointsTranslated = [];
+  const tl = canvas.grid.getTopLeftPoint(c);
+  const points = canvas.grid.getShape();
   const ln = points.length;
+  const pointsTranslated = new Array(ln);
   for ( let i = 0; i < ln; i += 2) {
-    pointsTranslated.push(points[i] + tlx, points[i+1] + tly);
+    pointsTranslated[i] = points[i] + tl.x;
+    pointsTranslated[i+1] = points[i+1] + tl.y;
   }
   return new PIXI.Polygon(pointsTranslated);
+}
+
+// ----- NOTE: HTML / Form manipulation ----- //
+
+/**
+ * Helper to construct a tab element
+ * @param {string} tabName      Internal name of the tab
+ * @param {string} tabLegend    Public name of the tab
+ * @param {string} [tabIcon]    Image to display on the tab
+ * @returns {Node} Div element for the tab entry
+ */
+export function constructTabElement(tabName, tabLegend, tabIcon) {
+  // Element
+  const tabElem = document.createElement("a");
+  tabElem.setAttribute("class", "item");
+  tabElem.setAttribute("data-tab", tabName);
+
+  // Icon
+  if ( tabIcon ) {
+    const iconElem = document.createElement("i");
+    iconElem.setAttribute("class", tabIcon);
+    tabElem.appendChild(iconElem);
+  }
+
+  // Title
+  const legend = document.createTextNode(game.i18n.localize(tabLegend));
+  tabElem.appendChild(legend);
+  return tabElem;
+}
+
+/**
+ * Helper to construct a tab division.
+ * @param {string} tabName            Internal reference to the tab
+ * @param {string} [groupName="main"] The data group for the tab
+ * @param {string[]} [classes=[]]     Classes to add to the tab (besides "tab")
+ * @param {string} [groupName="main"] The data group for the tab
+ * @param {Map<string, string>} [attributes]  Attribute map
+ */
+export function constructTabDivision(tabName, groupName = "main", classes = []) {
+  const div = document.createElement("div");
+  div.setAttribute("class", "tab");
+  classes.forEach(cl => div.classList.add(cl));
+  div.setAttribute("data-tab", tabName);
+  div.setAttribute("data-group", groupName);
+  return div;
+}
+
+/**
+ * Helper to move all children from one node to another.
+ * @param {Node} oldParent
+ * @param {Node} newParent
+ * @returns {Node} The newParent node
+ */
+export function moveAllChildren(oldParent, newParent) {
+  while (oldParent.childNodes.length > 0) {
+    newParent.appendChild(oldParent.removeChild(oldParent.childNodes[0]));
+  }
+  return newParent;
+}
+
+/**
+ * Helper to construct tabbed navigation.
+ * @param {Node[]} tabElements    Tab elements, from constructTabElement
+ * @returns {Node} Nav element with tabs inserted
+ */
+export function constructTabNavigation(tabElements = []) {
+  const tabNav = document.createElement("nav");
+  tabNav.setAttribute("class", "sheet-tabs tabs");
+  tabNav.setAttribute("data-group", "main");
+  tabNav.setAttribute("aria-role", game.i18n.localize("SHEETS.FormNavLabel"));
+  tabElements.forEach(elem => tabNav.appendChild(elem));
+  return tabNav;
 }
