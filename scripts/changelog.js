@@ -179,6 +179,23 @@ Hooks.once("ready", () => {
           This can be modified via macro or world script. It currently defaults to ignoring tokens with "dead" status.`
     })
 
+    .addEntry({
+      version: "0.8.0",
+      title: "Foundry v12",
+      body: `\
+          Compatible with Foundry v12. Not backwards-compatible; use the v0.7 series for v11.
+
+          You can now find the template settings in its own tab in the measured template configuration and,
+          for dnd5e, in the spell configuration.
+
+          In Foundry v12, to use square circles, go to Core Settings, enable "Grid-based Template Shapes," and
+          change the Square Grid Diagonals to your desired value.
+
+          Snap-to-grid is automatic in v12, so I removed the setting. Hold "shift" to disable snapping when dragging
+          templates. Template elevation is also now core; you can find it in the basic measured template settings.
+          (Sorry, you may need to update the template elevation manually if you had relied on the walled template elevation previously.)`
+    })
+
     .build()
     ?.render(true);
 });
