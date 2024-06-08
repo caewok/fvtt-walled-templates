@@ -19,7 +19,7 @@ import { Square } from "./geometry/RegularPolygon/Square.js";
 export function log(...args) {
   try {
     if ( CONFIG[MODULE_ID].debug ) console.debug(MODULE_ID, "|", ...args);
-  } catch(e) {
+  } catch(e) { // eslint-disable-line no-unused-vars
     // Empty
   }
 }
@@ -89,4 +89,76 @@ function hexGridShape(token) {
     pointsTranslated[i+1] = points[i+1] + tl.y;
   }
   return new PIXI.Polygon(pointsTranslated);
+}
+
+// ----- NOTE: HTML / Form manipulation ----- //
+
+/**
+ * Helper to construct a tab element
+ * @param {string} tabName      Internal name of the tab
+ * @param {string} tabLegend    Public name of the tab
+ * @param {string} [tabIcon]    Image to display on the tab
+ * @returns {Node} Div element for the tab entry
+ */
+export function constructTabElement(tabName, tabLegend, tabIcon) {
+  // Element
+  const tabElem = document.createElement("a");
+  tabElem.setAttribute("class", "item");
+  tabElem.setAttribute("data-tab", tabName);
+
+  // Icon
+  if ( tabIcon ) {
+    const iconElem = document.createElement("i");
+    iconElem.setAttribute("class", tabIcon);
+    tabElem.appendChild(iconElem);
+  }
+
+  // Title
+  const legend = document.createTextNode(game.i18n.localize(tabLegend));
+  tabElem.appendChild(legend);
+  return tabElem;
+}
+
+/**
+ * Helper to construct a tab division.
+ * @param {string} tabName            Internal reference to the tab
+ * @param {string} [groupName="main"] The data group for the tab
+ * @param {string[]} [classes=[]]     Classes to add to the tab (besides "tab")
+ * @param {string} [groupName="main"] The data group for the tab
+ * @param {Map<string, string>} [attributes]  Attribute map
+ */
+export function constructTabDivision(tabName, groupName = "main", classes = []) {
+  const div = document.createElement("div");
+  div.setAttribute("class", "tab");
+  classes.forEach(cl => div.classList.add(cl));
+  div.setAttribute("data-tab", tabName);
+  div.setAttribute("data-group", groupName);
+  return div;
+}
+
+/**
+ * Helper to move all children from one node to another.
+ * @param {Node} oldParent
+ * @param {Node} newParent
+ * @returns {Node} The newParent node
+ */
+export function moveAllChildren(oldParent, newParent) {
+  while (oldParent.childNodes.length > 0) {
+    newParent.appendChild(oldParent.removeChild(oldParent.childNodes[0]));
+  }
+  return newParent;
+}
+
+/**
+ * Helper to construct tabbed navigation.
+ * @param {Node[]} tabElements    Tab elements, from constructTabElement
+ * @returns {Node} Nav element with tabs inserted
+ */
+export function constructTabNavigation(tabElements = []) {
+  const tabNav = document.createElement("nav");
+  tabNav.setAttribute("class", "sheet-tabs tabs");
+  tabNav.setAttribute("data-group", "main");
+  tabNav.setAttribute("aria-role", game.i18n.localize("SHEETS.FormNavLabel"));
+  tabElements.forEach(elem => tabNav.appendChild(elem));
+  return tabNav;
 }

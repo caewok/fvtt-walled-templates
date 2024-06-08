@@ -22,7 +22,7 @@ await foundry.utils.benchmark(fn, 1e04, t)
 // Basics
 import { log } from "./util.js";
 import { Settings } from "./settings.js";
-import { MODULE_ID, FLAGS } from "./const.js";
+import { MODULE_ID, FLAGS, TEMPLATES } from "./const.js";
 
 // Patches
 import { initializePatching, registerAutotargeting, PATCHER } from "./patching.js";
@@ -115,6 +115,11 @@ Hooks.once("init", function() {
 
   // Tell modules that the module is set up
   Hooks.callAll(`${MODULE_ID}Ready`);
+
+  // Must go later
+  const promises = [];
+  for ( const template of Object.values(TEMPLATES) ) promises.push(getTemplate(template)); // Async but not awaiting here.
+  Promise.allSettled(promises);
 });
 
 function initializeWalledTemplates(systemId) {
@@ -142,11 +147,14 @@ Hooks.once("setup", function() {
 });
 
 
-Hooks.once("ready", async function() {
+Hooks.once("ready", function() {
   log("Ready...");
 
   // Check for whether children exist. See issue #18.
   if ( !canvas.templates?.objects?.children ) return;
+
+  // Ensure autotargeting is registered on setup.
+  registerAutotargeting();
 
   // Ensure every template has an enabled flag; set to world setting if missing.
   // Happens if templates were created without Walled Templates module enabled
@@ -178,19 +186,16 @@ Hooks.once("ready", async function() {
         Settings.get(KEYS.DEFAULT_WALL_RESTRICTION[shape])));
     }
   }
-  if ( promises.length ) await Promise.all(promises);
-
-  // Ensure autotargeting is registered on setup.
-  registerAutotargeting();
+  if ( promises.length ) Promise.all(promises);
 
   log("Refreshing templates on ready hook.");
   // Redraw templates once the canvas is loaded
   // Cannot use walls to draw templates until canvas.walls.quadtree is loaded.
-  canvas.templates.placeables.forEach(t => {
-    t.renderFlags.set({
-      refreshShape: true
-    });
-  });
+//   canvas.templates.placeables.forEach(t => {
+//     t.renderFlags.set({
+//       refreshShape: true
+//     });
+//   });
 
 });
 
