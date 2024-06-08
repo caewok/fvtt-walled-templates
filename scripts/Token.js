@@ -39,52 +39,6 @@ function controlToken(object, controlled) {
 }
 
 /**
- * Hook preUpdateToken
- * Pass through animation parameters so any attached template moves with the token animation.
- * @param {Document} document                       The Document instance being updated
- * @param {object} changed                          Differential data that will be used to update the document
- * @param {Partial<DatabaseUpdateOperation>} options Additional options which modify the update request
- * @param {string} userId                           The ID of the requesting user, always game.user.id
- * @returns {boolean|void}                          Explicitly return false to prevent update of this Document
- */
-function preUpdateToken(tokenD, changed, _options, _userId) {
-  const token = tokenD.object;
-  const attachedTemplates = token.attachedTemplates;
-  if ( !attachedTemplates.length ) return;
-
-  const props = (new Set(["x", "y", "elevation", "rotation"])).intersection(new Set(Object.keys(changed)));
-  if ( !props.size ) return;
-
-  // options.animation ??= {};
-
-//   if ( options.animation.ontick ) {
-//     const ontickOriginal = opts.ontick;
-//     options.animation.ontick = (dt, anim, documentData, config) => {
-//       attachedTemplates.forEach(t => doTemplateAnimation(t, dt, anim, documentData, config));
-//       ontickOriginal(dt, anim, documentData, config);
-//     };
-//   } else {
-//     options.animation.ontick = (dt, anim, documentData, config) => {
-//       attachedTemplates.forEach(t => doTemplateAnimation(t, dt, anim, documentData, config));
-//     };
-//   }
-}
-
-function doTemplateAnimation(template, _dt, _anim, documentData, _config) {
-  const templateData = template._calculateAttachedTemplateOffset(documentData);
-
-  // Update the document
-  foundry.utils.mergeObject(template.document, templateData, { insertKeys: false });
-
-  // Refresh the Template
-  template.renderFlags.set({
-    refreshPosition: Object.hasOwn(templateData, "x") || Object.hasOwn(templateData, "y"),
-    refreshElevation: Object.hasOwn(templateData, "elevation"),
-    refreshShape: Object.hasOwn(templateData, "direction")
-  });
-}
-
-/**
  * Hook updateToken
  * Update the position of attached templates.
  * @param {Document} document                       The existing Document which was updated
@@ -135,7 +89,6 @@ async function destroyToken(token) {
 
 PATCHES.BASIC.HOOKS = {
   controlToken,
-  preUpdateToken,
   updateToken,
   destroyToken
 };
@@ -443,6 +396,55 @@ function _refreshTarget(wrapped, reticule) {
 //   this.cloneTargeted ||= new Set();
 // }
 
+/**
+ * Wrap Token.prototype.animate
+ * Pass through animation parameters so any attached template moves with the token animation.
+ * Animate from the old to the new state of this Token.
+ * @param {Partial<TokenAnimationData>} to      The animation data to animate to
+ * @param {object} [options]                    The options that configure the animation behavior.
+ *                                              Passed to {@link Token#_getAnimationDuration}.
+ * @param {number} [options.duration]           The duration of the animation in milliseconds
+ * @param {number} [options.movementSpeed=6]    A desired token movement speed in grid spaces per second
+ * @param {string} [options.transition]         The desired texture transition type
+ * @param {Function|string} [options.easing]    The easing function of the animation
+ * @param {string|symbol|null} [options.name]   The name of the animation, or null if nameless.
+ *                                              The default is {@link Token#animationName}.
+ * @param {Function} [options.ontick]           A on-tick callback
+ * @returns {Promise<void>}                     A promise which resolves once the animation has finished or stopped
+ */
+async function animate(wrapped, to, options = {}) {
+  const attachedTemplates = this.attachedTemplates;
+  if ( !attachedTemplates.length ) return wrapped(to, options);
+
+  if ( options.ontick ) {
+    const ontickOriginal = options.ontick;
+    options.ontick = (dt, anim, documentData, config) => {
+      attachedTemplates.forEach(t => doTemplateAnimation(t, dt, anim, documentData, config));
+      ontickOriginal(dt, anim, documentData, config);
+    };
+  } else {
+    options.ontick = (dt, anim, documentData, config) => {
+      attachedTemplates.forEach(t => doTemplateAnimation(t, dt, anim, documentData, config));
+    };
+  }
+  return wrapped(to, options);
+}
+
+function doTemplateAnimation(template, _dt, _anim, documentData, _config) {
+  const templateData = template._calculateAttachedTemplateOffset(documentData);
+
+  // Update the document
+  foundry.utils.mergeObject(template.document, templateData, { insertKeys: false });
+
+  // Refresh the Template
+  template.renderFlags.set({
+    refreshPosition: Object.hasOwn(templateData, "x") || Object.hasOwn(templateData, "y"),
+    refreshElevation: Object.hasOwn(templateData, "elevation"),
+    refreshShape: Object.hasOwn(templateData, "direction")
+  });
+}
+
+
 
 PATCHES.BASIC.WRAPS = {
   _onDragLeftStart,
@@ -450,6 +452,7 @@ PATCHES.BASIC.WRAPS = {
   _onDragLeftDrop,
   _onDragLeftCancel,
   _refreshTarget,
+  animate,
 
   // Show on hover
   _onHoverIn,
