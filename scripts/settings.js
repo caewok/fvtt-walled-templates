@@ -401,10 +401,8 @@ function changeHoveredTemplateElevation(amount) {
   if ( !(canvas.templates.active || canvas.tokens.active) ) return;
 
   for ( const t of canvas.templates.preview.children ) {
-    // Preview templates do not yet have ids
-    t.document.flags.elevatedvision ??= {};
-    t.document.flags.elevatedvision.elevation ??= 0;
-    t.document.flags.elevatedvision.elevation += amount;
+    // Preview so shouldn't need to do async update.
+    t.document.elevation += amount;
     t.renderFlags.set({ refreshElevation: true });
   }
 

@@ -5,7 +5,6 @@ foundry,
 game,
 MouseInteractionManager,
 PIXI,
-PreciseText,
 _token
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -68,24 +67,6 @@ function refreshMeasuredTemplate(template, flags) {
       visible: template.visible && template.layer.active && !template.document.hidden
     });
     template.controlIcon.alpha = 0.5;
-  }
-
-  // Display the elevation tooltip if the control icon, border, or highlight is visible.
-  if ( flags.refreshTemplate || flags.refreshState || flags.refreshGrid ) {
-    const toolTipVisible = template.template.alpha > 0                              // Border visible
-      || canvas.interface.grid.getHighlightLayer(template.highlightId).alpha > 0              // Highlight visible
-      || (template.visible && template.layer.active && !template.document.hidden);  // Control icon visible
-    template.tooltip.visible = toolTipVisible;
-  }
-
-  // Update the elevation value of the tooltip.
-  if ( flags.refreshElevation ) {
-    // See Token.prototype.#refreshElevation
-    canvas.primary.sortDirty = true;
-
-    // Elevation tooltip text
-    const tt = template._getTooltipText();
-    if ( tt !== template.tooltip.text ) template.tooltip.text = tt;
   }
 }
 
@@ -424,14 +405,6 @@ function _canHover(wrapped, user, event) {
   return this.controlIcon?.visible;
 }
 
-/**
- * Wrap MeasuredTemplate.prototype._draw
- * Add the elevation tooltip.
- */
-function _draw(wrapped) {
-  wrapped();
-  this.tooltip ||= this.addChild(this._drawTooltip());
-}
 
 PATCHES.BASIC.WRAPS = {
   _computeShape,
@@ -443,7 +416,6 @@ PATCHES.BASIC.WRAPS = {
   _onDragLeftDrop,
   destroy,
   _canHover,
-  _draw,
   _getGridHighlightPositions
 };
 
@@ -583,31 +555,6 @@ function _calculateAttachedTemplateOffset(tokenD) {
 }
 
 /**
- * New method: MeasuredTemplate.prototype._drawTooltip
- */
-function _drawTooltip() {
-  let text = this._getTooltipText();
-  const style = this.constructor._getTextStyle();
-  const tip = new PreciseText(text, style);
-  tip.anchor.set(0.5, 1);
-
-  // From #drawControlIcon
-  const size = Math.max(Math.round((canvas.dimensions.size * 0.5) / 20) * 20, 40);
-  tip.position.set(0, -size / 2);
-  return tip;
-}
-
-/**
- * New method: MeasuredTemplate.prototype._getTooltipText
- */
-function _getTooltipText() {
-  const el = this.elevationE;
-  if ( !Number.isFinite(el) || el === 0 ) return "";
-  let units = canvas.scene.grid.units;
-  return el > 0 ? `+${el} ${units}` : `${el} ${units}`;
-}
-
-/**
  * New method: MeasuredTemplate.prototype.targetsWithinShape
  * Return tokens within the template shape.
  * @param {object} [opts]     Options that affect what counts as a target
@@ -638,34 +585,9 @@ PATCHES.BASIC.METHODS = {
   targetsWithinShape,
   attachToken,
   detachToken,
-  _calculateAttachedTemplateOffset,
-  _drawTooltip,
-  _getTooltipText
+  _calculateAttachedTemplateOffset
  };
 
- // ----- NOTE: Static methods ----- //
-
-/**
- * New method: MeasuredTemplate._getTextStyle
- * Get the text style that should be used for this Template's tooltip.
- * See Token.prototype._getTextStyle.
- * @returns {string}
- */
-function _getTextStyle() {
-  const style = CONFIG.canvasTextStyle.clone();
-  style.fontSize = 24;
-  if (canvas.dimensions.size >= 200) style.fontSize = 28;
-  else if (canvas.dimensions.size < 50) style.fontSize = 20;
-
-  // From #drawControlIcon
-  const size = Math.max(Math.round((canvas.dimensions.size * 0.5) / 20) * 20, 40);
-  style.wordWrapWidth = size * 2.5;
-  return style;
-}
-
-PATCHES.BASIC.STATIC_METHODS = {
-  _getTextStyle
-};
 
 // ----- NOTE: Getters ----- //
 /**
