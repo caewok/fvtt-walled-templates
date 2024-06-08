@@ -85,8 +85,6 @@ function preCreateMeasuredTemplateHook(templateD, updateData, _opts, _id) {
 
   // Only create if the id does not already exist
   if (typeof templateD.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
-    // In v10, setting the flag throws an error about not having id
-    // template.setFlag(MODULE_ID, "enabled", Settings.get(Settings.KEYS.DEFAULT_WALLED));
     updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = Settings.get(Settings.KEYS.DEFAULT_WALLS_BLOCK[t]);
   }
 
@@ -133,7 +131,7 @@ function updateMeasuredTemplateHook(templateD, data, _options, _userId) {
  * @param {PlaceableObject} object    The object instance being destroyed
  */
 async function destroyMeasuredTemplateHook(template) {
-  if ( template._original ) return;
+  if ( template.isPreview ) return;
   await template.detachToken();
 }
 
@@ -261,15 +259,6 @@ function _computeShape(wrapped) {
 }
 
 /**
- * Wrap MeasuredTemplate.prototype._canDrag
- * Don't allow dragging of attached templates.
- */
-function _canDrag(wrapped, user, event) {
-  if ( this.attachedToken ) return false;
-  return wrapped(user, event);
-}
-
-/**
  * Wrap MeasuredTemplate.prototype.clone
  * Clone the shape
  * @returns {PlaceableObject}
@@ -348,7 +337,8 @@ function _onDragLeftMove(wrapped, event) {
 }
 
 function _onDragLeftCancel(wrapped, event) {
-  return wrapped(event);
+  wrapped(event);
+  // canvas.templates.clearPreviewContainer(); // For whn
 }
 
 async function _onDragLeftDrop(wrapped, event) {
@@ -398,6 +388,17 @@ function _canHover(wrapped, user, event) {
   return this.controlIcon?.visible;
 }
 
+
+/**
+ * Wrap MeasuredTemplate.prototype._canDrag
+ * Don't allow dragging of attached templates.
+ */
+function _canDrag(wrapped, user, event) {
+  const res = wrapped(user, event);
+  if ( event[MODULE_ID]?.draggedAttachedToken ) return true;
+  if ( this.attachedToken ) return false;
+  return res;
+}
 
 PATCHES.BASIC.WRAPS = {
   _computeShape,

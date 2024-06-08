@@ -4,7 +4,6 @@ CONFIG,
 CONST,
 Color,
 foundry,
-fromUuidSync,
 game
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -32,60 +31,67 @@ PATCHES.BASIC = {};
  * @param {PlaceableObject} object The PlaceableObject
  * @param {boolean} controlled     Whether the PlaceableObject is selected or not
  */
-function controlTokenHook(object, controlled) {
+function controlToken(object, controlled) {
   const user = game.user;
 
   if ( controlled ) user._lastSelected = object.document.uuid;
   else if ( user._lastSelected === object.document.uuid ) user._lastDeselected = object.document.uuid;
 }
 
-
 /**
  * Hook updateToken
+ * Update the position of attached templates.
+ * @param {Document} document                       The existing Document which was updated
+ * @param {object} changed                          Differential data that was used to update the document
+ * @param {Partial<DatabaseUpdateOperation>} options Additional options which modified the update request
+ * @param {string} userId                           The ID of the User who triggered the update workflow
  */
-function updateTokenHook(tokenD, changed, _options, userId) {
+function updateToken(tokenD, changed, _options, userId) {
   if ( userId !== game.user.id ) return;
 
-  const token = tokenD.object;
+  if ( !(Object.hasOwn(changed, "x")
+      || Object.hasOwn(changed, "y")
+      || Object.hasOwn(changed, "elevation")
+      || Object.hasOwn(changed, "rotation")) ) return;
 
+  // Check if this token is attached to 1+ templates.
+  const token = tokenD.object;
   const attachedTemplates = token.attachedTemplates;
   if ( !attachedTemplates || !attachedTemplates.length ) return;
 
-  // TODO: Update elevation, rotation
-  const props = (new Set(["x", "y", "elevation", "rotation"])).intersection(new Set(Object.keys(changed)));
-  if ( !props.size ) return;
-
+  // Look for updates
   const updates = [];
-  for ( const template of token.attachedTemplates ) {
+  for ( const template of attachedTemplates ) {
     const templateData = template._calculateAttachedTemplateOffset(changed);
     if ( foundry.utils.isEmpty(templateData) ) continue;
     templateData._id = template.id;
     updates.push(templateData);
   }
-  if ( updates.length ) canvas.scene.updateEmbeddedDocuments("MeasuredTemplate", updates);
+  if ( updates.length ) canvas.scene.updateEmbeddedDocuments("MeasuredTemplate", updates); // Async
 }
 
 /**
  * Hook destroyToken to remove and delete attached template.
  * @param {PlaceableObject} object    The object instance being destroyed
  */
-async function destroyTokenHook(token) {
-  if ( token._original || !token.attachedTemplates.length ) return;
+async function destroyToken(token) {
+  if ( token.isPreview || !token.attachedTemplates.length ) return;
 
-  // Issue #50: Don't remove the active effect for a deleted unlinked token.
-  const isLinked = token.document.isLinked;
-  const promises = [];
-  for ( const t of token.attachedTemplates ) {
-    await token.detachTemplate(t, true, isLinked)
-    promises.push(t.document.delete());
-  }
-  await Promise.allSettled(promises);
+//   // Issue #50: Don't remove the active effect for a deleted unlinked token.
+//   const isLinked = token.document.isLinked;
+//   const promises = [];
+//   for ( const t of token.attachedTemplates ) {
+//     await token.detachTemplate(t, true, isLinked)
+//     promises.push(t.document.delete());
+//   }
+//   await Promise.allSettled(promises);
 }
 
 PATCHES.BASIC.HOOKS = {
-  controlToken: controlTokenHook,
-  updateToken: updateTokenHook,
-  destroyToken: destroyTokenHook };
+  controlToken,
+  updateToken,
+  destroyToken
+};
 
 
 // ----- NOTE: Methods ----- //
@@ -251,46 +257,9 @@ PATCHES.BASIC.GETTERS = { attachedTemplates };
 
 // ----- NOTE: Wraps ----- //
 
-/**
- * Wrap Token.prototype.animate
- * Cannot just use the `preUpdate` hook b/c it does not pass back options to Token.prototype._updateData.
- */
-async function animate(wrapped, updateData, opts) {
-  const attachedTemplates = this.attachedTemplates;
-  if ( !attachedTemplates.length ) return wrapped(updateData, opts);
 
-  const props = (new Set(["x", "y", "elevation", "rotation"])).intersection(new Set(Object.keys(updateData)));
-  if ( !props.size ) return wrapped(updateData, opts);
 
-  if ( opts.ontick ) {
-    const ontickOriginal = opts.ontick;
-    opts.ontick = (dt, anim, documentData, config) => {
-      attachedTemplates.forEach(t => doTemplateAnimation(t, dt, anim, documentData, config));
 
-      ontickOriginal(dt, anim, documentData, config);
-    };
-  } else {
-    opts.ontick = (dt, anim, documentData, config) => {
-      attachedTemplates.forEach(t => doTemplateAnimation(t, dt, anim, documentData, config));
-    };
-  }
-
-  return wrapped(updateData, opts);
-}
-
-function doTemplateAnimation(template, _dt, _anim, documentData, _config) {
-  const templateData = template._calculateAttachedTemplateOffset(documentData);
-
-  // Update the document
-  foundry.utils.mergeObject(template.document, templateData, { insertKeys: false });
-
-  // Refresh the Template
-  template.renderFlags.set({
-    refreshPosition: Object.hasOwn(templateData, "x") || Object.hasOwn(templateData, "y"),
-    refreshElevation: Object.hasOwn(templateData, "elevation"),
-    refreshShape: Object.hasOwn(templateData, "direction")
-  });
-}
 
 /**
  * Wrap Token.prototype.clone
@@ -316,17 +285,19 @@ function _onDragLeftStart(wrapped, event) {
 
   // Trigger each attached template to drag.
   if ( !event.interactionData.clones ) return;
+  event[MODULE_ID] ??= {};
   for ( const clone of event.interactionData.clones ) {
     const attachedTemplates = clone.attachedTemplates;
+    event[MODULE_ID].draggedAttachedToken = clone;
     for ( const template of attachedTemplates ) template._onDragLeftStart(event);
   }
 }
 
 function _onDragLeftMove(wrapped, event) {
   wrapped(event);
+  if ( !event.interactionData.clones ) return;
 
   // Trigger each attached template to drag.
-  if ( !event.interactionData.clones ) return;
   for ( const clone of event.interactionData.clones ) {
     const attachedTemplates = clone.attachedTemplates;
     for ( const template of attachedTemplates ) template._onDragLeftMove(event);
@@ -335,25 +306,31 @@ function _onDragLeftMove(wrapped, event) {
 
 async function _onDragLeftDrop(wrapped, event) {
   const res = await wrapped(event);
-
-  // Trigger each attached template to drag.
   if ( !res || !event.interactionData.clones ) return res;
-  for ( const clone of event.interactionData.clones ) {
-    const attachedTemplates = clone.attachedTemplates;
-    for ( const template of attachedTemplates ) await template._onDragLeftDrop(event);
-  }
+
+  // Trigger each attached template to stop the drag.
+//   let clearPreview = false;
+//   for ( const clone of event.interactionData.clones ) {
+//     const attachedTemplates = clone.attachedTemplates;
+//     for ( const template of attachedTemplates ) await template._onDragLeftDrop(event);
+//     clearPreview ||= attachedTemplates.size;
+//   }
+//   if ( clearPreview ) canvas.templates.clearPreviewContainer(); // Not otherwise cleared b/c we are in token layer.
   return res;
 }
 
 function _onDragLeftCancel(wrapped, event) {
   wrapped(event);
-
-  // Trigger each attached template to drag.
   if ( !event.interactionData.clones ) return;
+
+  // Trigger each attached template to cancel the drag
+  const formerClear = event.interactionData.clearPreviewContainer;
+  event.interactionData.clearPreviewContainer = true;
   for ( const clone of event.interactionData.clones ) {
     const attachedTemplates = clone.attachedTemplates;
     for ( const template of attachedTemplates ) template._onDragLeftCancel(event);
   }
+  event.interactionData.clearPreviewContainer = formerClear;
 }
 
 /**
@@ -419,14 +396,63 @@ function _refreshTarget(wrapped, reticule) {
 //   this.cloneTargeted ||= new Set();
 // }
 
+/**
+ * Wrap Token.prototype.animate
+ * Pass through animation parameters so any attached template moves with the token animation.
+ * Animate from the old to the new state of this Token.
+ * @param {Partial<TokenAnimationData>} to      The animation data to animate to
+ * @param {object} [options]                    The options that configure the animation behavior.
+ *                                              Passed to {@link Token#_getAnimationDuration}.
+ * @param {number} [options.duration]           The duration of the animation in milliseconds
+ * @param {number} [options.movementSpeed=6]    A desired token movement speed in grid spaces per second
+ * @param {string} [options.transition]         The desired texture transition type
+ * @param {Function|string} [options.easing]    The easing function of the animation
+ * @param {string|symbol|null} [options.name]   The name of the animation, or null if nameless.
+ *                                              The default is {@link Token#animationName}.
+ * @param {Function} [options.ontick]           A on-tick callback
+ * @returns {Promise<void>}                     A promise which resolves once the animation has finished or stopped
+ */
+async function animate(wrapped, to, options = {}) {
+  const attachedTemplates = this.attachedTemplates;
+  if ( !attachedTemplates.length ) return wrapped(to, options);
+
+  if ( options.ontick ) {
+    const ontickOriginal = options.ontick;
+    options.ontick = (dt, anim, documentData, config) => {
+      attachedTemplates.forEach(t => doTemplateAnimation(t, dt, anim, documentData, config));
+      ontickOriginal(dt, anim, documentData, config);
+    };
+  } else {
+    options.ontick = (dt, anim, documentData, config) => {
+      attachedTemplates.forEach(t => doTemplateAnimation(t, dt, anim, documentData, config));
+    };
+  }
+  return wrapped(to, options);
+}
+
+function doTemplateAnimation(template, _dt, _anim, documentData, _config) {
+  const templateData = template._calculateAttachedTemplateOffset(documentData);
+
+  // Update the document
+  foundry.utils.mergeObject(template.document, templateData, { insertKeys: false });
+
+  // Refresh the Template
+  template.renderFlags.set({
+    refreshPosition: Object.hasOwn(templateData, "x") || Object.hasOwn(templateData, "y"),
+    refreshElevation: Object.hasOwn(templateData, "elevation"),
+    refreshShape: Object.hasOwn(templateData, "direction")
+  });
+}
+
+
 
 PATCHES.BASIC.WRAPS = {
-  animate,
   _onDragLeftStart,
   _onDragLeftMove,
   _onDragLeftDrop,
   _onDragLeftCancel,
   _refreshTarget,
+  animate,
 
   // Show on hover
   _onHoverIn,
