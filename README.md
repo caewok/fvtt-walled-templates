@@ -1,10 +1,12 @@
 [![Version (latest)](https://img.shields.io/github/v/release/caewok/fvtt-walled-templates)](https://github.com/caewok/fvtt-walled-templates/releases/latest)
-[![Foundry Version](https://img.shields.io/badge/dynamic/json.svg?url=https://github.com/caewok/fvtt-walled-templates/releases/latest/download/module.json&label=Foundry%20Version&query=$.minimumCoreVersion&colorB=blueviolet)](https://github.com/caewok/fvtt-walled-templates/releases/latest)
+[![Foundry Version](https://img.shields.io/badge/dynamic/json.svg?url=https://github.com/caewok/fvtt-walled-templates/releases/latest/download/module.json&label=Foundry%20Version&query=$.compatibility.verified&colorB=blueviolet)](https://github.com/caewok/fvtt-walled-templates/releases/latest)
 [![License](https://img.shields.io/github/license/caewok/fvtt-walled-templates)](LICENSE)
 
 ![Forge Installs](https://img.shields.io/badge/dynamic/json?label=Forge%20Installs&query=package.installs&suffix=%25&url=https://forge-vtt.com/api/bazaar/package/walledtemplates&colorB=4aa94a)
 ![Latest Release Download Count](https://img.shields.io/github/downloads/caewok/fvtt-walled-templates/latest/module.zip)
 ![All Downloads](https://img.shields.io/github/downloads/caewok/fvtt-walled-templates/total)
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/H2H3Y7IJW)
 
 # Walled Templates
 
