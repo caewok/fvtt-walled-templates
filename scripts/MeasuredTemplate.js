@@ -310,30 +310,7 @@ function _onDragLeftMove(wrapped, event) {
 
   const precision = event.shiftKey ? 2 : 1;
   const destination = event.interactionData.destination;
-  if ( Settings.get(Settings.KEYS.SNAP_GRID) ) {
-    event.interactionData.destination = canvas.grid.getSnappedPosition(destination.x, destination.y, precision);
-
-    // Drag ruler fix when holding shift.
-    const ruler = canvas.controls.ruler;
-    if ( ruler.rulerOffset ) {
-      ruler.rulerOffset.x = 0;
-      ruler.rulerOffset.y = 0;
-    }
-  }
-
   wrapped(event);
-  if ( !Settings.get(Settings.KEYS.SNAP_GRID) ) return;
-
-  // Move the clones to snapped locations.
-  // Mimics MeasuredTemplate.prototype._onDragLeftMove
-
-
-  for ( let c of event.interactionData.clones || [] ) {
-    const snapped = canvas.grid.getSnappedPosition(c.document.x, c.document.y, precision);
-    c.document.x = snapped.x;
-    c.document.y = snapped.y;
-    c.renderFlags.set({refresh: true});
-  }
 }
 
 function _onDragLeftCancel(wrapped, event) {
@@ -344,17 +321,6 @@ function _onDragLeftCancel(wrapped, event) {
 async function _onDragLeftDrop(wrapped, event) {
   const precision = event.shiftKey ? 2 : 1;
   const destination = event.interactionData.destination;
-  if ( Settings.get(Settings.KEYS.SNAP_GRID) ) {
-    event.interactionData.destination = canvas.grid.getSnappedPosition(destination.x, destination.y, precision);
-
-    // Drag ruler fix when holding shift.
-    const ruler = canvas.controls.ruler;
-    if ( ruler.rulerOffset ) {
-      ruler.rulerOffset.x = 0;
-      ruler.rulerOffset.y = 0;
-    }
-  }
-
   const attachedToken = this.attachedToken;
   if ( !attachedToken ) return wrapped(event);
 
