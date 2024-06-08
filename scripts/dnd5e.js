@@ -159,7 +159,7 @@ async function render5eSpellTemplateConfig(app, html, data) {
   tabDiv.innerHTML = myHTML;
   const sheetBodySection = html.find(".sheet-body")[0];
   if ( !sheetBodySection) return;
-  sheetBodySection.appendChild(tabDiv)
+  sheetBodySection.appendChild(tabDiv);
 
   //html.find(".form-group.consumption").first().after(myHTML);
 }
