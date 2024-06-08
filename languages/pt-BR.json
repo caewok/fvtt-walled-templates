@@ -108,9 +108,6 @@
     "walledtemplates.settings.autotarget-area.Name": "Porcentagem Destaque/Auto-Marcar",
     "walledtemplates.settings.autotarget-area.Hint": "Apenas para 'Área do token sobrepõe modelo'. Porcentagem de limites de token ou área de grade que deve se sobrepor ao modelo para contar. 0 significa qualquer contagem de sobreposição. (Dica: use as teclas de seta depois de clicar no quadrado para aumentar em passos de 0,01.)",
 
-    "walledtemplates.settings.snapGrid.Name": "Ajustar às interseções da grade",
-    "walledtemplates.settings.snapGrid.Hint": "Segure shift quando arrastar modelos para ajustar ao meio da interseção da grade, como um centro quadrado de grade.",
-
     "walledtemplates.settings.diagonal-scaling-ray.Name": "Dimensionar Linhas Diagonais",
     "walledtemplates.settings.diagonal-scaling-ray.Hint": "Dimensiona modelos de linha conforme a regra diagonal 5/5/5.",
 

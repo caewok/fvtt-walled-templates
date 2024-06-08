@@ -28,7 +28,6 @@ export const SETTINGS = {
     HIGHLIGHTING: "hideHighlighting",
     SHOW_ON_HOVER: "showOnHover"
   },
-  SNAP_GRID: "snapGrid",
   CHANGELOG: "changelog"
 };
 
@@ -196,15 +195,6 @@ export class Settings extends ModuleSettingsAbstract {
     register(KEYS.HIDE.SHOW_ON_HOVER, {
       name: localize(`${KEYS.HIDE.SHOW_ON_HOVER}.Name`),
       hint: localize(`${KEYS.HIDE.SHOW_ON_HOVER}.Hint`),
-      type: Boolean,
-      default: false,
-      scope: "world",
-      config: true
-    });
-
-    register(KEYS.SNAP_GRID, {
-      name: localize(`${KEYS.SNAP_GRID}.Name`),
-      hint: localize(`${KEYS.SNAP_GRID}.Hint`),
       type: Boolean,
       default: false,
       scope: "world",
