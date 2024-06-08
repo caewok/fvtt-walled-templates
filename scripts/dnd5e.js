@@ -1,11 +1,12 @@
 /* globals
+canvas,
 CONFIG,
-game,
+PIXI,
 renderTemplate
 */
 "use strict";
 
-import { log } from "./util.js";
+import { log, constructTabElement, constructTabDivision } from "./util.js";
 import { MODULE_ID, FLAGS, LABELS, TEMPLATES } from "./const.js";
 import { Settings } from "./settings.js";
 
@@ -36,7 +37,6 @@ export function addDnd5eItemConfigurationToTemplate(template) {
   if ( !item ) return;
 
   // Constants
-  const attachToken = item.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.SPELL_TEMPLATE);
   const templateD = template.document;
   const shape = templateD.t;
 
@@ -91,7 +91,7 @@ export function addDnd5eItemConfigurationToTemplate(template) {
  * (2) Could cause tokens to move around during preview, which is not good.
  * Other flags set up earlier, with the draw hook.
  */
-function dnd5eUseItemHook(item, config, options, templates) { // eslint-disable-line no-unused-vars
+function dnd5eUseItemHook(item, config, options, templates) {
   log("dnd5e.useItem hook", item);
   if ( !templates || !item ) return;
 
@@ -119,6 +119,11 @@ PATCHES_dnd5e.dnd5e.HOOKS = {
  * templates/scene/template-config.html
  */
 async function render5eSpellTemplateConfig(app, html, data) {
+  const navTabs = html.find(".tabs")[0];
+  if ( !navTabs ) return;
+  const sheetBodySection = html.find(".sheet-body")[0];
+  if ( !sheetBodySection) return;
+
   // By default, rely on the global settings.
   if (typeof data.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
     data.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, LABELS.GLOBAL_DEFAULT);
@@ -142,24 +147,11 @@ async function render5eSpellTemplateConfig(app, html, data) {
   const myHTML = await renderTemplate(template, data);
 
   // Create a new tab entry for the module.
-  const newTab = document.createElement("a");
-  newTab.setAttribute("class", "item");
-  newTab.setAttribute("data-tab", MODULE_ID);
-  const legend = document.createTextNode(game.i18n.localize("walledtemplates.MeasuredTemplateConfiguration.LegendTitle"))
-  newTab.appendChild(legend);
-  const navTabs = html.find(".tabs")[0];
-  if ( !navTabs ) return;
+  const newTab = constructTabElement(MODULE_ID, "walledtemplates.MeasuredTemplateConfiguration.LegendTitle");
   navTabs.appendChild(newTab);
 
-  // Construct a new tab div.
-  const tabDiv = document.createElement("div");
-  tabDiv.setAttribute("class", `tab ${MODULE_ID}`);
-  tabDiv.setAttribute("data-group", "primary");
-  tabDiv.setAttribute("data-tab", MODULE_ID);
+  // Construct the new tab div to go with it.
+  const tabDiv = constructTabDivision(MODULE_ID, "primary");
   tabDiv.innerHTML = myHTML;
-  const sheetBodySection = html.find(".sheet-body")[0];
-  if ( !sheetBodySection) return;
   sheetBodySection.appendChild(tabDiv);
-
-  //html.find(".form-group.consumption").first().after(myHTML);
 }
