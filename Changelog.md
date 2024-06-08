@@ -1,3 +1,10 @@
+## 0.8.0
+Foundry v12 compatibility.
+Use tabbed configuration for measured template config and dnd5e spell config.
+Remove snapping option; now handled by Foundry default.
+Remove elevation tooltip and configuration; now handled by Foundry default.
+Remove diagonal 5-5-5 shape options; now handled by Foundry default.
+
 ## 0.7.11
 
 ### Features
