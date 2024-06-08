@@ -23,7 +23,6 @@ const KEYBINDINGS = {
 export const SETTINGS = {
   DEFAULT_WALLS_BLOCK: {},
   DEFAULT_WALL_RESTRICTION: {},
-  DIAGONAL_SCALING: {},
   HIDE: {
     BORDER: "hideBorder",
     HIGHLIGHTING: "hideHighlighting",
@@ -66,7 +65,6 @@ SETTINGS.DEFAULT_WALL_RESTRICTION.CHOICES = {
 for ( const shapeKey of SHAPE_KEYS ) {
   SETTINGS.DEFAULT_WALLS_BLOCK[shapeKey] = `default_${shapeKey}`;
   SETTINGS.DEFAULT_WALL_RESTRICTION[shapeKey] = `default-${shapeKey}-wall-restriction`;
-  SETTINGS.DIAGONAL_SCALING[shapeKey] = `diagonal-scaling-${shapeKey}`;
 
   // Override highlighting/autotarget for specific shapes.
   SETTINGS.AUTOTARGET[shapeKey] = {};
@@ -247,18 +245,6 @@ export class Settings extends ModuleSettingsAbstract {
           [KEYS.DEFAULT_WALL_RESTRICTION.CHOICES.SOUND]: game.i18n.localize("WALLS.Sound")
         }
       });
-
-      if ( shape !== "rect" ) {
-        register(KEYS.DIAGONAL_SCALING[shape], {
-          name: localize(`${KEYS.DIAGONAL_SCALING[shape]}.Name`),
-          hint: localize(`${KEYS.DIAGONAL_SCALING[shape]}.Hint`),
-          type: Boolean,
-          default: false,
-          scope: "world",
-          config: false,
-          tab: shape
-        });
-      }
 
       // ----- Overide the highlight/autotarget settings for this shape.
       register(KEYS.AUTOTARGET[shape].OVERRIDE, {

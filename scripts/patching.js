@@ -16,7 +16,6 @@ import { PATCHES_dnd5e } from "./dnd5e.js";
 import { PATCHES as PATCHES_ActiveEffect } from "./ActiveEffect.js";
 import { PATCHES as PATCHES_ClientSettings } from "./ModuleSettingsAbstract.js";
 import { PATCHES as PATCHES_AbilityTemplate } from "./AbilityTemplate.js";
-import { PATCHES as PATCHES_Setting } from "./Setting.js";
 
 
 // Settings
@@ -28,7 +27,6 @@ export const PATCHES = {
   ClientSettings: PATCHES_ClientSettings,
   MeasuredTemplate: PATCHES_MeasuredTemplate,
   MeasuredTemplateConfig: PATCHES_MeasuredTemplateConfig,
-  Setting: PATCHES_Setting,
   Token: PATCHES_Token,
   Wall: PATCHES_Wall,
   dnd5e: PATCHES_dnd5e // Only works b/c these are all hooks. Otherwise, would need class breakdown.

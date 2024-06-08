@@ -94,13 +94,6 @@ function preCreateMeasuredTemplateHook(templateD, updateData, _opts, _id) {
     updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = Settings.get(Settings.KEYS.DEFAULT_WALL_RESTRICTION[t]);
   }
 
-  if ( (t === "ray" || t === "cone") && Settings.get(Settings.KEYS.DIAGONAL_SCALING[t]) ) {
-    // Extend rays or cones to conform to 5-5-5 diagonal, if applicable.
-    // See dndHelpers for original:
-    // https://github.com/trioderegion/dnd5e-helpers/blob/342548530088f929d5c243ad2c9381477ba072de/scripts/modules/TemplateScaling.js#L78
-    updates.distance = scaleDiagonalDistance(direction, distance);
-  }
-
   if ( !foundry.utils.isEmpty(updates) ) templateD.updateSource(updates);
 }
 
