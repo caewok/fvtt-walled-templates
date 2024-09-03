@@ -79,17 +79,15 @@ function refreshMeasuredTemplate(template, flags) {
  */
 function preCreateMeasuredTemplateHook(templateD, updateData, _opts, _id) {
   log("Hooking preCreateMeasuredTemplate", templateD, updateData);
-
-  const { t, distance, direction } = templateD;
   const updates = {};
 
   // Only create if the id does not already exist
   if (typeof templateD.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
-    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = Settings.get(Settings.KEYS.DEFAULT_WALLS_BLOCK[t]);
+    updates[`flags.${MODULE_ID}.${FLAGS.WALLS_BLOCK}`] = Settings.get(Settings.KEYS.DEFAULT_WALLS_BLOCK[templateD.t]);
   }
 
   if ( typeof templateD.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
-    updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = Settings.get(Settings.KEYS.DEFAULT_WALL_RESTRICTION[t]);
+    updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = Settings.get(Settings.KEYS.DEFAULT_WALL_RESTRICTION[templateD.t]);
   }
 
   if ( !foundry.utils.isEmpty(updates) ) templateD.updateSource(updates);
@@ -168,16 +166,14 @@ PATCHES.BASIC.HOOKS = {
  */
 function drawMeasuredTemplate(template) {
   // Add token elevation to the template if using Levels or Wall-Height modules
-  let moduleLevels = game.modules.get('levels');
-  let moduleWallHeight_active = game.modules.get('wall-height')?.active;
-  if ( moduleLevels && (moduleLevels.active || moduleWallHeight_active) ) {
+  if ( MODULES.LEVELS.ACTIVE ) {
     // Copy the Levels method of getting the elevation so that the tool button for it is respected. Levels only sets its flags at preCreateMeasuredTemplate
     if ( template.flags?.levels?.elevation !== undefined || template.flags?.[MODULE_ID]?.elevation !== undefined ) return;
     const templateData = CONFIG.Levels.handlers.TemplateHandler.getTemplateData(false);
     template.document.updateSource({
       flags: { [MODULE_ID]: { elevation: templateData.elevation } }
     });
-  } else if ( moduleWallHeight_active ) {
+  } else if ( MODULES.WALL_HEIGHT.ACTIVE  ) {
     // If wall-height is active, but levels doesn't exist, we need a different approach. Take the elevation from the caster token
     let parentToken = template.item?.parent ? template.item.parent.getActiveTokens().findLast((token, index) => token.controlled || index == 0 ) : canvas.tokens.controlled[0] ?? _token;
     if ( parentToken ) {
@@ -308,8 +304,6 @@ function _onDragLeftMove(wrapped, event) {
     return;
   }
 
-  const precision = event.shiftKey ? 2 : 1;
-  const destination = event.interactionData.destination;
   wrapped(event);
 }
 
@@ -319,8 +313,6 @@ function _onDragLeftCancel(wrapped, event) {
 }
 
 async function _onDragLeftDrop(wrapped, event) {
-  const precision = event.shiftKey ? 2 : 1;
-  const destination = event.interactionData.destination;
   const attachedToken = this.attachedToken;
   if ( !attachedToken ) return wrapped(event);
 
@@ -798,10 +790,4 @@ function boundsShapeIntersection(tBounds, shape) {
 
   // Shape should be circle
   return shape.intersectPolygon(tBounds.toPolygon());
-}
-
-function scaleDiagonalDistance(direction, distance) {
-  const dirRadians = Math.toRadians(direction);
-  const diagonalScale = Math.abs(Math.sin(dirRadians)) + Math.abs(Math.cos(dirRadians));
-  return diagonalScale * distance;
 }
