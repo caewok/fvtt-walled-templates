@@ -126,9 +126,11 @@
     "walledtemplates.settings.hideHighlighting.Name": "Esconder Destaque do Modelo",
     "walledtemplates.settings.hideHighlighting.Hint": "A menos que passe o mouse sobre o ícone de controle do modelo, não mostre a grade destacada do modelo.",
 
-     "walledtemplates.settings.showOnHover.Name": "Exibir ao Passar no Token",
+    "walledtemplates.settings.showOnHover.Name": "Exibir ao Passar no Token",
     "walledtemplates.settings.showOnHover.Hint": "Ao passar o mouse sobre um token, mostre o destaque da grade para todos os modelos ocultos que se sobrepõem à borda desse token.",
 
+    "walledtemplates.settings.circleSquare.Name": "Substituir Círculos por Quadrados",
+    
     "walledtemplates.controls.autotarget.Title": "Auto-Marcar Tokens com Modelo",
 
     "walledtemplates.notifications.attach-last-selected-token": "Selecione um token para anexar.",
