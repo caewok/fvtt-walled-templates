@@ -1,3 +1,7 @@
+## 0.8.2
+Add module config and template config settings to modify how snap-to-grid works. Also added to dnd5e spell config, but this will not affect template previews in dnd5e until [PR](https://github.com/foundryvtt/dnd5e/pull/4649) is accepted. #116.
+Add module config to use a rotating square instead of a circle template. #118.
+
 ## 0.8.1
 Dnd5e v4 compatibility. #128.
 Tidy sheets compatibility. #129. Thanks @morepurplemorebetter!
