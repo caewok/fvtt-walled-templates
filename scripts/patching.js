@@ -31,9 +31,15 @@ export const PATCHES = {
 };
 
 export const PATCHER = new Patcher();
-PATCHER.addPatchesFromRegistrationObject(PATCHES);
+
 
 export function initializePatching() {
+  if ( game.system.id === "dnd5e" && foundry.utils.isNewerVersion(game.system.version, "3.99") ) {
+    PATCHES.dnd5e.dnd5e.HOOKS["dnd5e.postUseActivity"] = PATCHES.dnd5e.dnd5e.HOOKS["dnd5e.useItem"];
+    delete PATCHES.dnd5e.dnd5e.HOOKS["dnd5e.useItem"];
+  }
+
+  PATCHER.addPatchesFromRegistrationObject(PATCHES);
   PATCHER.registerGroup("BASIC");
   PATCHER.registerGroup(game.system.id);
 }

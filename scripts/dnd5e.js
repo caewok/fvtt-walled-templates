@@ -128,6 +128,15 @@ export function addDnd5eItemConfigurationToTemplate(template) {
  */
 function dnd5eUseItemHook(item, config, options, templates) {
   log("dnd5e.useItem hook", item);
+  const v4 = foundry.utils.isNewerVersion(game.system.version, "3.99");
+
+  let activity;
+  if ( v4 ) {
+    templates = options.templates[0];
+    activity = item;
+    item = activity.item;
+  }
+
   if ( !templates || !item ) return;
 
   // Add item flags to the template(s)
@@ -136,10 +145,10 @@ function dnd5eUseItemHook(item, config, options, templates) {
   let token;
   switch ( attachToken ) {
     case "caster": token = item.parent.token ?? item.parent.getActiveTokens()[0]; break;
-    case "target": token = options.flags.lastTargeted; break; // tokenId
+    case "target": token = options.flags?.lastTargeted ?? [...game.user.targets.values()].at(-1); break; // tokenId
     default: return;
   }
-  templates.forEach(templateD => templateD.object.attachToken(token));
+  if ( token ) templates.forEach(templateD => templateD.object.attachToken(token));
 }
 
 PATCHES_dnd5e.dnd5e.HOOKS = {
