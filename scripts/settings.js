@@ -1,6 +1,5 @@
 /* globals
 canvas,
-CONFIG,
 CONST,
 game,
 ui
@@ -12,6 +11,9 @@ import { MODULE_ID, SHAPE_KEYS } from "./const.js";
 import { registerAutotargeting } from "./patching.js";
 import { WalledTemplateShapeSettings } from "./WalledTemplateShapeSettings.js";
 import { ModuleSettingsAbstract } from "./ModuleSettingsAbstract.js";
+import { WalledTemplateShape } from "./template_shapes/WalledTemplateShape.js";
+import { WalledTemplateCircle } from "./template_shapes/WalledTemplateCircle.js";
+import { WalledTemplateRotatedSquare } from "./template_shapes/WalledTemplateRotatedSquare.js";
 
 const KEYBINDINGS = {
   AUTOTARGET: "autoTarget",
@@ -28,7 +30,8 @@ export const SETTINGS = {
     HIGHLIGHTING: "hideHighlighting",
     SHOW_ON_HOVER: "showOnHover"
   },
-  CHANGELOG: "changelog"
+  CHANGELOG: "changelog",
+  CIRCLE_SQUARE: "circleSquare"
 };
 
 SETTINGS.AUTOTARGET = {
@@ -199,6 +202,18 @@ export class Settings extends ModuleSettingsAbstract {
       default: false,
       scope: "world",
       config: true
+    });
+
+    register(KEYS.CIRCLE_SQUARE, {
+      name: localize(`${KEYS.CIRCLE_SQUARE}.Name`),
+      type: Boolean,
+      default: false,
+      scope: "world",
+      config: true,
+      onChange: value => {
+        const shapeCl = value ? WalledTemplateRotatedSquare : WalledTemplateCircle;
+        WalledTemplateShape.shapeCodeRegister.set("circle", shapeCl);
+      }
     });
 
     // ----- NOTE: Submenu ---- //
