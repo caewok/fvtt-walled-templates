@@ -196,6 +196,20 @@ Hooks.once("ready", () => {
           (Sorry, you may need to update the template elevation manually if you had relied on the walled template elevation previously.)`
     })
 
+    .addEntry({
+      version: "0.8.2",
+      title: "Snap-to-grid and Square Circles",
+      body: `\
+          In the default template settings, you can now set how snap-to-grid works for each template shape.
+          As with other defaults, you can modify this on a per-template basis in the template configuration.
+
+          If you are using dnd5e, you can also modify the snap settings on a per-spell basis. Unfortunately,
+          the preview template will not respect this setting until this PR is accepted.
+          https://github.com/foundryvtt/dnd5e/pull/4649
+
+          I also added an option, in the module configuration, to use rotating squares instead of circles.`
+    })
+
     .build()
     ?.render(true);
 });
