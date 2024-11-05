@@ -34,6 +34,13 @@
       "path": "languages/en.json",
       "title": "Walled Templates",
       "description": "Allow walls to block templates"
+    },
+    {
+      "lang": "pt-BR",
+      "name": "Português (Brasil)",
+      "path": "languages/pt-BR.json",
+      "title": "Walled Templates",
+      "description": "Permite que paredes bloqueiem modelos"
     }
   ],
   "url": "#{URL}#",
