@@ -1,6 +1,8 @@
 /* globals
 canvas,
 CONFIG,
+foundry,
+game,
 PIXI,
 renderTemplate
 */
@@ -24,10 +26,10 @@ PATCHES_dnd5e.dnd5e = {};
 function renderItemSheet5eHook(app, html, data) {
   const type = data.item?.type;
   if ( !(type === "spell" || type === "feat") ) return;
+
   // stop if this sheet is tidy5e
   if ( game.modules.get('tidy5e-sheet')?.api?.isTidy5eItemSheet(app) ) return;
-  // stop if dnd5e is
-  if ( game.modules.get('tidy5e-sheet')?.api?.isTidy5eItemSheet(app) ) return;
+
   const navTabs = html.find(".tabs")[0];
   if ( !navTabs ) return;
   const sheetBodySection = html.find(".sheet-body")[0];
@@ -52,8 +54,8 @@ function renderTidy5eItemSheetHook(api) {
     onRender(params) {
       const type = params.data.item?.type;
       if ( !(type === "spell" || type === "feat") ) return;
-      const app = params.app;
-      const html = [params.element];
+      // Unused: const app = params.app;
+      // Unused: const html = [params.element];
       const data = params.data;
       const parts = { tidy5e: params.tabContentsElement };
       return render5eSpellTemplateConfig(parts, data);
