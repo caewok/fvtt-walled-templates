@@ -70,6 +70,7 @@ export function tokenName(token) {
  */
 export function tokenBounds(token) {
   if ( canvas.grid.isHexagonal ) return hexGridShape(token);
+  if ( !token.hitArea ) return token.bounds; // No hitArea if just loading.
   return Square.fromToken(token); // Will return PIXI.Rectangle if not even width/height.
 }
 
