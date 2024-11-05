@@ -494,12 +494,7 @@ function _calculateAttachedTemplateOffset(tokenD) {
   const templateData = {};
   if ( Object.hasOwn(tokenD, "x") ) templateData.x = tokenD.x + delta.x;
   if ( Object.hasOwn(tokenD, "y") ) templateData.y = tokenD.y + delta.y;
-  if ( Object.hasOwn(tokenD, "elevation") ) {
-    // Note: cleanData requires the actual object, no string properties
-    // templateData.flags.["flags.elevatedvision.elevation"] = tokenD.elevation + delta.elevation;
-    const elevation = tokenD.elevation + delta.elevation;
-    templateData.flags = { elevatedvision: { elevation }};
-  }
+  if ( Object.hasOwn(tokenD, "elevation") ) templateData.elevation = tokenD.elevation + delta.elevation;
   if ( Object.hasOwn(tokenD, "rotation") && Object.hasOwn(delta, "rotation") && this.document.getFlag(MODULE_ID, FLAGS.ATTACHED_TOKEN.ROTATE) ) {
     templateData.direction = Math.normalizeDegrees(tokenD.rotation + delta.rotation);
   }
