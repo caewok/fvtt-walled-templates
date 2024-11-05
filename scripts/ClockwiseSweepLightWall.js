@@ -136,6 +136,6 @@ export class LightWallSweep extends ClockwiseSweepShape {
     ]);
     cfg.boundaryShapes.push(boundary);
     this.#originContained = canvas.dimensions.rect.contains(origin);
-    this.config.lightWallOrigin = duplicate(origin);
+    this.config.lightWallOrigin = foundry.utils.duplicate(origin);
   }
 }

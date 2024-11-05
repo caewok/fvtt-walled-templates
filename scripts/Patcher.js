@@ -128,11 +128,16 @@ export class Patcher {
               group: groupName,
               perf_mode: libWrapper.PERF_FAST,
               className: clName,
-              isStatic: typeName.includes("STATIC") };
+              isStatic: typeName.includes("STATIC")
+            };
             switch ( typeName ) {
-              case "HOOKS": patchCl = HookPatch; break;
+              case "HOOKS_ONCE":
+                cfg.hooksOnce = true;
+              case "HOOKS":
+                patchCl = HookPatch;
+                break;
 
-              case "STATIC_OVERRIDES": // eslint-disable-line no-fallthrough
+              case "STATIC_OVERRIDES":
               case "OVERRIDES":
               case "STATIC_MIXES":
               case "MIXES":
@@ -144,13 +149,13 @@ export class Patcher {
                     ? libWrapper.MIXED : libWrapper.WRAPPER;
                 break;
 
-              case "STATIC_GETTERS": // eslint-disable-line no-fallthrough
+              case "STATIC_GETTERS":
               case "GETTERS":
                 cfg.isGetter = true;
                 patchCl = MethodPatch;
                 break;
 
-              case "STATIC_SETTERS": // eslint-disable-line no-fallthrough
+              case "STATIC_SETTERS":
               case "SETTERS":
                 cfg.isSetter = true;
                 patchCl = MethodPatch;
@@ -197,7 +202,7 @@ export class Patcher {
     Object.defineProperty(cl, name, descriptor);
 
     const prototypeName = cl.constructor?.name;
-    const id = `${prototypeName ?? cl.name }.${prototypeName ? "prototype." : ""}${name}`; // eslint-disable-line template-curly-spacing
+    const id = `${prototypeName ?? cl.name}.${prototypeName ? "prototype." : ""}${name}`;
     return { id, args: { cl, name } };
   }
 
@@ -218,12 +223,21 @@ export class Patcher {
         : className;
 
     const configObj = CONFIG[baseClass];
+    if ( isConfig && configObj && configObj.sheetClasses?.base ) {
+      // Attempt to locate a base sheet class.
+      for ( const [key, obj] of Object.entries(configObj.sheetClasses.base) ) {
+        if ( !(obj.default && obj.cls) ) continue;
+        return returnPathString ? `CONFIG.${baseClass}.sheetClasses.base["${key}"].cls` : obj.cls;
+      }
+    }
+
     if ( !configObj || isConfig ) return returnPathString ? className : eval?.(`"use strict";(${className})`);
 
     // Do this the hard way to catch inconsistencies
     switch ( className ) {
       case "Actor":
       case "ActiveEffect":
+      case "RegionBehavior":
       case "Item":
         isDoc = true; break;
     }
@@ -330,11 +344,21 @@ class AbstractPatch {
 export class HookPatch extends AbstractPatch {
 
   /**
+   * @param {object}  [config]               Optional parameters that modify the patch
+   * @param {boolean} [config.hooksOnce]    If true, the function will be hooked only once.
+   */
+  _configure(config = {}) {
+    super._configure(config);
+    const cfg = this.config;
+    cfg.hooksOnce = config.hooksOnce;
+  }
+
+  /**
    * Register this hook.
    */
   register() {
     if ( this.isRegistered ) return;
-    this.regId = Hooks.on(this.target, this.patchFn);
+    this.regId = Hooks[this.config.hooksOnce ? 'once' : 'on'](this.target, this.patchFn);
   }
 
   /**
@@ -386,6 +410,7 @@ export class MethodPatch extends AbstractPatch {
     if ( typeof value !== "string" ) value = value.name; // Can pass the class or the class name as string.
     cfg.className = value;
     this.#cl = Patcher.lookupByClassName(cfg.className);
+    if ( !this.#cl ) console.error(`Patcher|${cfg.className} not found!`);
     if ( !cfg.isStatic ) this.#cl = this.#cl.prototype;
   }
 
@@ -400,7 +425,9 @@ export class MethodPatch extends AbstractPatch {
     else if ( this.config.isSetter ) this.prevMethod = this.prevMethod?.set;
     else this.prevMethod = this.prevMethod?.value;
 
-    this.regId = Patcher.addClassMethod(this.#cl, this.target, this.patchFn, { getter: this.config.isGetter, setter: this.config.isSetter });
+    this.regId = Patcher.addClassMethod(this.#cl, this.target, this.patchFn, {
+      getter: this.config.isGetter, setter: this.config.isSetter
+    });
   }
 
   /**
@@ -412,7 +439,9 @@ export class MethodPatch extends AbstractPatch {
 
     // Add back the original, if any.
     if ( this.prevMethod ) {
-      Patcher.addClassMethod(this.#cl, this.target, this.prevMethod, { getter: this.config.isGetter, setter: this.config.isSetter });
+      Patcher.addClassMethod(this.#cl, this.target, this.prevMethod, {
+        getter: this.config.isGetter, setter: this.config.isSetter
+      });
       this.prevMethod = undefined;
     }
     this.regId = undefined;
@@ -454,6 +483,7 @@ export class LibWrapperPatch extends AbstractPatch {
     if ( typeof value !== "string" ) value = value.name; // Can pass the class or the class name as string.
     cfg.className = value;
     this.#className = Patcher.lookupByClassName(value, { returnPathString: true });
+    if ( !this.#className ) console.error(`Patcher|${cfg.className} not found!`);
     if ( !cfg.isStatic ) this.#className = `${this.#className}.prototype`;
   }
 
