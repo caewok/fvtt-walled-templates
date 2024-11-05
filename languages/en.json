@@ -126,8 +126,10 @@
     "walledtemplates.settings.hideHighlighting.Name": "Hide template highlighting",
     "walledtemplates.settings.hideHighlighting.Hint": "Unless hovering over the template control icon, do not show the highlighted grid for the template.",
 
-     "walledtemplates.settings.showOnHover.Name": "Show on token hover",
+    "walledtemplates.settings.showOnHover.Name": "Show on token hover",
     "walledtemplates.settings.showOnHover.Hint": "When hovering over a token, show grid highlighting for all hidden templates that overlap that token's border.",
+
+    "walledtemplates.settings.circleSquare.Name": "Replace Circles with Squares",
 
     "walledtemplates.controls.autotarget.Title": "Autotarget tokens with template",
 

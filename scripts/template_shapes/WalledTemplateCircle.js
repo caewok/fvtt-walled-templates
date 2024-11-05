@@ -32,7 +32,7 @@ export class WalledTemplateCircle extends WalledTemplateShape {
   calculateOriginalShape({ distance } = {}) {
     // Convert to degrees and grid units for Foundry method.
     distance ??= this.distance;
-    distance =  CONFIG.GeometryLib.utils.pixelsToGridUnits(distance);
+    distance = CONFIG.GeometryLib.utils.pixelsToGridUnits(distance);
     return CONFIG.MeasuredTemplate.objectClass.getCircleShape(distance);
     // Pad the circle by one pixel so it better covers expected grid spaces?
     // (Rounding tends to drop spaces on the edge.)
