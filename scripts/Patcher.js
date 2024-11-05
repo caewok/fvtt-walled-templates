@@ -128,9 +128,14 @@ export class Patcher {
               group: groupName,
               perf_mode: libWrapper.PERF_FAST,
               className: clName,
-              isStatic: typeName.includes("STATIC") };
+              isStatic: typeName.includes("STATIC")
+            };
             switch ( typeName ) {
-              case "HOOKS": patchCl = HookPatch; break;
+              case "HOOKS_ONCE":
+                cfg.hooksOnce = true;
+              case "HOOKS":
+                patchCl = HookPatch;
+                break;
 
               case "STATIC_OVERRIDES":
               case "OVERRIDES":
@@ -339,11 +344,21 @@ class AbstractPatch {
 export class HookPatch extends AbstractPatch {
 
   /**
+   * @param {object}  [config]               Optional parameters that modify the patch
+   * @param {boolean} [config.hooksOnce]    If true, the function will be hooked only once.
+   */
+  _configure(config = {}) {
+    super._configure(config);
+    const cfg = this.config;
+    cfg.hooksOnce = config.hooksOnce;
+  }
+
+  /**
    * Register this hook.
    */
   register() {
     if ( this.isRegistered ) return;
-    this.regId = Hooks.on(this.target, this.patchFn);
+    this.regId = Hooks[this.config.hooksOnce ? 'once' : 'on'](this.target, this.patchFn);
   }
 
   /**

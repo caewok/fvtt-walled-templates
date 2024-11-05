@@ -24,7 +24,42 @@ PATCHES_dnd5e.dnd5e = {};
 function renderItemSheet5eHook(app, html, data) {
   const type = data.item?.type;
   if ( !(type === "spell" || type === "feat") ) return;
-  render5eSpellTemplateConfig(app, html, data);
+  // stop if this sheet is tidy5e
+  if ( game.modules.get('tidy5e-sheet')?.api?.isTidy5eItemSheet(app) ) return;
+  // stop if dnd5e is 
+  if ( game.modules.get('tidy5e-sheet')?.api?.isTidy5eItemSheet(app) ) return;
+  const navTabs = html.find(".tabs")[0];
+  if ( !navTabs ) return;
+  const sheetBodySection = html.find(".sheet-body")[0];
+  if ( !sheetBodySection) return;
+  const parts = { navTabs, sheetBodySection };
+  render5eSpellTemplateConfig(parts, data);
+}
+
+/**
+ * Hook tidy5e-sheet.ready to add template configuration options for spells in tidy-5e item sheets.
+ * @param {Object} api tidy5e's api
+ */
+function renderTidy5eItemSheetHook(api) {
+  const myTab = new api.models.HtmlTab({
+    title: game.i18n.localize("walledtemplates.MeasuredTemplateConfiguration.LegendTitle"),
+    tabId: MODULE_ID,
+    html: '',
+    enabled(data) {
+      const type = data.item?.type;
+      return type === "spell" || type === "feat";
+    },
+    onRender(params) {
+      const type = params.data.item?.type;
+      if ( !(type === "spell" || type === "feat") ) return;
+      const app = params.app;
+      const html = [params.element];
+      const data = params.data;
+      const parts = { tidy5e: params.tabContentsElement };
+      return render5eSpellTemplateConfig(parts, data);
+    }
+  });
+  api.registerItemTab(myTab, { autoHeight: true });
 }
 
 /**
@@ -111,19 +146,23 @@ PATCHES_dnd5e.dnd5e.HOOKS = {
   renderItemSheet5e: renderItemSheet5eHook,
   ["dnd5e.useItem"]: dnd5eUseItemHook
 };
+PATCHES_dnd5e.dnd5e.HOOKS_ONCE = {
+  ["tidy5e-sheet.ready"]: renderTidy5eItemSheetHook
+};
 
 /**
  * Inject html to add controls to the measured template configuration:
  * 1. Switch to have the template be blocked by walls.
  *
+ * @param {object} parts parts of the sheet to append html to
+ * @param {object} parts.navTabs dom element that holds the tab links
+ * @param {object} parts.sheetBodySection dom element that holds the content of the tabs
+ * @param {object} parts.tidy5e dom element that holds the tab's content
+ *
  * templates/scene/template-config.html
  */
-async function render5eSpellTemplateConfig(app, html, data) {
-  const navTabs = html.find(".tabs")[0];
-  if ( !navTabs ) return;
-  const sheetBodySection = html.find(".sheet-body")[0];
-  if ( !sheetBodySection) return;
-
+async function render5eSpellTemplateConfig(parts, data) {
+  const {navTabs, sheetBodySection, tidy5e} = parts;
   // By default, rely on the global settings.
   if (typeof data.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
     data.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, LABELS.GLOBAL_DEFAULT);
@@ -147,11 +186,17 @@ async function render5eSpellTemplateConfig(app, html, data) {
   const myHTML = await renderTemplate(template, data);
 
   // Create a new tab entry for the module.
-  const newTab = constructTabElement(MODULE_ID, "walledtemplates.MeasuredTemplateConfiguration.LegendTitle");
-  navTabs.appendChild(newTab);
+  if (navTabs && sheetBodySection) {
+    const newTab = constructTabElement(MODULE_ID, "walledtemplates.MeasuredTemplateConfiguration.LegendTitle");
+    navTabs.appendChild(newTab);
 
-  // Construct the new tab div to go with it.
-  const tabDiv = constructTabDivision(MODULE_ID, "primary");
-  tabDiv.innerHTML = myHTML;
-  sheetBodySection.appendChild(tabDiv);
+    // Construct the new tab div to go with it.
+    const tabDiv = constructTabDivision(MODULE_ID, "primary");
+    tabDiv.innerHTML = myHTML;
+    sheetBodySection.appendChild(tabDiv);
+  } else if (tidy5e) {
+    const div = document.createElement("DIV");
+    div.innerHTML = myHTML;
+    tidy5e.appendChild(div);
+  }
 }

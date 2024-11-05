@@ -8,7 +8,7 @@
     "walledtemplates.MeasuredTemplateConfiguration.walls-block.Name": "Paredes",
     "walledtemplates.MeasuredTemplateConfiguration.walls-block.Hint": "Círculos/Quadrados: Espalhar; Linhas/Cones: Refletir.",
 
-    "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name": "Tipo de parede",
+    "walledtemplates.MeasuredTemplateConfiguration.wall-restriction-type.Name": "Tipo de Parede",
     "walledtemplates.MeasuredTemplateConfiguration.walls-restriction-type.Hint": "Modelos ignoram paredes que não bloqueiam este tipo.",
 
     "walledtemplates.MeasuredTemplateConfiguration.globalDefault": "Usar padrão global",
@@ -25,10 +25,10 @@
     "walledtemplates.MeasuredTemplateConfiguration.attach-token.useTargetedToken": "Anexe ao último token marcado",
     "walledtemplates.MeasuredTemplateConfiguration.attach-token.removeToken": "Remover token anexado",
 
-    "walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Name": "Girar com token",
+    "walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Name": "Girar com Token",
     "walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Hint": "Quando o token girar, o modelo irá girar ao redor do token.",
 
-    "walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Name": "Não marcar automaticamente",
+    "walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Name": "Não Marcar Automaticamente",
     "walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Hint": "Subscreve configurações para não marcar tokens com este template.",
 
     "walledtemplates.MeasuredTemplateConfiguration.hide-border.Name": "Esconder Borda",
@@ -37,7 +37,7 @@
     "walledtemplates.MeasuredTemplateConfiguration.hide-highlighting.Name": "Esconder Destaque",
     "walledtemplates.MeasuredTemplateConfiguration.hide-highlighting.Hint": "Subscreve configurações configurações que sempre mostram ou escondem os destaques para este modelo.",
 
-    "walledtemplates.MeasuredTemplateConfiguration.show-hover.Name": "Mostrar ao passar o mouse",
+    "walledtemplates.MeasuredTemplateConfiguration.show-hover.Name": "Mostrar ao Passar o Mouse",
     "walledtemplates.MeasuredTemplateConfiguration.show-hover.Hint": "Subscreve configurações que sempre mostram ou escondem o modelo ao passar o mouse sobre um token dentro do modelo.",
 
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevação",
@@ -120,16 +120,16 @@
     "walledtemplates.settings.diagonal-scaling-rect.Name": "Não Utilizado: Retificação de Escala Diagonal",
     "walledtemplates.settings.diagonal-scaling-rect.Hint": "Não utilizado",
 
-    "walledtemplates.settings.hideBorder.Name": "Esconder borda do modelo",
+    "walledtemplates.settings.hideBorder.Name": "Esconder Borda do Modelo",
     "walledtemplates.settings.hideBorder.Hint": "A menos que passe o mouse sobre o ícone de controle do modelo, não mostre a borda da forma do modelo.",
 
-    "walledtemplates.settings.hideHighlighting.Name": "Esconder destaque do modelo",
+    "walledtemplates.settings.hideHighlighting.Name": "Esconder Destaque do Modelo",
     "walledtemplates.settings.hideHighlighting.Hint": "A menos que passe o mouse sobre o ícone de controle do modelo, não mostre a grade destacada do modelo.",
 
-     "walledtemplates.settings.showOnHover.Name": "Exibir ao passar o token",
+     "walledtemplates.settings.showOnHover.Name": "Exibir ao Passar no Token",
     "walledtemplates.settings.showOnHover.Hint": "Ao passar o mouse sobre um token, mostre o destaque da grade para todos os modelos ocultos que se sobrepõem à borda desse token.",
 
-    "walledtemplates.controls.autotarget.Title": "Auto-marcar tokens com modelo",
+    "walledtemplates.controls.autotarget.Title": "Auto-Marcar Tokens com Modelo",
 
     "walledtemplates.notifications.attach-last-selected-token": "Selecione um token para anexar.",
     "walledtemplates.notifications.attach-last-targeted-token": "Selecione um token para anexar.",
