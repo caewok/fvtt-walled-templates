@@ -21,8 +21,9 @@ const KEYBINDINGS = {
 };
 
 export const SETTINGS = {
-  DEFAULT_WALLS_BLOCK: {},
-  DEFAULT_WALL_RESTRICTION: {},
+  DEFAULT_WALLS_BLOCK: {},  // Per shape.
+  DEFAULT_WALL_RESTRICTION: {}, // Per shape.
+  DEFAULT_SNAPPING: {}, // Per shape: CENTER, SIDE_MIDPOINT, CORNER
   HIDE: {
     BORDER: "hideBorder",
     HIGHLIGHTING: "hideHighlighting",
@@ -70,6 +71,13 @@ for ( const shapeKey of SHAPE_KEYS ) {
   SETTINGS.AUTOTARGET[shapeKey].OVERRIDE = `autotarget-override-${shapeKey}`;
   SETTINGS.AUTOTARGET[shapeKey].METHOD = `autotarget-method-${shapeKey}`;
   SETTINGS.AUTOTARGET[shapeKey].AREA = `autotarget-area-${shapeKey}`;
+
+  // Override snapping for specific shapes.
+  SETTINGS.DEFAULT_SNAPPING[shapeKey] = {
+    CENTER: `default-${shapeKey}-snapping-center`,
+    CORNER: `default-${shapeKey}-snapping-corner`,
+    SIDE_MIDPOINT: `default-${shapeKey}-snapping-side-midpoint`
+  };
 }
 
 export class Settings extends ModuleSettingsAbstract {
@@ -272,6 +280,35 @@ export class Settings extends ModuleSettingsAbstract {
         },
         type: Number,
         default: 0,
+        scope: "world",
+        config: false,
+        tab: shape
+      });
+
+      // ----- Override default snapping.
+      register(KEYS.DEFAULT_SNAPPING[shape].CENTER, {
+        name: localize("submenu.snap-center.Name"),
+        type: Boolean,
+        default: true,
+        scope: "world",
+        config: false,
+        tab: shape,
+        horizontalDivider: true
+      });
+
+      register(KEYS.DEFAULT_SNAPPING[shape].CORNER, {
+        name: localize("submenu.snap-corner.Name"),
+        type: Boolean,
+        default: true,
+        scope: "world",
+        config: false,
+        tab: shape
+      });
+
+      register(KEYS.DEFAULT_SNAPPING[shape].SIDE_MIDPOINT, {
+        name: localize("submenu.snap-midpoint.Name"),
+        type: Boolean,
+        default: true,
         scope: "world",
         config: false,
         tab: shape
