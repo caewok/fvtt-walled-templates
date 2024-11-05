@@ -1,3 +1,12 @@
+## 0.8.1
+Dnd5e v4 compatibility. #128.
+Tidy sheets compatibility. #129. Thanks @morepurplemorebetter!
+Fix for preview templates not respecting elevation. #113.
+Fix attached templates not changing elevation when the token elevation changes. #123.
+Fix issue with changing multiple wall heights when Wall Height module is present. #125.
+Add check to confirm `actor.statuses` is defined. #127.
+Add Brazilian Portuguese translation. #119. Thanks @Kharmans!
+
 ## 0.8.0
 Foundry v12 compatibility.
 Use tabbed configuration for measured template config and dnd5e spell config.
