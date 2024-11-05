@@ -26,7 +26,7 @@ function renderItemSheet5eHook(app, html, data) {
   if ( !(type === "spell" || type === "feat") ) return;
   // stop if this sheet is tidy5e
   if ( game.modules.get('tidy5e-sheet')?.api?.isTidy5eItemSheet(app) ) return;
-  // stop if dnd5e is 
+  // stop if dnd5e is
   if ( game.modules.get('tidy5e-sheet')?.api?.isTidy5eItemSheet(app) ) return;
   const navTabs = html.find(".tabs")[0];
   if ( !navTabs ) return;
@@ -128,6 +128,15 @@ export function addDnd5eItemConfigurationToTemplate(template) {
  */
 function dnd5eUseItemHook(item, config, options, templates) {
   log("dnd5e.useItem hook", item);
+  const v4 = foundry.utils.isNewerVersion(game.system.version, "3.99");
+
+  let activity;
+  if ( v4 ) {
+    templates = options.templates[0];
+    activity = item;
+    item = activity.item;
+  }
+
   if ( !templates || !item ) return;
 
   // Add item flags to the template(s)
@@ -136,10 +145,10 @@ function dnd5eUseItemHook(item, config, options, templates) {
   let token;
   switch ( attachToken ) {
     case "caster": token = item.parent.token ?? item.parent.getActiveTokens()[0]; break;
-    case "target": token = options.flags.lastTargeted; break; // tokenId
+    case "target": token = options.flags?.lastTargeted ?? [...game.user.targets.values()].at(-1); break; // tokenId
     default: return;
   }
-  templates.forEach(templateD => templateD.object.attachToken(token));
+  if ( token ) templates.forEach(templateD => templateD.object.attachToken(token));
 }
 
 PATCHES_dnd5e.dnd5e.HOOKS = {
@@ -163,17 +172,21 @@ PATCHES_dnd5e.dnd5e.HOOKS_ONCE = {
  */
 async function render5eSpellTemplateConfig(parts, data) {
   const {navTabs, sheetBodySection, tidy5e} = parts;
+
+  const isV4 = foundry.utils.isNewerVersion(game.system.version, "3.99");
+  const itemDoc = isV4 ? data.item : data.document;
+
   // By default, rely on the global settings.
-  if (typeof data.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
-    data.document.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, LABELS.GLOBAL_DEFAULT);
+  if (typeof itemDoc.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
+    itemDoc.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, LABELS.GLOBAL_DEFAULT);
   }
 
-  if (typeof data.document.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined") {
-    data.document.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, LABELS.GLOBAL_DEFAULT);
+  if (typeof itemDoc.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined") {
+    itemDoc.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, LABELS.GLOBAL_DEFAULT);
   }
 
   // Set variable to know if we are dealing with a template
-  const areaType = data.system.target.type;
+  const areaType = isV4 ? data.system.target.template.type : data.system.target.type;
   data.isTemplate = areaType in CONFIG.DND5E.areaTargetTypes;
   data.walledtemplates = {
     blockoptions: LABELS.SPELL_TEMPLATE.WALLS_BLOCK,
@@ -200,3 +213,5 @@ async function render5eSpellTemplateConfig(parts, data) {
     tidy5e.appendChild(div);
   }
 }
+
+
