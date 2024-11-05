@@ -519,7 +519,7 @@ function targetsWithinShape({ onlyVisible = false } = {}) {
       || foundry.utils.getProperty(token, "actor.system.details.type.custom")?.includes("NoTarget") ) return false;
 
     // Ignore certain statuses. See issue #108.
-    if ( token.actor.statuses.intersects(statusesToIgnore) ) return false;
+    if ( token.actor.statuses && token.actor.statuses.intersects(statusesToIgnore) ) return false;
 
     // Test the token boundary.
     const tBounds = tokenBounds(token);
