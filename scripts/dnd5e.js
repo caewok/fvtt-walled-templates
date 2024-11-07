@@ -94,6 +94,11 @@ export function addDnd5eItemConfigurationToTemplate(template) {
   const hideHighlighting = item.getFlag(MODULE_ID, FLAGS.HIDE.HIGHLIGHTING) ?? LABELS.GLOBAL_DEFAULT;
   const showOnHover = item.getFlag(MODULE_ID, FLAGS.HIDE.SHOW_ON_HOVER) ?? LABELS.GLOBAL_DEFAULT;
 
+  // Determine snapping settings, falling back to global defaults.
+  const snapCenter = item.getFlag(MODULE_ID, FLAGS.SNAPPING.CENTER) ?? Settings.get(Settings.KEYS.DEFAULT_SNAPPING[shape].CENTER);
+  const snapCorner = item.getFlag(MODULE_ID, FLAGS.SNAPPING.CORNER) ?? Settings.get(Settings.KEYS.DEFAULT_SNAPPING[shape].CORNER);
+  const snapSideMidpoint = item.getFlag(MODULE_ID, FLAGS.SNAPPING.SIDE_MIDPOINT) ?? Settings.get(Settings.KEYS.DEFAULT_SNAPPING[shape].SIDE_MIDPOINT);
+
   // Attach items to the template.
   templateD.updateSource({
     flags: {
@@ -103,7 +108,10 @@ export function addDnd5eItemConfigurationToTemplate(template) {
         [FLAGS.NO_AUTOTARGET]: noAutotarget,
         [FLAGS.HIDE.BORDER]: hideBorder,
         [FLAGS.HIDE.HIGHLIGHTING]: hideHighlighting,
-        [FLAGS.HIDE.SHOW_ON_HOVER]: showOnHover
+        [FLAGS.HIDE.SHOW_ON_HOVER]: showOnHover,
+        [FLAGS.SNAPPING.CENTER]: snapCenter,
+        [FLAGS.SNAPPING.CORNER]: snapCorner,
+        [FLAGS.SNAPPING.SIDE_MIDPOINT]: snapSideMidpoint
       }
     }
   });
@@ -185,6 +193,18 @@ async function render5eSpellTemplateConfig(parts, data) {
 
   if (typeof itemDoc.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined") {
     itemDoc.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, LABELS.GLOBAL_DEFAULT);
+  }
+
+  if (typeof itemDoc.getFlag(MODULE_ID, FLAGS.SNAPPING.CENTER) === "undefined") {
+    itemDoc.setFlag(MODULE_ID, FLAGS.SNAPPING.CENTER, true);
+  }
+
+  if (typeof itemDoc.getFlag(MODULE_ID, FLAGS.SNAPPING.CORNER) === "undefined") {
+    itemDoc.setFlag(MODULE_ID, FLAGS.SNAPPING.CORNER, true);
+  }
+
+  if (typeof itemDoc.getFlag(MODULE_ID, FLAGS.SNAPPING.SIDE_MIDPOINT) === "undefined") {
+    itemDoc.setFlag(MODULE_ID, FLAGS.SNAPPING.SIDE_MIDPOINT, true);
   }
 
   // Set variable to know if we are dealing with a template

@@ -76,8 +76,8 @@ export function tokenBounds(token) {
 
 function hexGridShape(token) {
   // Canvas.grid.grid.getBorderPolygon will return null if width !== height.
-  const { w, h } = token;
-  if ( w !== h || (w === 1 && h === 1) ) return Hexagon.fromToken(token);
+//   const { w, h } = token;
+//   if ( w !== h || (w === 1 && h === 1) ) return Hexagon.fromToken(token);
 
   // Get the top left corner
   const c = token.center;

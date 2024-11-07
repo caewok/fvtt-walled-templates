@@ -54,6 +54,12 @@ export const FLAGS = {
     SHOW_ON_HOVER: "showOnHover" // Template-specific show/hide hover setting.
   },
 
+  SNAPPING: {
+    CENTER: "snapCenter",
+    CORNER: "snapCorner",
+    SIDE_MIDPOINT: "snapSideMidpoint"
+  },
+
   /** @type {boolean} */
   ADD_TOKEN_SIZE: "addTokenSize",
 

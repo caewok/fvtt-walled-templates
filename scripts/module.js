@@ -184,6 +184,27 @@ Hooks.once("ready", function() {
         FLAGS.WALL_RESTRICTION,
         Settings.get(KEYS.DEFAULT_WALL_RESTRICTION[shape])));
     }
+
+    if ( typeof t.document.getFlag(MODULE_ID, FLAGS.SNAPPING.CENTER) === "undefined" ) {
+      promises.push(t.document.setFlag(
+        MODULE_ID,
+        FLAGS.SNAPPING.CENTER,
+        Settings.get(KEYS.DEFAULT_SNAPPING[shape].CENTER)));
+    }
+
+    if ( typeof t.document.getFlag(MODULE_ID, FLAGS.SNAPPING.CORNER) === "undefined" ) {
+      promises.push(t.document.setFlag(
+        MODULE_ID,
+        FLAGS.SNAPPING.CORNER,
+        Settings.get(KEYS.DEFAULT_SNAPPING[shape].CORNER)));
+    }
+
+    if ( typeof t.document.getFlag(MODULE_ID, FLAGS.SNAPPING.SIDE_MIDPOINT) === "undefined" ) {
+      promises.push(t.document.setFlag(
+        MODULE_ID,
+        FLAGS.SNAPPING.SIDE_MIDPOINT,
+        Settings.get(KEYS.DEFAULT_SNAPPING[shape].SIDE_MIDPOINT)));
+    }
   }
   if ( promises.length ) Promise.all(promises);
 
