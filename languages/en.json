@@ -42,6 +42,8 @@
 
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevation",
 
+    "walledtemplates.MeasuredTemplateConfiguration.legend.snapping": "Snap-to-Grid",
+
     "walledtemplates.dnd5e-spell-config.attach-token.Name": "Attach to?",
     "walledtemplates.dnd5e-spell-config.attach-token.na": "N/A",
     "walledtemplates.dnd5e-spell-config.attach-token.caster": "Caster",
@@ -69,6 +71,10 @@
 
     "walledtemplates.settings.submenu.autotarget-override.Name": "Override Highlight/Autotarget",
     "walledtemplates.settings.submenu.autotarget-override.Hint": "Override the default highlight/autotarget settings for this shape",
+
+    "walledtemplates.settings.submenu.snap-center.Name": "Snap to Center",
+    "walledtemplates.settings.submenu.snap-corner.Name": "Snap to Corner",
+    "walledtemplates.settings.submenu.snap-midpoint.Name": "Snap to Side Midpoint",
 
     "walledtemplates.settings.default_circle.Name": "Walls Block",
     "walledtemplates.settings.default_cone.Name": "Walls Block",

@@ -1,6 +1,7 @@
 /* globals
 canvas,
 CONFIG,
+CONST,
 foundry,
 game,
 MouseInteractionManager,
@@ -88,6 +89,18 @@ function preCreateMeasuredTemplateHook(templateD, updateData, _opts, _id) {
 
   if ( typeof templateD.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined" ) {
     updates[`flags.${MODULE_ID}.${FLAGS.WALL_RESTRICTION}`] = Settings.get(Settings.KEYS.DEFAULT_WALL_RESTRICTION[templateD.t]);
+  }
+
+  if ( typeof templateD.getFlag(MODULE_ID, FLAGS.SNAPPING.CENTER) === "undefined" ) {
+    updates[`flags.${MODULE_ID}.${FLAGS.SNAPPING.CENTER}`] = Settings.get(Settings.KEYS.DEFAULT_SNAPPING[templateD.t].CENTER);
+  }
+
+  if ( typeof templateD.getFlag(MODULE_ID, FLAGS.SNAPPING.CORNER) === "undefined" ) {
+    updates[`flags.${MODULE_ID}.${FLAGS.SNAPPING.CORNER}`] = Settings.get(Settings.KEYS.DEFAULT_SNAPPING[templateD.t].CORNER);
+  }
+
+  if ( typeof templateD.getFlag(MODULE_ID, FLAGS.SNAPPING.SIDE_MIDPOINT) === "undefined" ) {
+    updates[`flags.${MODULE_ID}.${FLAGS.SNAPPING.SIDE_MIDPOINT}`] = Settings.get(Settings.KEYS.DEFAULT_SNAPPING[templateD.t].SIDE_MIDPOINT);
   }
 
   if ( !foundry.utils.isEmpty(updates) ) templateD.updateSource(updates);
@@ -386,6 +399,41 @@ function highlightGrid(wrapped) {
 }
 
 PATCHES.BASIC.MIXES = { highlightGrid };
+
+// ----- NOTE: Overrides ----- //
+
+/**
+ * Override MeasuredTemplate.prototype.getSnappedPosition
+ * @param {Point} [position]    The position to be used instead of the current position
+ * @returns {Point}             The snapped position
+ */
+function getSnappedPosition(position) {
+  position ??= this.document;
+
+  const KEYS = Settings.KEYS.DEFAULT_SNAPPING[this.document.t];
+  const center = this.document.getFlag(MODULE_ID, FLAGS.SNAPPING.CENTER) ?? Settings.get(KEYS.CENTER);
+  const corner = this.document.getFlag(MODULE_ID, FLAGS.SNAPPING.CORNER) ?? Settings.get(KEYS.CORNER);
+  const mid = this.document.getFlag(MODULE_ID, FLAGS.SNAPPING.SIDE_MIDPOINT) ?? Settings.get(KEYS.SIDE_MIDPOINT);
+  // Unused: if ( center && corner && mid ) return wrapped(position);
+  // Causes weirdness in the hex grid, where midpoint is not used by default.
+
+  // From layer.getSnappedPosition.
+  const M = CONST.GRID_SNAPPING_MODES;
+  const grid = canvas.grid;
+  let mode = 0;
+  if ( center ) mode |= M.CENTER;
+  if ( corner ) {
+    mode |= M.VERTEX;
+    if ( !grid.isHexagonal ) mode |= M.CORNER;
+  }
+  if ( mid ) {
+    if ( grid.isHexagonal ) mode |= M.EDGE_MIDPOINT;
+    else mode |= M.SIDE_MIDPOINT;
+  }
+  return grid.getSnappedPoint(position, { mode, resolution: 1 });
+}
+
+PATCHES.BASIC.OVERRIDES = { getSnappedPosition };
 
 // ----- NOTE: Autotarget Wraps ----- //
 
