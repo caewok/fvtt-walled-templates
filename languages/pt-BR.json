@@ -39,8 +39,10 @@
 
     "walledtemplates.MeasuredTemplateConfiguration.show-hover.Name": "Mostrar ao Passar o Mouse",
     "walledtemplates.MeasuredTemplateConfiguration.show-hover.Hint": "Subscreve configurações que sempre mostram ou escondem o modelo ao passar o mouse sobre um token dentro do modelo.",
-
+    
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevação",
+
+    "walledtemplates.MeasuredTemplateConfiguration.legend.snapping": "Ajustar à Grade",
 
     "walledtemplates.dnd5e-spell-config.attach-token.Name": "Anexar?",
     "walledtemplates.dnd5e-spell-config.attach-token.na": "Não",
