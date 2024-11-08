@@ -72,6 +72,10 @@
     "walledtemplates.settings.submenu.autotarget-override.Name": "Subscrever Destaque/Auto-Marcar",
     "walledtemplates.settings.submenu.autotarget-override.Hint": "Subscreve a configuração padrão para destaque/marcar automaticamente para este modelo.",
 
+    "walledtemplates.settings.submenu.snap-center.Name": "Ajustar ao Centro",
+    "walledtemplates.settings.submenu.snap-corner.Name": "Ajustar ao Canto",
+    "walledtemplates.settings.submenu.snap-midpoint.Name": "Ajustar ao Centro do Lado",
+    
     "walledtemplates.settings.default_circle.Name": "Paredes Bloqueiam",
     "walledtemplates.settings.default_cone.Name": "Paredes Bloqueiam",
     "walledtemplates.settings.default_ray.Name": "Paredes Bloqueiam",
