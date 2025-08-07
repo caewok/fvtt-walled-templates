@@ -37,10 +37,10 @@ export const FLAGS = {
   },
 
   HIDE: {
-    /** @type {boolean} */
+    /** @type {HIDE.TYPES} */
     BORDER: "hideBorder",
 
-    /** @type {boolean} */
+    /** @type {HIDE.TYPES} */
     HIGHLIGHTING: "hideHighlighting",
 
     TYPES: {
@@ -51,12 +51,18 @@ export const FLAGS = {
 
     TOKEN_HOVER: "tokenHover", // Whether user is currently hovering over a token within this template.
 
+    /** @type {HIDE.TYPES} */
     SHOW_ON_HOVER: "showOnHover" // Template-specific show/hide hover setting.
   },
 
   SNAPPING: {
+    /** @type {boolean} */
     CENTER: "snapCenter",
+
+    /** @type {boolean} */
     CORNER: "snapCorner",
+
+    /** @type {boolean} */
     SIDE_MIDPOINT: "snapSideMidpoint"
   },
 
