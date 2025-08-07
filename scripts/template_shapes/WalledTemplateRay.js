@@ -9,6 +9,7 @@ Ray
 
 import { Point3d } from "../geometry/3d/Point3d.js";
 import { WalledTemplateShape } from "./WalledTemplateShape.js";
+import { pixelsToGridUnits } from "../geometry/util.js";
 
 export class WalledTemplateRay extends WalledTemplateShape {
   /**
@@ -40,8 +41,8 @@ export class WalledTemplateRay extends WalledTemplateShape {
 
     // Convert to degrees and grid units for Foundry method.
     direction = Math.toDegrees(direction);
-    distance = CONFIG.GeometryLib.utils.pixelsToGridUnits(distance);
-    width = CONFIG.GeometryLib.utils.pixelsToGridUnits(width);
+    distance = pixelsToGridUnits(distance);
+    width = pixelsToGridUnits(width);
     return CONFIG.MeasuredTemplate.objectClass.getRayShape(distance, direction, width);
   }
 

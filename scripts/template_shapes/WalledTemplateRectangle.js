@@ -10,6 +10,7 @@ PIXI
 
 import { pointFromKey } from "../ClockwiseSweepShape.js";
 import { WalledTemplateCircle } from "./WalledTemplateCircle.js";
+import { pixelsToGridUnits } from "../geometry/util.js";
 
 export class WalledTemplateRectangle extends WalledTemplateCircle {
 
@@ -25,7 +26,7 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
 
     // Convert to degrees and grid units for Foundry method.
     direction = Math.toDegrees(direction);
-    distance = CONFIG.GeometryLib.utils.pixelsToGridUnits(distance);
+    distance = pixelsToGridUnits(distance);
     return CONFIG.MeasuredTemplate.objectClass.getRectShape(distance, direction);
   }
 

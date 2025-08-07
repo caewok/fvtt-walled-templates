@@ -10,6 +10,7 @@ import { MODULE_ID } from "../const.js";
 import { Point3d } from "../geometry/3d/Point3d.js";
 import { pointFromKey } from "../ClockwiseSweepShape.js";
 import { WalledTemplateShape } from "./WalledTemplateShape.js";
+import { pixelsToGridUnits } from "../geometry/util.js";
 
 export class WalledTemplateCircle extends WalledTemplateShape {
   /**
@@ -32,7 +33,7 @@ export class WalledTemplateCircle extends WalledTemplateShape {
   calculateOriginalShape({ distance } = {}) {
     // Convert to degrees and grid units for Foundry method.
     distance ??= this.distance;
-    distance = CONFIG.GeometryLib.utils.pixelsToGridUnits(distance);
+    distance = pixelsToGridUnits(distance);
     return CONFIG.MeasuredTemplate.objectClass.getCircleShape(distance);
     // Pad the circle by one pixel so it better covers expected grid spaces?
     // (Rounding tends to drop spaces on the edge.)

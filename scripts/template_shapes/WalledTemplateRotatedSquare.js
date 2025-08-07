@@ -6,6 +6,7 @@ PIXI
 "use strict";
 
 import { WalledTemplateCircle } from "./WalledTemplateCircle.js";
+import { Matrix } from "../geometry/Matrix.js";
 
 export class WalledTemplateRotatedSquare extends WalledTemplateCircle {
 
@@ -48,7 +49,6 @@ function rotatePolygon(poly, rotation = 0, centroid) {
   centroid ??= poly.center;
 
   // Translate to 0,0, rotate, translate back based on centroid.
-  const Matrix = CONFIG.GeometryLib.Matrix;
   const rot = Matrix.rotationZ(rotation, false);
   const trans = Matrix.translation(-centroid.x, -centroid.y);
   const revTrans = Matrix.translation(centroid.x, centroid.y);
