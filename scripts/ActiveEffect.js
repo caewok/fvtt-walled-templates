@@ -1,6 +1,5 @@
 /* globals
-CONFIG,
-fromUuid
+canvas,
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";

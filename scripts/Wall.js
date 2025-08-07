@@ -1,5 +1,6 @@
 /* globals
 canvas,
+fromUuidSync,
 PIXI
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */

@@ -1,8 +1,7 @@
 /* globals
-canvas,
 CONFIG,
 game,
-PIXI
+PIXI,
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
@@ -13,7 +12,7 @@ import { ClipperPaths } from "../geometry/ClipperPaths.js";
 import { Settings, debugPolygons } from "../settings.js";
 import { ClockwiseSweepShape } from "../ClockwiseSweepShape.js";
 import { LightWallSweep } from "../ClockwiseSweepLightWall.js";
-import { pixelsToGridUnits, gridUnitsToPixels } from "../geometry/util.js";
+import { gridUnitsToPixels } from "../geometry/util.js";
 
 // Debugging
 import { Draw } from "../geometry/Draw.js";

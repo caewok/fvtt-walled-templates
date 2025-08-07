@@ -3,6 +3,7 @@ canvas,
 CONFIG,
 fromUuidSync,
 game,
+getTemplate,
 Hooks
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -254,11 +255,11 @@ Hooks.on("canvasReady", function(canvas) {
         promises.push(effect.setFlag(MODULE_ID, FLAGS.ATTACHED_TEMPLATE_ID, attachedTemplate.id));
       }
     }
-    Promise.allSettled(promises).then((results) => canvas.scene.setFlag(MODULE_ID, FLAGS.VERSION, game.modules.get(MODULE_ID).version));
+    Promise.allSettled(promises).then(() => canvas.scene.setFlag(MODULE_ID, FLAGS.VERSION, game.modules.get(MODULE_ID).version));
   }
 
   // token.hitArea not defined as of `canvasReady`. So trigger on later hook.
-  Hooks.once("visibilityRefresh", canvasVisibility => {
+  Hooks.once("visibilityRefresh", () => {
     log("Refreshing autotargeting.");
     Settings.refreshAutotargeting();
   });

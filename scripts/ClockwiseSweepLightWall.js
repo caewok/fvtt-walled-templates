@@ -1,7 +1,8 @@
 /* globals
 canvas,
 foundry,
-PIXI
+PIXI,
+Wall,
 */
 "use strict";
 

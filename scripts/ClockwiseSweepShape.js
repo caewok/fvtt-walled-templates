@@ -1,7 +1,5 @@
 /* globals
 ClockwiseSweepPolygon,
-CollisionResult,
-foundry
 */
 "use strict";
 
