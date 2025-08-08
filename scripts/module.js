@@ -3,6 +3,7 @@ canvas,
 CONFIG,
 fromUuidSync,
 game,
+getTemplate,
 Hooks
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -55,6 +56,7 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 
 Hooks.once("init", function() {
   log("Initializing...");
+  registerGeometry();
 
   // Set CONFIGS used by this module.
   CONFIG[MODULE_ID] = {
@@ -86,10 +88,15 @@ Hooks.once("init", function() {
      * For autotarget, do not target tokens with these statuses.
      * Use the id of the status in the set.
      */
-    autotargetStatusesToIgnore: new Set(["dead"])
+    autotargetStatusesToIgnore: new Set(["dead"]),
+
+    /**
+     * Which version of Clipper to use.
+     * @type{CONFIG.GeometryLib.ClipperPaths|CONFIG.GeometryLib.Clipper2Paths}
+     */
+    ClipperPaths: CONFIG.GeometryLib.ClipperPaths,
   };
 
-  registerGeometry();
   initializeWalledTemplates(game.system.id);
   initializePatching();
 
@@ -254,11 +261,11 @@ Hooks.on("canvasReady", function(canvas) {
         promises.push(effect.setFlag(MODULE_ID, FLAGS.ATTACHED_TEMPLATE_ID, attachedTemplate.id));
       }
     }
-    Promise.allSettled(promises).then((results) => canvas.scene.setFlag(MODULE_ID, FLAGS.VERSION, game.modules.get(MODULE_ID).version));
+    Promise.allSettled(promises).then(() => canvas.scene.setFlag(MODULE_ID, FLAGS.VERSION, game.modules.get(MODULE_ID).version));
   }
 
   // token.hitArea not defined as of `canvasReady`. So trigger on later hook.
-  Hooks.once("visibilityRefresh", canvasVisibility => {
+  Hooks.once("visibilityRefresh", () => {
     log("Refreshing autotargeting.");
     Settings.refreshAutotargeting();
   });

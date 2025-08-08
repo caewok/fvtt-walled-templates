@@ -9,6 +9,7 @@ Ray
 
 import { Point3d } from "../geometry/3d/Point3d.js";
 import { WalledTemplateShape } from "./WalledTemplateShape.js";
+import { pixelsToGridUnits } from "../geometry/util.js";
 
 export class WalledTemplateRay extends WalledTemplateShape {
   /**
@@ -40,8 +41,8 @@ export class WalledTemplateRay extends WalledTemplateShape {
 
     // Convert to degrees and grid units for Foundry method.
     direction = Math.toDegrees(direction);
-    distance = CONFIG.GeometryLib.utils.pixelsToGridUnits(distance);
-    width = CONFIG.GeometryLib.utils.pixelsToGridUnits(width);
+    distance = pixelsToGridUnits(distance);
+    width = pixelsToGridUnits(width);
     return CONFIG.MeasuredTemplate.objectClass.getRayShape(distance, direction, width);
   }
 
@@ -108,7 +109,8 @@ export class WalledTemplateRay extends WalledTemplateShape {
     // Set the new origin to be just inside the reflecting wall, to avoid using sweep
     // on the wrong side of the wall.
     // Need to move at least 2 pixels to avoid rounding issues.
-    const reflectedOrigin = closestReflectingEdge._reflectionPoint.add(Rr.normalize());
+    const reflectedOrigin = PIXI.Point.tmp;
+    closestReflectingEdge._reflectionPoint.add(Rr.normalize(reflectedOrigin), reflectedOrigin);
     // This version would be on the wall: const reflectedOrigin = reflectionPoint;
 
     //   Draw.segment(reflectionRay);
@@ -121,9 +123,10 @@ export class WalledTemplateRay extends WalledTemplateShape {
     opts.reflectionRay = reflectionRay;
     opts.Rr = Rr;
     opts.direction = reflectionRay.angle;
-    opts.origin = new Point3d(reflectedOrigin.x, reflectedOrigin.y, this.origin.z);
+    opts.origin = Point3d.tmp.set(reflectedOrigin.x, reflectedOrigin.y, this.origin.z);
     opts.distance = this.distance - closestReflectingEdge._reflectionDistance;
     const rayTemplate = new this.constructor(this.template, opts);
+    reflectedOrigin.release();
     return [rayTemplate];
   }
 
@@ -140,25 +143,37 @@ export class WalledTemplateRay extends WalledTemplateShape {
     if ( !reflectionPoint ) {
       const ix = foundry.utils.lineLineIntersection(ray.A, ray.B, edge.a, edge.b);
       if ( !ix ) return null;
-      reflectionPoint = new PIXI.Point(ix.x, ix.y);
+      reflectionPoint = PIXI.Point.tmp.copyObject(ix);
     }
 
     // Calculate the normals for the edge; pick the one closest to the origin of the ray.
     const delta = edge.b.subtract(edge.a, PIXI.Point.tmp);
     const normals = [
-      new PIXI.Point(-delta.y, delta.x),
-      new PIXI.Point(delta.y, -delta.x)].map(n => n.normalize());
-    const N = PIXI.Point.distanceSquaredBetween(ray.A, reflectionPoint.add(normals[0]))
-      < PIXI.Point.distanceSquaredBetween(ray.A, reflectionPoint.add(normals[1]))
+      PIXI.Point.tmp.set(-delta.y, delta.x),
+      PIXI.Point.tmp.set(delta.y, -delta.x)].map(n => n.normalize(n));
+    const nRefl0 = reflectionPoint.add(normals[0], PIXI.Point.tmp);
+    const nRefl1 = reflectionPoint.add(normals[1], PIXI.Point.tmp);
+
+
+    const N = PIXI.Point.distanceSquaredBetween(ray.A, nRefl0) < PIXI.Point.distanceSquaredBetween(ray.A, nRefl1)
       ? normals[0] : normals[1];
 
     // Calculate the incidence vector.
-    const Ri = reflectionPoint.subtract(ray.A);
+    const Ri = reflectionPoint.subtract(ray.A, PIXI.Point.tmp);
 
     // Rr = Ri - 2 * N * (Ri dot N)
     const dot = Ri.dot(N);
-    const Rr = Ri.subtract(N.multiplyScalar(2 * dot));
+    const Rr = PIXI.Point.tmp;
+    Ri.subtract(N.multiplyScalar(2 * dot, Rr), Rr);
     const reflectionRay = new Ray(reflectionPoint, reflectionPoint.add(Rr));
+    PIXI.Point.release(
+      delta,
+      normals[0],
+      normals[1],
+      Ri,
+      nRefl0,
+      nRefl1,
+    );
     return { reflectionPoint, reflectionRay, Rr };
   }
 }

@@ -187,25 +187,28 @@ async function render5eSpellTemplateConfig(parts, data) {
   const itemDoc = isV4 ? data.item : data.document;
 
   // By default, rely on the global settings.
-  if (typeof itemDoc.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
-    itemDoc.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, LABELS.GLOBAL_DEFAULT);
+  if ( !itemDoc.pack ) { // Issue #134: error thrown when viewing spell in compendium.
+    if (typeof itemDoc.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
+      itemDoc.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, LABELS.GLOBAL_DEFAULT);
+    }
+
+    if (typeof itemDoc.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined") {
+      itemDoc.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, LABELS.GLOBAL_DEFAULT);
+    }
+
+    if (typeof itemDoc.getFlag(MODULE_ID, FLAGS.SNAPPING.CENTER) === "undefined") {
+      itemDoc.setFlag(MODULE_ID, FLAGS.SNAPPING.CENTER, true);
+    }
+
+    if (typeof itemDoc.getFlag(MODULE_ID, FLAGS.SNAPPING.CORNER) === "undefined") {
+      itemDoc.setFlag(MODULE_ID, FLAGS.SNAPPING.CORNER, true);
+    }
+
+    if (typeof itemDoc.getFlag(MODULE_ID, FLAGS.SNAPPING.SIDE_MIDPOINT) === "undefined") {
+      itemDoc.setFlag(MODULE_ID, FLAGS.SNAPPING.SIDE_MIDPOINT, true);
+    }
   }
 
-  if (typeof itemDoc.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined") {
-    itemDoc.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, LABELS.GLOBAL_DEFAULT);
-  }
-
-  if (typeof itemDoc.getFlag(MODULE_ID, FLAGS.SNAPPING.CENTER) === "undefined") {
-    itemDoc.setFlag(MODULE_ID, FLAGS.SNAPPING.CENTER, true);
-  }
-
-  if (typeof itemDoc.getFlag(MODULE_ID, FLAGS.SNAPPING.CORNER) === "undefined") {
-    itemDoc.setFlag(MODULE_ID, FLAGS.SNAPPING.CORNER, true);
-  }
-
-  if (typeof itemDoc.getFlag(MODULE_ID, FLAGS.SNAPPING.SIDE_MIDPOINT) === "undefined") {
-    itemDoc.setFlag(MODULE_ID, FLAGS.SNAPPING.SIDE_MIDPOINT, true);
-  }
 
   // Set variable to know if we are dealing with a template
   const areaType = isV4 ? data.system.target.template.type : data.system.target.type;

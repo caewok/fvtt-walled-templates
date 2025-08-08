@@ -1,6 +1,8 @@
 /* globals
 canvas,
-game
+foundry,
+game,
+ui,
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
@@ -14,15 +16,16 @@ import { PATCHES as PATCHES_Token } from "./Token.js";
 import { PATCHES as PATCHES_Wall } from "./Wall.js";
 import { PATCHES_dnd5e } from "./dnd5e.js";
 import { PATCHES as PATCHES_ActiveEffect } from "./ActiveEffect.js";
-import { PATCHES as PATCHES_ClientSettings } from "./ModuleSettingsAbstract.js";
+import { PATCHES as PATCHES_GridLayer } from "./GridLayer.js";
 
 
 // Settings
-import { PATCHES as PATCHES_Settings } from "./ModuleSettingsAbstract.js";
+import { PATCHES as PATCHES_ClientSettings } from "./ModuleSettingsAbstract.js";
 
 export const PATCHES = {
   ActiveEffect: PATCHES_ActiveEffect,
   ClientSettings: PATCHES_ClientSettings,
+  GridLayer: PATCHES_GridLayer,
   MeasuredTemplate: PATCHES_MeasuredTemplate,
   MeasuredTemplateConfig: PATCHES_MeasuredTemplateConfig,
   Token: PATCHES_Token,

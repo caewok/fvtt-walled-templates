@@ -29,10 +29,11 @@ export const SETTINGS = {
   HIDE: {
     BORDER: "hideBorder",
     HIGHLIGHTING: "hideHighlighting",
-    SHOW_ON_HOVER: "showOnHover"
+    SHOW_ON_HOVER: "showOnHover",
+    BASED_ON_VISIBILITY: "hideBasedOnVisibility", // If true, hide the template highlighting if the area is not visible
   },
   CHANGELOG: "changelog",
-  CIRCLE_SQUARE: "circleSquare"
+  CIRCLE_SQUARE: "circleSquare",
 };
 
 SETTINGS.AUTOTARGET = {
@@ -201,6 +202,15 @@ export class Settings extends ModuleSettingsAbstract {
       scope: "world",
       config: true,
       onChange: _value => canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshGrid: true }))
+    });
+
+    register(KEYS.HIDE.BASED_ON_VISIBILITY, {
+      name: localize(`${KEYS.HIDE.BASED_ON_VISIBILITY}.Name`),
+      hint: localize(`${KEYS.HIDE.BASED_ON_VISIBILITY}.Hint`),
+      type: Boolean,
+      default: false,
+      scope: "world",
+      config: true,
     });
 
     register(KEYS.HIDE.SHOW_ON_HOVER, {

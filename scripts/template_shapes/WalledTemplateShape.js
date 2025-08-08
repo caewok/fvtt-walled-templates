@@ -1,8 +1,7 @@
 /* globals
-canvas,
 CONFIG,
 game,
-PIXI
+PIXI,
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
@@ -13,6 +12,7 @@ import { ClipperPaths } from "../geometry/ClipperPaths.js";
 import { Settings, debugPolygons } from "../settings.js";
 import { ClockwiseSweepShape } from "../ClockwiseSweepShape.js";
 import { LightWallSweep } from "../ClockwiseSweepLightWall.js";
+import { gridUnitsToPixels } from "../geometry/util.js";
 
 // Debugging
 import { Draw } from "../geometry/Draw.js";
@@ -42,7 +42,7 @@ export class WalledTemplateShape {
   get angle() { return Math.toRadians(this.angleDegrees); }
 
   /** @type {number; pixels} */
-  get width() { return CONFIG.GeometryLib.utils.gridUnitsToPixels(this.template.document.width); }
+  get width() { return gridUnitsToPixels(this.template.document.width); }
 
   /** @type {number; pixel units} */
   distance = 0;
@@ -81,7 +81,7 @@ export class WalledTemplateShape {
     this.origin.roundDecimals(); // Avoid annoying issues with precision.
 
     // Distance
-    distance ??= CONFIG.GeometryLib.utils.gridUnitsToPixels(this.template.document.distance);
+    distance ??= gridUnitsToPixels(this.template.document.distance);
     this.distance = distance;
 
     // Direction

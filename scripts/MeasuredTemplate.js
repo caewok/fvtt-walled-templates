@@ -6,7 +6,7 @@ foundry,
 game,
 MouseInteractionManager,
 PIXI,
-_token
+_token,
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
@@ -18,6 +18,7 @@ import { Settings } from "./settings.js";
 import { Square } from "./geometry/RegularPolygon/Square.js";
 import { UserCloneTargets } from "./UserCloneTargets.js";
 import { addDnd5eItemConfigurationToTemplate } from "./dnd5e.js";
+import { canvasVisibilityPolygons } from "./visibility_polygons.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
@@ -25,8 +26,6 @@ PATCHES.AUTOTARGET = {};
 PATCHES.dnd5e = {};
 
 // ----- NOTE: Hooks ----- //
-
-
 
 /**
  * On refresh, control the ruler (text) visibility.
@@ -208,47 +207,92 @@ PATCHES.dnd5e.HOOKS = { drawMeasuredTemplate };
 
 /**
  * Wrap MeasuredTemplate.prototype._getGridHighlightPositions
+ * Filter highlighting based on the actual shape.
+ * Filter highlighting for users based on visibility if that setting is enabled.
  * @returns {Points[]}
  */
 function _getGridHighlightPositions(wrapper) {
-  if ( Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) return wrapper();
+  let positions;
 
-  // Determine all the grid positions that could be under the shape.
-  // Temporarily change the shape to bounds that are expanded by one grid square.
-  const oldShape = this.shape;
-  this.shape = oldShape.getBounds().pad(canvas.grid.sizeX, canvas.grid.sizeY);
-  const positions = wrapper();
+  if ( Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) positions = wrapper();
+  else {
+    // Determine all the grid positions that could be under the shape.
+    // Temporarily change the shape to bounds that are expanded by one grid square.
+    const oldShape = this.shape;
+    this.shape = oldShape.getBounds().pad(canvas.grid.sizeX, canvas.grid.sizeY);
+    positions = wrapper();
+
+    // Debug
+    if ( CONFIG[MODULE_ID].debug ) {
+      const Draw = CONFIG.GeometryLib.Draw;
+      Draw.clearDrawings();
+      positions.forEach(p => Draw.point(p, { alpha: 0.4 }))
+      positions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.2 }));
+    }
+
+    // Reset shape.
+    this.shape = oldShape;
+
+    // Filter positions to fit the actual shape.
+    positions = positions.filter(p => {
+      const shape = gridShapeForTopLeft(p);
+      return this.boundsOverlap(shape);
+    });
+  }
+
+  // If hiding unseen areas from user, remove any position not in the user's vision.
+  if ( !game.user.isGM
+    && Settings.get(Settings.KEYS.HIDE.BASED_ON_VISIBILITY)
+    && this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) !== Settings.KEYS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED )  {
+    // Union of the user's token's (observable or better) los and fov, based on CanvasVisibility approach.
+    try {
+      const polys = canvasVisibilityPolygons(); // Could be []
+      positions = positions.filter(p => {
+        const shape = gridShapeForTopLeft(p).pad(-2); // Prevent shapes in the next grid square from being considered overlapping.
+        return polys.some(poly => poly.overlaps(shape))
+      }); // Could be [].
+    } catch(err) { console.error(err); }
+  }
 
   // Debug
   if ( CONFIG[MODULE_ID].debug ) {
     const Draw = CONFIG.GeometryLib.Draw;
-    Draw.clearDrawings();
-    positions.forEach(p => Draw.point(p, { alpha: 0.4 }))
-    positions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.2 }));
+    positions.forEach(p => Draw.point(p, { alpha: 0.8 }))
+    positions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.5 }));
   }
 
-  // Reset shape.
-  this.shape = oldShape;
-
-  // Filter positions to fit the actual shape.
-  const filteredPositions = positions.filter(p => {
-    const shape = gridShapeForTopLeft(p);
-    return this.boundsOverlap(shape);
-  });
-
-  // Debug
-  if ( CONFIG[MODULE_ID].debug ) {
-    const Draw = CONFIG.GeometryLib.Draw;
-    filteredPositions.forEach(p => Draw.point(p, { alpha: 0.8 }))
-    filteredPositions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.5 }));
-  }
-
-  return filteredPositions;
+  return positions;
 }
 
 /**
- * Get all the grid positions under the given shape.
- *
+ * Wrap MeasuredTemplate.prototype._getGridHighlightShape
+ * Filter highlighting for users based on visibility if that setting is enabled.
+ * @returns {PIXI.Polygon|PIXI.Circle|PIXI.Rectangle}
+ */
+function _getGridHighlightShape(wrapped) {
+  const templateShape = wrapped();
+  if ( !game.user.isGM
+    && Settings.get(Settings.KEYS.HIDE.BASED_ON_VISIBILITY)
+    && this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) !== Settings.KEYS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED )  {
+    // Union of the user's token's (observable or better) los and fov, based on CanvasVisibility approach.
+
+    try {
+      const polys = canvasVisibilityPolygons(); // Could be []
+
+      // Intersect the template shape. May result in multiple
+      // If none, return null. (See GridLayer#highlightPosition for how shape is used)
+      const ixPolys = [];
+      polys.forEach(poly => {
+        const ixPoly = templateShape.intersectPolygon(poly);
+        if ( !ixPoly.area.almostEqual(0) ) ixPolys.push(ixPoly);
+      });
+    } catch(err) { console.error(err); }
+  }
+  return templateShape;
+}
+
+
+
 
 /**
  * Wrap MeasuredTemplate.prototype._computeShape
@@ -381,7 +425,8 @@ PATCHES.BASIC.WRAPS = {
   _onDragLeftDrop,
   destroy,
   _canHover,
-  _getGridHighlightPositions
+  _getGridHighlightPositions,
+  _getGridHighlightShape,
 };
 
 // ----- NOTE: Mixed wraps ----- //

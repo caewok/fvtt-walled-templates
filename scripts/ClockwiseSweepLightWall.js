@@ -1,7 +1,8 @@
 /* globals
 canvas,
 foundry,
-PIXI
+PIXI,
+Wall,
 */
 "use strict";
 
@@ -123,17 +124,20 @@ export class LightWallSweep extends ClockwiseSweepShape {
     if ( cfg.lightWall instanceof Wall ) cfg.lightWall = cfg.lightWall.edge;
 
     const { a, b } = cfg.lightWall;
-    cfg.exclusionaryTriangle = new PIXI.Polygon([origin, a, b]);
+    cfg.exclusionaryTriangle = new PIXI.Polygon(origin, a, b);
     cfg.exclusionarySide = Math.sign(foundry.utils.orient2dFast(a, b, origin));
+
     const av = a.subtract(origin);
     const bv = b.subtract(origin);
 
-    const boundary = new PIXI.Polygon([
+    const boundary = new PIXI.Polygon(
       a,
-      a.add(av.normalize().multiplyScalar(cfg.radius)),
-      b.add(bv.normalize().multiplyScalar(cfg.radius)),
+      a.add(av.normalize(av).multiplyScalar(cfg.radius, av), av),
+      b.add(bv.normalize(bv).multiplyScalar(cfg.radius, bv), bv),
       b
-    ]);
+    );
+    av.release();
+    bv.release();
     cfg.boundaryShapes.push(boundary);
     this.#originContained = canvas.dimensions.rect.contains(origin);
     this.config.lightWallOrigin = foundry.utils.duplicate(origin);

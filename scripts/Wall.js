@@ -1,5 +1,6 @@
 /* globals
 canvas,
+fromUuidSync,
 PIXI
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -64,6 +65,7 @@ function preUpdateWallHook(document, change, options, _userId) {
       || (coordinatesChanged
         && bbox.lineSegmentIntersects(newA, newB, { inside: true })) ) templatesToUpdate.push(t.document.uuid);
   });
+  PIXI.Point.release(A, B, newA, newB);
 }
 
 /**
@@ -90,8 +92,8 @@ function updateWallHook(document, change, options, _userId) {
  * @param {string} userId
  */
 function deleteWallHook(document, _options, _userId) {
-  const A = { x: document.c[0], y: document.c[1] };
-  const B = { x: document.c[2], y: document.c[3] };
+  const A = PIXI.Point.tmp.set(document.c[0], document.c[1]);
+  const B = PIXI.Point.tmp.set(document.c[2], document.c[3]);
   log(`Refreshing templates on deleteWall ${A.x},${A.y}|${B.x},${B.y}.`);
 
   canvas.templates.placeables.forEach(t => {
@@ -103,6 +105,7 @@ function deleteWallHook(document, _options, _userId) {
       });
     }
   });
+  PIXI.Point.release(A, B);
 }
 
 PATCHES.BASIC.HOOKS = {

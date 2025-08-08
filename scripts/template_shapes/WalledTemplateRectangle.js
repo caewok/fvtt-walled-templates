@@ -8,8 +8,8 @@ PIXI
 "use strict";
 
 
-import { pointFromKey } from "../ClockwiseSweepShape.js";
 import { WalledTemplateCircle } from "./WalledTemplateCircle.js";
+import { pixelsToGridUnits } from "../geometry/util.js";
 
 export class WalledTemplateRectangle extends WalledTemplateCircle {
 
@@ -25,7 +25,7 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
 
     // Convert to degrees and grid units for Foundry method.
     direction = Math.toDegrees(direction);
-    distance = CONFIG.GeometryLib.utils.pixelsToGridUnits(distance);
+    distance = pixelsToGridUnits(distance);
     return CONFIG.MeasuredTemplate.objectClass.getRectShape(distance, direction);
   }
 
@@ -45,7 +45,9 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
     // In order to shift the rectangle origin, must convert to a polygon.
     // The delta between the old (0, 0) and new origins is the translation required.
     const delta = PIXI.Point.fromAngle({x: 0, y: 0}, direction + Math.PI, padding);
-    return rect.toPolygon().translate(delta.x, delta.y);
+    const out = rect.toPolygon().translate(delta.x, delta.y);
+    delta.release();
+    return out;
   }
 
   /**
@@ -72,9 +74,9 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
    */
   _generateSpreadsFromCorner(cornerKey, edgesEncountered, cornerTracker) {
     // If the corner is not within the template shape, ignore
-    const corner = pointFromKey(cornerKey);
+    const corner = PIXI.Point.pointFromKey(cornerKey);
     const bounds = this.getBounds();
-    if ( !bounds.contains(corner.x, corner.y) ) return null;
+    if ( !bounds.contains(corner.x, corner.y) ) { corner.release(); return null; }
 
     const out = super._generateSpreadsFromCorner(cornerKey, edgesEncountered, cornerTracker);
     if ( !out ) return null;
@@ -113,17 +115,17 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
     // 180–270º: NW quadrant
     // 270–360º: NE quadrant
 
-    let oppositeCorner;
-    if ( origin2d.almostEqual(ixShape) ) {
-      oppositeCorner = new PIXI.Point(ixShape.right, ixShape.bottom); // TL -> BR
-    } else if ( origin2d.almostEqual({ x: ixShape.right, y: ixShape.top }) ) {
-      oppositeCorner = new PIXI.Point(ixShape.left, ixShape.bottom); // TR -> BL
-    } else if ( origin2d.almostEqual({ x: ixShape.right, y: ixShape.bottom }) ) {
-      oppositeCorner = new PIXI.Point(ixShape.left, ixShape.top); // BR -> TL
+    const oppositeCorner = PIXI.Point.tmp;
+    const shapeCorner = PIXI.Point.tmp;
+    if ( origin2d.almostEqual(shapeCorner.set(ixShape.left, ixShape.top)) ) {
+      oppositeCorner.set(ixShape.right, ixShape.bottom); // TL -> BR
+    } else if ( origin2d.almostEqual(shapeCorner.set(ixShape.right, ixShape.top)) ) {
+      oppositeCorner.set(ixShape.left, ixShape.bottom); // TR -> BL
+    } else if ( origin2d.almostEqual(shapeCorner.set(ixShape.right, ixShape.bottom)) ) {
+      oppositeCorner.set(ixShape.left, ixShape.top); // BR -> TL
     } else {
-      oppositeCorner = new PIXI.Point(ixShape.right, ixShape.top); // BL -> TR
+      oppositeCorner.set(ixShape.right, ixShape.top); // BL -> TR
     }
-
 
     // Construct a template based on this current template with distance and direction modified.
     const opts = { ...this.options };
@@ -131,6 +133,7 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
     opts.direction = Math.atan2(delta.y, delta.x);
     opts.distance = PIXI.Point.distanceBetween(origin2d, oppositeCorner);
     opts.origin = this.origin.clone();
+    PIXI.Point.release(delta, origin2d, oppositeCorner, shapeCorner);
     return new this.constructor(this.template, opts);
   }
 }

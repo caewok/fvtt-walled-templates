@@ -1,11 +1,11 @@
 /* globals
-CONFIG,
-PIXI
+PIXI,
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
 import { WalledTemplateCircle } from "./WalledTemplateCircle.js";
+import { Matrix } from "../geometry/Matrix.js";
 
 export class WalledTemplateRotatedSquare extends WalledTemplateCircle {
 
@@ -31,7 +31,9 @@ export class WalledTemplateRotatedSquare extends WalledTemplateCircle {
 
     direction ??= this.direction;
     const rect = new PIXI.Rectangle(-distance, -distance, dist2, dist2);
-    const poly = rotatePolygon(rect.toPolygon(), direction, new PIXI.Point(0, 0));
+    const centroid = PIXI.Point.tmp.set(0, 0);
+    const poly = rotatePolygon(rect.toPolygon(), direction, centroid);
+    centroid.release();
     return poly;
   }
 }
@@ -41,14 +43,13 @@ export class WalledTemplateRotatedSquare extends WalledTemplateCircle {
  * Rotate a polygon a given amount clockwise, in radians.
  * @param {PIXI.Polygon} poly   The polygon
  * @param {number} rotation     The amount to rotate clockwise in radians
- * @param {number} [centroid]   Center of the polygon
+ * @param {PIXI.Point} [centroid]   Center of the polygon
  */
 function rotatePolygon(poly, rotation = 0, centroid) {
   if ( !rotation ) return poly;
   centroid ??= poly.center;
 
   // Translate to 0,0, rotate, translate back based on centroid.
-  const Matrix = CONFIG.GeometryLib.Matrix;
   const rot = Matrix.rotationZ(rotation, false);
   const trans = Matrix.translation(-centroid.x, -centroid.y);
   const revTrans = Matrix.translation(centroid.x, centroid.y);

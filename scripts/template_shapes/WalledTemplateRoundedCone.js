@@ -1,10 +1,11 @@
 /* globals
-CONFIG
+
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
 import { WalledTemplateCone } from "./WalledTemplateCone.js";
+import { pixelsToGridUnits } from "../geometry/util.js";
 
 export class WalledTemplateRoundedCone extends WalledTemplateCone {
 
@@ -23,7 +24,7 @@ export class WalledTemplateRoundedCone extends WalledTemplateCone {
     // Convert to degrees and grid units for Foundry method.
     direction = Math.toDegrees(direction);
     angle = Math.toDegrees(angle);
-    distance = CONFIG.GeometryLib.utils.pixelsToGridUnits(distance);
+    distance = pixelsToGridUnits(distance);
     return this.template._getConeShape(direction, angle, distance);
   }
 }
