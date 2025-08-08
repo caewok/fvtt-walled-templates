@@ -1,6 +1,7 @@
 ## 0.8.4
 Avoid error re modification not allowed when viewing spell from compendium. #134.
-
+Add a setting to prevent template highlighting in areas not within line-of-sight or
+field-of-view of a user's tokens (OBSERVER or better permission). This limits the information a user can glean about unseen walls in the scene when the template is blocking walls. Closes #56.
 
 ## 0.8.3
 Fix incorrect merge that caused the snap-to-grid configs not to appear.

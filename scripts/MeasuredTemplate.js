@@ -6,7 +6,7 @@ foundry,
 game,
 MouseInteractionManager,
 PIXI,
-_token
+_token,
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
@@ -18,6 +18,7 @@ import { Settings } from "./settings.js";
 import { Square } from "./geometry/RegularPolygon/Square.js";
 import { UserCloneTargets } from "./UserCloneTargets.js";
 import { addDnd5eItemConfigurationToTemplate } from "./dnd5e.js";
+import { canvasVisibilityPolygons } from "./visibility_polygons.js";
 
 export const PATCHES = {};
 PATCHES.BASIC = {};
@@ -25,8 +26,6 @@ PATCHES.AUTOTARGET = {};
 PATCHES.dnd5e = {};
 
 // ----- NOTE: Hooks ----- //
-
-
 
 /**
  * On refresh, control the ruler (text) visibility.
@@ -242,15 +241,12 @@ function _getGridHighlightPositions(wrapper) {
   }
 
   // If hiding unseen areas from user, remove any position not in the user's vision.
-  if ( !game.user.isGM && Settings.get(Settings.KEYS.HIDE.BASED_ON_VISIBILITY) )  {
-    // Cannot union all the los and fov shapes of the user's currently controlled tokens, because in template layer, no controlled tokens.
-    // Instead, union all tokens owned or observed
-    const shapes = [];
-    getObservableTokensWithVision().forEach(t => shapes.push(t.vision.los, t.vision.fov));
-    const ClipperPaths = CONFIG[MODULE_ID].Clipper ?? CONFIG.GeometryLib.ClipperPaths;
+  if ( !game.user.isGM
+    && Settings.get(Settings.KEYS.HIDE.BASED_ON_VISIBILITY)
+    && this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) !== Settings.KEYS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED )  {
+    // Union of the user's token's (observable or better) los and fov, based on CanvasVisibility approach.
     try {
-      const paths = ClipperPaths.fromPolygons(shapes); // Could return empty paths.
-      const polys = paths.union().toPolygons(); // Could be [].
+      const polys = canvasVisibilityPolygons(); // Could be []
       positions = positions.filter(p => {
         const shape = gridShapeForTopLeft(p).pad(-2); // Prevent shapes in the next grid square from being considered overlapping.
         return polys.some(poly => poly.overlaps(shape))
@@ -269,43 +265,33 @@ function _getGridHighlightPositions(wrapper) {
 }
 
 /**
- * Return all tokens in the scene that have vision and for which the user has OBSERVER or better permissions.
- * @returns {Token[]}
- */
-function getObservableTokensWithVision() {
-  const OBSERVER = CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER;
-  const tokens = canvas.tokens.controlled.length ? canvas.tokens.controlled : canvas.tokens.placeables;
-  return tokens.filter(t => {
-    if ( !t.vision ) return false;
-    const actor = t.actor;
-    if ( !actor ) return false;
-    return Math.max(actor.ownership.default, actor.ownership[game.user.id] ?? 0) >= OBSERVER;
-  });
-}
-
-/**
  * Wrap MeasuredTemplate.prototype._getGridHighlightShape
  * Filter highlighting for users based on visibility if that setting is enabled.
  * @returns {PIXI.Polygon|PIXI.Circle|PIXI.Rectangle}
  */
 function _getGridHighlightShape(wrapped) {
   const templateShape = wrapped();
-  if ( !game.user.isGM && Settings.get(Settings.KEYS.HIDE.BASED_ON_VISIBILITY) )  {
-    // Union all the los and fov shapes of the user's currently controlled tokens.
-    const shapes = [];
-    getObservableTokensWithVision().forEach(t => shapes.push(t.vision.los, t.vision.fov));
-    try {
-      const ClipperPaths = CONFIG[MODULE_ID].Clipper ?? CONFIG.GeometryLib.ClipperPaths;
-      const paths = ClipperPaths.fromPolygons(shapes); // Could return empty paths.
+  if ( !game.user.isGM
+    && Settings.get(Settings.KEYS.HIDE.BASED_ON_VISIBILITY)
+    && this.document.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) !== Settings.KEYS.DEFAULT_WALLS_BLOCK.CHOICES.UNWALLED )  {
+    // Union of the user's token's (observable or better) los and fov, based on CanvasVisibility approach.
 
-      // Intersect the template shape. Should return a single polygon.
-      // If none, return a pixi circle dot.
-      const ixPoly = paths.intersectPolygon(templateShape).clean().toPolygons()[0];
-      return ixPoly ?? new PIXI.Circle(templateShape.center.x, templateShape.center.y, 1);
+    try {
+      const polys = canvasVisibilityPolygons(); // Could be []
+
+      // Intersect the template shape. May result in multiple
+      // If none, return null. (See GridLayer#highlightPosition for how shape is used)
+      const ixPolys = [];
+      polys.forEach(poly => {
+        const ixPoly = templateShape.intersectPolygon(poly);
+        if ( !ixPoly.area.almostEqual(0) ) ixPolys.push(ixPoly);
+      });
     } catch(err) { console.error(err); }
   }
   return templateShape;
 }
+
+
 
 
 /**
