@@ -69,7 +69,9 @@ export class WalledTemplateCone extends WalledTemplateRay {
     // Move the shape relative to the actual origin, to pad in all directions. Reverse direction.
     // The delta between the old (0, 0) and new origins is the translation required.
     const delta = PIXI.Point.fromAngle({x: 0, y: 0}, direction + Math.PI, padding);
-    return cone.translate(delta.x, delta.y);
+    const out = cone.translate(delta.x, delta.y);
+    delta.release();
+    return out;
   }
 
   /**

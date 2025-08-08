@@ -73,12 +73,3 @@ export function keyFromPoint(x, y) {
   return (MAX_TEXTURE_SIZE * x) + y;
 }
 
-/**
- * Construct a 2d point from an integer key.
- * Reverse of keyFromPoint
- */
-export function pointFromKey(key) {
-  const x = ~~(key * INV_MAX_TEXTURE_SIZE);
-  const y = key % MAX_TEXTURE_SIZE;
-  return {x, y};
-}
