@@ -1,5 +1,5 @@
 /* globals
-ClockwiseSweepPolygon,
+foundry,
 */
 "use strict";
 
@@ -27,7 +27,7 @@ t.shape._sweep.cornersEncountered.forEach(corner => draw.point(pointFromKey(corn
  * Used for bounce and spread options for templates.
  * Also handles other shape-specific modifications to sweep previously done using libWrapper.
  */
-export class ClockwiseSweepShape extends ClockwiseSweepPolygon {
+export class ClockwiseSweepShape extends foundry.canvas.geometry.ClockwiseSweepPolygon {
   /**
    * "Corner" points encountered. Corners are when the sweep hits a non-limited wall
    * and must extend the sweep beyond that point.

@@ -3,7 +3,6 @@ canvas,
 CONFIG,
 fromUuidSync,
 game,
-getTemplate,
 Hooks
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -127,7 +126,7 @@ Hooks.once("init", function() {
 
   // Must go later
   const promises = [];
-  for ( const template of Object.values(TEMPLATES) ) promises.push(getTemplate(template)); // Async but not awaiting here.
+  for ( const template of Object.values(TEMPLATES) ) promises.push(foundry.applications.handlebars.getTemplate(template)); // Async but not awaiting here.
   Promise.allSettled(promises);
 });
 

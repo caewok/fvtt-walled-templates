@@ -4,7 +4,6 @@ CONFIG,
 CONST,
 foundry,
 game,
-MouseInteractionManager,
 PIXI,
 _token,
 */
@@ -828,7 +827,7 @@ function canHideTemplate(template) {
   return !(template.hover
     || showPreview
     || !template.visible
-    || template.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
+    || template.interactionState === foundry.canvas.interaction.MouseInteractionManager.INTERACTION_STATES.DRAG
     || Settings.FORCE_TEMPLATE_DISPLAY);
 }
 

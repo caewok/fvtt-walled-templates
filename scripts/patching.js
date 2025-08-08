@@ -24,7 +24,7 @@ import { PATCHES as PATCHES_ClientSettings } from "./ModuleSettingsAbstract.js";
 
 export const PATCHES = {
   ActiveEffect: PATCHES_ActiveEffect,
-  ClientSettings: PATCHES_ClientSettings,
+  "foundry.helpers.ClientSettings": PATCHES_ClientSettings,
   GridLayer: PATCHES_GridLayer,
   MeasuredTemplate: PATCHES_MeasuredTemplate,
   "foundry.applications.sheets.MeasuredTemplateConfig": PATCHES_MeasuredTemplateConfig,
