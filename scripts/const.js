@@ -86,21 +86,21 @@ export const LABELS = {
   },
 
   WALL_RESTRICTION: {
-    light: "WALLS.Light",
-    move: "WALLS.Movement",
-    sight: "WALLS.Sight",
-    sound: "WALLS.Sound"
+    light: "WALL.FIELDS.light.label",
+    move: "WALL.FIELDS.move.label",
+    sight: "WALL.FIELDS.sight.label",
+    sound: "WALL.FIELDS.sound.label",
   },
 
   TEMPLATE_HIDE: {
     globalDefault: "walledtemplates.MeasuredTemplateConfiguration.globalDefault",
     alwaysHide: "walledtemplates.MeasuredTemplateConfiguration.alwaysHide",
-    alwaysShow: "walledtemplates.MeasuredTemplateConfiguration.alwaysShow"
+    alwaysShow: "walledtemplates.MeasuredTemplateConfiguration.alwaysShow",
   },
 
   SPELL_TEMPLATE: {},
 
-  GLOBAL_DEFAULT: "globalDefault"
+  GLOBAL_DEFAULT: "globalDefault",
 };
 
 LABELS.SPELL_TEMPLATE.WALLS_BLOCK = foundry.utils.duplicate(LABELS.WALLS_BLOCK);
