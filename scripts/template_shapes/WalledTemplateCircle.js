@@ -8,7 +8,6 @@ PIXI
 
 import { MODULE_ID } from "../const.js";
 import { Point3d } from "../geometry/3d/Point3d.js";
-import { pointFromKey } from "../ClockwiseSweepShape.js";
 import { WalledTemplateShape } from "./WalledTemplateShape.js";
 import { pixelsToGridUnits } from "../geometry/util.js";
 
@@ -74,7 +73,7 @@ export class WalledTemplateCircle extends WalledTemplateShape {
    * @returns {WalledTemplateCircle|null}
    */
   _generateSpreadsFromCorner(cornerKey, edgesEncountered, cornerTracker) {
-    const corner = pointFromKey(cornerKey);
+    const corner = PIXI.Point.pointFromKey(cornerKey);
 
     // If the corner is beyond this template, ignore
     const dist = PIXI.Point.distanceBetween(this.origin, corner);
@@ -95,7 +94,7 @@ export class WalledTemplateCircle extends WalledTemplateShape {
     opts.level += 1;
     opts.corner = corner;
     opts.distance = distance;
-    opts.origin = new Point3d(extendedCorner.x, extendedCorner.y, this.origin.z);
+    opts.origin = Point3d.tmp.set(extendedCorner.x, extendedCorner.y, this.origin.z);
 
     return [new this.constructor(this.template, opts)];
   }
@@ -128,18 +127,20 @@ WalledTemplateCircle.prototype._spread = WalledTemplateCircle.prototype._recurse
  */
 function extendCornerFromWalls(cornerKey, edgeSet, templateOrigin) {
   const CORNER_SPACER = CONFIG[MODULE_ID]?.cornerSpacer ?? 10;
-  if ( !edgeSet.size ) return pointFromKey(cornerKey);
+  if ( !edgeSet.size ) return PIXI.Point.pointFromKey(cornerKey);
 
   // If only a single edge, move away from it.
   const edges = [...edgeSet].filter(edge => edge.a.key === cornerKey || edge.b.key === cornerKey);
-  if ( !edges.length ) return pointFromKey(cornerKey); // Should not occur.
+  if ( !edges.length ) return PIXI.Point.pointFromKey(cornerKey); // Should not occur.
   if ( edges.length === 1 ) {
     const edge = edges[0];
     let [cornerPt, otherPt] = edge.a.key === cornerKey ? [edge.a, edge.b] : [edge.b, edge.a];
-    cornerPt = new PIXI.Point(cornerPt.x, cornerPt.y);
-    otherPt = new PIXI.Point(otherPt.x, otherPt.y);
+    cornerPt = PIXI.Point.tmp.set(cornerPt.x, cornerPt.y);
+    otherPt = PIXI.Point.tmp.set(otherPt.x, otherPt.y);
     const dist = PIXI.Point.distanceBetween(cornerPt, otherPt);
-    return otherPt.towardsPoint(cornerPt, dist + CORNER_SPACER);  // 2 pixels ^ 2 = 4
+    const out = otherPt.towardsPoint(cornerPt, dist + CORNER_SPACER);  // 2 pixels ^ 2 = 4
+    PIXI.Point.release(cornerPt, otherPt);
+    return out;
   }
 
   // Segment with the smallest (incl. negative) orientation is ccw to the point
@@ -149,10 +150,11 @@ function extendCornerFromWalls(cornerKey, edgeSet, templateOrigin) {
     // Construct new segment objects so walls are not modified.
     const [cornerPt, otherPt] = edge.a.key === cornerKey ? [edge.a, edge.b] : [edge.b, edge.a];
     const segment = {
-      A: new PIXI.Point(cornerPt.x, cornerPt.y),
-      B: new PIXI.Point(otherPt.x, otherPt.y)
+      A: PIXI.Point.tmp.copyFrom(cornerPt),
+      B: PIXI.Point.tmp.copyFrom(otherPt),
     };
     segment.orient = orient(cornerPt, otherPt, templateOrigin);
+    // Don't release cornerPt and otherPt b/c linked with edge.a and edge.b
     return segment;
   });
   segments.sort((a, b) => a.orient - b.orient);
@@ -160,21 +162,27 @@ function extendCornerFromWalls(cornerKey, edgeSet, templateOrigin) {
   // Get the directional vector that splits the segments in two from the corner.
   let ccw = segments[0];
   let cw = segments[segments.length - 1];
-  let dir = averageSegments(ccw.A, ccw.B, cw.B);
+  const dir = averageSegments(ccw.A, ccw.B, cw.B);
 
   // The dir is the point between the smaller angle of the two segments.
   // Check if we need that point or its opposite, depending on location of the template origin.
-  let pt = ccw.A.add(dir.multiplyScalar(CORNER_SPACER));
-  let oPcw = orient(cw.A, cw.B, pt);
+  const outPoint = PIXI.Point.tmp;
+  ccw.A.add(dir.multiplyScalar(CORNER_SPACER, outPoint), outPoint);
+  let oPcw = orient(cw.A, cw.B, outPoint);
   let oTcw = orient(cw.A, cw.B, templateOrigin);
-  if ( Math.sign(oPcw) !== Math.sign(oTcw) ) pt = ccw.A.add(dir.multiplyScalar(-CORNER_SPACER));
+  if ( Math.sign(oPcw) !== Math.sign(oTcw) ) ccw.A.add(dir.multiplyScalar(-CORNER_SPACER, outPoint), outPoint);
   else {
-    let oPccw = orient(ccw.A, ccw.B, pt);
+    let oPccw = orient(ccw.A, ccw.B, outPoint);
     let oTccw = orient(ccw.A, ccw.B, templateOrigin);
-    if ( Math.sign(oPccw) !== Math.sign(oTccw) ) pt = ccw.A.add(dir.multiplyScalar(-CORNER_SPACER));
+    if ( Math.sign(oPccw) !== Math.sign(oTccw) ) ccw.A.add(dir.multiplyScalar(-CORNER_SPACER, outPoint), outPoint);
   }
+  segments.forEach(s => {
+    s.A.release();
+    s.B.release();
+  });
+  dir.release();
 
-  return pt;
+  return outPoint;
 }
 
 /**
@@ -188,15 +196,22 @@ function extendCornerFromWalls(cornerKey, edgeSet, templateOrigin) {
  * @returns {Point} A normalized directional vector
  */
 function averageSegments(a, b, c, outPoint) {
+  outPoint ??= new PIXI.Point();
+
   // If c is collinear, return the orthogonal vector in the clockwise direction
   const orient = foundry.utils.orient2dFast(a, b, c);
-  if ( !orient ) return orthogonalVectorsToSegment(a, b).cw;
+  if ( !orient ) {
+    const res = orthogonalVectorsToSegment(a, b);
+    outPoint.copyFrom(res.cw);
+    res.cw.release();
+    res.ccw.release();
 
-  const normB = normalizedVectorFromSegment(a, b);
-  const normC = normalizedVectorFromSegment(a, c);
-
-  outPoint ??= new PIXI.Point();
-  normB.add(normC, outPoint).multiplyScalar(0.5, outPoint);
+  } else {
+    const normB = normalizedVectorFromSegment(a, b);
+    const normC = normalizedVectorFromSegment(a, c);
+    normB.add(normC, outPoint).multiplyScalar(0.5, outPoint);
+    PIXI.Point.release(normB, normC)
+  }
 
   // If c is ccw to b, then negate the result to get the vector going the opposite direction.
   // if ( orient > 0 ) outPoint.multiplyScalar(-1, outPoint);
@@ -212,7 +227,8 @@ function averageSegments(a, b, c, outPoint) {
  * @returns {PIXI.Point} A normalized directional vector
  */
 function normalizedVectorFromSegment(a, b) {
-  return b.subtract(a).normalize();
+  const out = PIXI.Point.tmp;
+  return b.subtract(a, out).normalize(out);
 }
 
 /* -------------------------------------------- */
@@ -227,7 +243,8 @@ function normalizedVectorFromSegment(a, b) {
 function orthogonalVectorsToSegment(a, b) {
   // Calculate the normalized vectors orthogonal to the edge
   const norm = normalizedVectorFromSegment(a, b);
-  const cw = new PIXI.Point(-norm.y, norm.x);
-  const ccw = new PIXI.Point(norm.y, -norm.x);
+  const cw = PIXI.Point.tmp.set(-norm.y, norm.x);
+  const ccw = PIXI.Point.tmp.set(norm.y, -norm.x);
+  norm.release();
   return { cw, ccw };
 }

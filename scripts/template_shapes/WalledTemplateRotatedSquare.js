@@ -31,7 +31,9 @@ export class WalledTemplateRotatedSquare extends WalledTemplateCircle {
 
     direction ??= this.direction;
     const rect = new PIXI.Rectangle(-distance, -distance, dist2, dist2);
-    const poly = rotatePolygon(rect.toPolygon(), direction, new PIXI.Point(0, 0));
+    const centroid = PIXI.Point.tmp.set(0, 0);
+    const poly = rotatePolygon(rect.toPolygon(), direction, centroid);
+    centroid.release();
     return poly;
   }
 }
@@ -41,7 +43,7 @@ export class WalledTemplateRotatedSquare extends WalledTemplateCircle {
  * Rotate a polygon a given amount clockwise, in radians.
  * @param {PIXI.Polygon} poly   The polygon
  * @param {number} rotation     The amount to rotate clockwise in radians
- * @param {number} [centroid]   Center of the polygon
+ * @param {PIXI.Point} [centroid]   Center of the polygon
  */
 function rotatePolygon(poly, rotation = 0, centroid) {
   if ( !rotation ) return poly;
