@@ -6,7 +6,7 @@
   </label>
   <div class="form-fields">
     <select name="flags.walledtemplates.hideBorder">
-      {{ selectOptions walledtemplates.hideoptions selected=data.flags.walledtemplates.hideBorder localize=true }}
+      {{ selectOptions walledtemplates.hideoptions selected=document.flags.walledtemplates.hideBorder localize=true }}
     </select>
   </div>
   <p class="hint">
@@ -18,7 +18,7 @@
   </label>
   <div class="form-fields">
     <select name="flags.walledtemplates.hideHighlighting">
-      {{ selectOptions walledtemplates.hideoptions selected=data.flags.walledtemplates.hideHighlighting localize=true }}
+      {{ selectOptions walledtemplates.hideoptions selected=document.flags.walledtemplates.hideHighlighting localize=true }}
     </select>
   </div>
   <p class="hint">
@@ -30,7 +30,7 @@
   </label>
   <div class="form-fields">
     <select name="flags.walledtemplates.showOnHover">
-      {{ selectOptions walledtemplates.hideoptions selected=data.flags.walledtemplates.showOnHover localize=true }}
+      {{ selectOptions walledtemplates.hideoptions selected=document.flags.walledtemplates.showOnHover localize=true }}
     </select>
   </div>
   <p class="hint">
@@ -45,7 +45,7 @@
   </label>
   <div class="form-fields">
     <select name="flags.walledtemplates.wallsBlock">
-      {{ selectOptions walledtemplates.blockoptions selected=data.flags.walledtemplates.wallsBlock localize=true }}
+      {{ selectOptions walledtemplates.blockoptions selected=document.flags.walledtemplates.wallsBlock localize=true }}
     </select>
   </div>
 </div>
@@ -56,7 +56,7 @@
   </label>
   <div class="form-fields">
     <select name="flags.walledtemplates.wallRestriction">
-      {{ selectOptions walledtemplates.walloptions selected=data.flags.walledtemplates.wallRestriction localize=true }}
+      {{ selectOptions walledtemplates.walloptions selected=document.flags.walledtemplates.wallRestriction localize=true }}
     </select>
   </div>
 </div>
@@ -71,7 +71,7 @@
     <i class="tip fas fa-info-circle" data-tooltip="walledtemplates.MeasuredTemplateConfiguration.no-autotarget.Hint"></i>
   </label>
   <div class="form-fields">
-    <input type="checkbox" name="flags.walledtemplates.noAutotarget" {{checked data.flags.walledtemplates.noAutotarget}}/>
+    <input type="checkbox" name="flags.walledtemplates.noAutotarget" {{checked document.flags.walledtemplates.noAutotarget}}/>
   </div>
   <p class="hint">
 </div>
@@ -93,7 +93,7 @@
     <i class="tip fas fa-info-circle" data-tooltip="walledtemplates.MeasuredTemplateConfiguration.rotate-with-token.Hint"></i>
   </label>
   <div class="form-fields">
-    <input type="checkbox" name="flags.walledtemplates.rotateWithAttachedToken" {{checked data.flags.walledtemplates.rotateWithToken}}/>
+    <input type="checkbox" name="flags.walledtemplates.rotateWithAttachedToken" {{checked document.flags.walledtemplates.rotateWithToken}}/>
   </div>
   <p class="hint">
 </div>
@@ -107,7 +107,7 @@
   <label>{{localize "walledtemplates.settings.submenu.snap-center.Name"}}
   </label>
   <div class="form-fields">
-    <input type="checkbox" name="flags.walledtemplates.snapCenter" {{checked data.flags.walledtemplates.snapCenter}}/>
+    <input type="checkbox" name="flags.walledtemplates.snapCenter" {{checked document.flags.walledtemplates.snapCenter}}/>
   </div>
   <p class="hint">
 </div>
@@ -116,7 +116,7 @@
   <label>{{localize "walledtemplates.settings.submenu.snap-corner.Name"}}
   </label>
   <div class="form-fields">
-    <input type="checkbox" name="flags.walledtemplates.snapCorner" {{checked data.flags.walledtemplates.snapCorner}}/>
+    <input type="checkbox" name="flags.walledtemplates.snapCorner" {{checked document.flags.walledtemplates.snapCorner}}/>
   </div>
 </div>
 
@@ -124,7 +124,7 @@
   <label>{{localize "walledtemplates.settings.submenu.snap-midpoint.Name"}}
   </label>
   <div class="form-fields">
-    <input type="checkbox" name="flags.walledtemplates.snapSideMidpoint" {{checked data.flags.walledtemplates.snapSideMidpoint}}/>
+    <input type="checkbox" name="flags.walledtemplates.snapSideMidpoint" {{checked document.flags.walledtemplates.snapSideMidpoint}}/>
   </div>
   <p class="hint">
 </div>
