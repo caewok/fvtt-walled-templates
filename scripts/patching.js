@@ -27,7 +27,7 @@ export const PATCHES = {
   ClientSettings: PATCHES_ClientSettings,
   GridLayer: PATCHES_GridLayer,
   MeasuredTemplate: PATCHES_MeasuredTemplate,
-  MeasuredTemplateConfig: PATCHES_MeasuredTemplateConfig,
+  "foundry.applications.sheets.MeasuredTemplateConfig": PATCHES_MeasuredTemplateConfig,
   Token: PATCHES_Token,
   Wall: PATCHES_Wall,
   dnd5e: PATCHES_dnd5e // Only works b/c these are all hooks. Otherwise, would need class breakdown.
