@@ -262,10 +262,10 @@ export class Settings extends ModuleSettingsAbstract {
         type: String,
         choices: {
           // Use the default Foundry en.json WALLS version
-          [KEYS.DEFAULT_WALL_RESTRICTION.CHOICES.LIGHT]: game.i18n.localize("WALLS.Light"),
-          [KEYS.DEFAULT_WALL_RESTRICTION.CHOICES.MOVE]: game.i18n.localize("WALLS.Movement"),
-          [KEYS.DEFAULT_WALL_RESTRICTION.CHOICES.SIGHT]: game.i18n.localize("WALLS.Sight"),
-          [KEYS.DEFAULT_WALL_RESTRICTION.CHOICES.SOUND]: game.i18n.localize("WALLS.Sound")
+          [KEYS.DEFAULT_WALL_RESTRICTION.CHOICES.LIGHT]: game.i18n.localize("WALL.FIELDS.light.label"),
+          [KEYS.DEFAULT_WALL_RESTRICTION.CHOICES.MOVE]: game.i18n.localize("WALL.FIELDS.move.label"),
+          [KEYS.DEFAULT_WALL_RESTRICTION.CHOICES.SIGHT]: game.i18n.localize("WALL.FIELDS.sight.label"),
+          [KEYS.DEFAULT_WALL_RESTRICTION.CHOICES.SOUND]: game.i18n.localize("WALL.FIELDS.sound.label")
         }
       });
 
