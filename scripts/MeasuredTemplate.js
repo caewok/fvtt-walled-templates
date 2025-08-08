@@ -208,47 +208,105 @@ PATCHES.dnd5e.HOOKS = { drawMeasuredTemplate };
 
 /**
  * Wrap MeasuredTemplate.prototype._getGridHighlightPositions
+ * Filter highlighting based on the actual shape.
+ * Filter highlighting for users based on visibility if that setting is enabled.
  * @returns {Points[]}
  */
 function _getGridHighlightPositions(wrapper) {
-  if ( Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) return wrapper();
+  let positions;
 
-  // Determine all the grid positions that could be under the shape.
-  // Temporarily change the shape to bounds that are expanded by one grid square.
-  const oldShape = this.shape;
-  this.shape = oldShape.getBounds().pad(canvas.grid.sizeX, canvas.grid.sizeY);
-  const positions = wrapper();
+  if ( Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) positions = wrapper();
+  else {
+    // Determine all the grid positions that could be under the shape.
+    // Temporarily change the shape to bounds that are expanded by one grid square.
+    const oldShape = this.shape;
+    this.shape = oldShape.getBounds().pad(canvas.grid.sizeX, canvas.grid.sizeY);
+    positions = wrapper();
+
+    // Debug
+    if ( CONFIG[MODULE_ID].debug ) {
+      const Draw = CONFIG.GeometryLib.Draw;
+      Draw.clearDrawings();
+      positions.forEach(p => Draw.point(p, { alpha: 0.4 }))
+      positions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.2 }));
+    }
+
+    // Reset shape.
+    this.shape = oldShape;
+
+    // Filter positions to fit the actual shape.
+    positions = positions.filter(p => {
+      const shape = gridShapeForTopLeft(p);
+      return this.boundsOverlap(shape);
+    });
+  }
+
+  // If hiding unseen areas from user, remove any position not in the user's vision.
+  if ( !game.user.isGM && Settings.get(Settings.KEYS.HIDE.BASED_ON_VISIBILITY) )  {
+    // Cannot union all the los and fov shapes of the user's currently controlled tokens, because in template layer, no controlled tokens.
+    // Instead, union all tokens owned or observed
+    const shapes = [];
+    getObservableTokensWithVision().forEach(t => shapes.push(t.vision.los, t.vision.fov));
+    const ClipperPaths = CONFIG[MODULE_ID].Clipper ?? CONFIG.GeometryLib.ClipperPaths;
+    try {
+      const paths = ClipperPaths.fromPolygons(shapes); // Could return empty paths.
+      const polys = paths.union().toPolygons(); // Could be [].
+      positions = positions.filter(p => {
+        const shape = gridShapeForTopLeft(p).pad(-2); // Prevent shapes in the next grid square from being considered overlapping.
+        return polys.some(poly => poly.overlaps(shape))
+      }); // Could be [].
+    } catch(err) { console.error(err); }
+  }
 
   // Debug
   if ( CONFIG[MODULE_ID].debug ) {
     const Draw = CONFIG.GeometryLib.Draw;
-    Draw.clearDrawings();
-    positions.forEach(p => Draw.point(p, { alpha: 0.4 }))
-    positions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.2 }));
+    positions.forEach(p => Draw.point(p, { alpha: 0.8 }))
+    positions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.5 }));
   }
 
-  // Reset shape.
-  this.shape = oldShape;
-
-  // Filter positions to fit the actual shape.
-  const filteredPositions = positions.filter(p => {
-    const shape = gridShapeForTopLeft(p);
-    return this.boundsOverlap(shape);
-  });
-
-  // Debug
-  if ( CONFIG[MODULE_ID].debug ) {
-    const Draw = CONFIG.GeometryLib.Draw;
-    filteredPositions.forEach(p => Draw.point(p, { alpha: 0.8 }))
-    filteredPositions.forEach(p => Draw.shape(gridShapeForTopLeft(p), { fill: Draw.COLORS.blue, fillAlpha: 0.5 }));
-  }
-
-  return filteredPositions;
+  return positions;
 }
 
 /**
- * Get all the grid positions under the given shape.
- *
+ * Return all tokens in the scene that have vision and for which the user has OBSERVER or better permissions.
+ * @returns {Token[]}
+ */
+function getObservableTokensWithVision() {
+  const OBSERVER = CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER;
+  const tokens = canvas.tokens.controlled.length ? canvas.tokens.controlled : canvas.tokens.placeables;
+  return tokens.filter(t => {
+    if ( !t.vision ) return false;
+    const actor = t.actor;
+    if ( !actor ) return false;
+    return Math.max(actor.ownership.default, actor.ownership[game.user.id] ?? 0) >= OBSERVER;
+  });
+}
+
+/**
+ * Wrap MeasuredTemplate.prototype._getGridHighlightShape
+ * Filter highlighting for users based on visibility if that setting is enabled.
+ * @returns {PIXI.Polygon|PIXI.Circle|PIXI.Rectangle}
+ */
+function _getGridHighlightShape(wrapped) {
+  const templateShape = wrapped();
+  if ( !game.user.isGM && Settings.get(Settings.KEYS.HIDE.BASED_ON_VISIBILITY) )  {
+    // Union all the los and fov shapes of the user's currently controlled tokens.
+    const shapes = [];
+    getObservableTokensWithVision().forEach(t => shapes.push(t.vision.los, t.vision.fov));
+    try {
+      const ClipperPaths = CONFIG[MODULE_ID].Clipper ?? CONFIG.GeometryLib.ClipperPaths;
+      const paths = ClipperPaths.fromPolygons(shapes); // Could return empty paths.
+
+      // Intersect the template shape. Should return a single polygon.
+      // If none, return a pixi circle dot.
+      const ixPoly = paths.intersectPolygon(templateShape).clean().toPolygons()[0];
+      return ixPoly ?? new PIXI.Circle(templateShape.center.x, templateShape.center.y, 1);
+    } catch(err) { console.error(err); }
+  }
+  return templateShape;
+}
+
 
 /**
  * Wrap MeasuredTemplate.prototype._computeShape
@@ -381,7 +439,8 @@ PATCHES.BASIC.WRAPS = {
   _onDragLeftDrop,
   destroy,
   _canHover,
-  _getGridHighlightPositions
+  _getGridHighlightPositions,
+  _getGridHighlightShape,
 };
 
 // ----- NOTE: Mixed wraps ----- //
