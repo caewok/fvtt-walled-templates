@@ -1,3 +1,7 @@
+## 0.8.4
+Avoid error re modification not allowed when viewing spell from compendium. #134.
+
+
 ## 0.8.3
 Fix incorrect merge that caused the snap-to-grid configs not to appear.
 
