@@ -50,6 +50,7 @@ export class ClockwiseSweepShape extends foundry.canvas.geometry.ClockwiseSweepP
 
   addPoint(point) {
     super.addPoint(point);
+    if ( !Object.hasOwn(point, "cwEdges") ) return; // If calling simply "addPoint", ignore the rest.
 
     // Super will skip repeated points, which really should not happen in sweep.
     // const l = this.points.length;

@@ -91,14 +91,13 @@ export class LightWallSweep extends ClockwiseSweepShape {
    * Skip all boundary walls if the origin is outside the boundary rectangle.
    * Eliminate all walls within the exclusionary triangle.
    * @param {Edge} edge                     The Edge being considered
-   * @param {Record<EdgeTypes, 0|1|2>} edgeTypes Which types of edges are being used? 0=no, 1=maybe, 2=always
-   * @param {PIXI.Rectangle} bounds         The overall bounding box
+   * @param {Record<EdgeType, {priority: number, mode: 0|1|2}>} edgeTypes Which types of edges are being used?
    * @returns {boolean}                     Should the edge be included?
    * @protected
    */
-  _testEdgeInclusion(edge, edgeTypes, bounds) {
+  _testEdgeInclusion(edge, edgeTypes) {
     if ( !this._originContained && (edge.type === "innerBounds" || edge.type === "outerBounds") ) return false;
-    if ( !super._testEdgeInclusion(edge, edgeTypes, bounds) ) return false;
+    if ( !super._testEdgeInclusion(edge, edgeTypes) ) return false;
 
     // Eliminate all edges on the same side as origin is to a|b
     const { exclusionarySide, exclusionaryTriangle, lightWall } = this.config;
