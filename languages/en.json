@@ -135,6 +135,9 @@
     "walledtemplates.settings.showOnHover.Name": "Show on token hover",
     "walledtemplates.settings.showOnHover.Hint": "When hovering over a token, show grid highlighting for all hidden templates that overlap that token's border.",
 
+    "walledtemplates.settings.hideBasedOnVisibility.Name": "Hide based on visibility",
+    "walledtemplates.settings.hideBasedOnVisibility.Hint": "Hide template highlighting for a grid space if the space is outside the user's visibility, as measured by the line-of-sight and field-of-view for currently controlled tokens.",
+
     "walledtemplates.settings.circleSquare.Name": "Replace Circles with Squares",
 
     "walledtemplates.controls.autotarget.Title": "Autotarget tokens with template",

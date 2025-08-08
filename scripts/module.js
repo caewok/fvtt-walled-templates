@@ -56,6 +56,7 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 
 Hooks.once("init", function() {
   log("Initializing...");
+  registerGeometry();
 
   // Set CONFIGS used by this module.
   CONFIG[MODULE_ID] = {
@@ -87,10 +88,15 @@ Hooks.once("init", function() {
      * For autotarget, do not target tokens with these statuses.
      * Use the id of the status in the set.
      */
-    autotargetStatusesToIgnore: new Set(["dead"])
+    autotargetStatusesToIgnore: new Set(["dead"]),
+
+    /**
+     * Which version of Clipper to use.
+     * @type{CONFIG.GeometryLib.ClipperPaths|CONFIG.GeometryLib.Clipper2Paths}
+     */
+    ClipperPaths: CONFIG.GeometryLib.ClipperPaths,
   };
 
-  registerGeometry();
   initializeWalledTemplates(game.system.id);
   initializePatching();
 
