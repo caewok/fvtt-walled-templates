@@ -40,24 +40,30 @@ PATCHES.BASIC = {};
 
 // Hook init to update the PARTS of the measured template config
 Hooks.once("init", async function() {
-  const { footer, main, ...other } = foundry.applications.sheets.MeasuredTemplateConfig.PARTS;
-
-  // Just in case.
-  if ( Object.hasOwn(other, "tabs") ) delete other.tabs;
+  const MeasuredTemplateConfig = foundry.applications.sheets.MeasuredTemplateConfig;
 
   // Wrap the main template by registering it as a partial and reusing it.
-  await foundry.applications.handlebars.getTemplate(main.template);
-  // Handlebars.registerPartial("AmbientSoundBody", main.template);
-
+  await foundry.applications.handlebars.getTemplate(MeasuredTemplateConfig.PARTS.main.template);
 
   // Wrap the measured template main template so it is displayed as a tab.
-  // Ensure footer is last and the module tab is after the main.
-  foundry.applications.sheets.MeasuredTemplateConfig.PARTS = {
+  // Order in PARTS matters: Ensure footer is last and the module tab is after the main.
+  const { footer, main, ...other } = MeasuredTemplateConfig.PARTS;
+  MeasuredTemplateConfig.PARTS = {
     tabs: {  template: "templates/generic/tab-navigation.hbs" },
     main: { template: TEMPLATES.CONFIG_MT_MAIN },
     ...other,
     [MODULE_ID]: { template: TEMPLATES.CONFIG_MT_MODULE },
     footer
+  };
+
+  MeasuredTemplateConfig.TABS = {
+    sheet: {
+      tabs: [
+        { id: "main", icon: ICONS.MEASURED_TEMPLATE, label: "DOCUMENT.MeasuredTemplate" },
+        { id: MODULE_ID, icon: ICONS.MODULE, label: `${MODULE_ID}.MeasuredTemplateConfiguration.LegendTitle` },
+      ],
+      initial: "main",
+    }
   };
 });
 
@@ -77,34 +83,6 @@ PATCHES.BASIC.HOOKS = { renderMeasuredTemplateConfig };
 
 // ----- Note: Wraps ----- //
 
-/**
- * Add additional module tab to the config.
- * MT config currently has no tabs, so add "main" as the other.
- */
-async function _prepareContext(wrapper, options) {
-  const context = await wrapper(options);
-  context.tabs ??= {};
-  context.tabs.main = {
-    id: "main",
-    group: "sheet",
-    icon: ICONS.MEASURED_TEMPLATE,
-    label: "DOCUMENT.MeasuredTemplate",
-  };
-  context.tabs[MODULE_ID] =  {
-    id: MODULE_ID,
-    group: "sheet",
-    icon: ICONS.MODULE,
-    label: "walledtemplates.MeasuredTemplateConfiguration.LegendTitle",
-  };
-
-  // From AmbientLightConfig.#getTabs
-  for ( const v of Object.values(context.tabs) ) {
-    v.active = this.tabGroups[v.group] === v.id;
-    v.cssClass = v.active ? "active" : "";
-  }
-
-  return context;
-}
 
 /**
  * Add in module-specific data to the measured template tab.
@@ -147,7 +125,6 @@ function _configureRenderOptions(wrapper, options) {
 
 PATCHES.BASIC.WRAPS = {
   _configureRenderOptions,
-  _prepareContext,
   _preparePartContext,
 };
 
