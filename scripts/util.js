@@ -3,7 +3,6 @@ game,
 canvas,
 CONFIG,
 CONST,
-PIXI
 */
 
 "use strict";
@@ -63,34 +62,6 @@ export function tokenName(token) {
 
 /* NOTE: TOKEN SHAPES */
 
-/**
- * Return either a square- or hexagon-shaped hit area object based on grid type
- * @param {Token} token
- * @return {PIXI.Rectangle|Hexagon}
- */
-export function tokenBounds(token) {
-  if ( canvas.grid.isHexagonal ) return hexGridShape(token);
-  if ( !token.hitArea ) return token.bounds; // No hitArea if just loading.
-  return Square.fromToken(token); // Will return PIXI.Rectangle if not even width/height.
-}
-
-function hexGridShape(token) {
-  // Canvas.grid.grid.getBorderPolygon will return null if width !== height.
-//   const { w, h } = token;
-//   if ( w !== h || (w === 1 && h === 1) ) return Hexagon.fromToken(token);
-
-  // Get the top left corner
-  const c = token.center;
-  const tl = canvas.grid.getTopLeftPoint(c);
-  const points = canvas.grid.getShape();
-  const ln = points.length;
-  const pointsTranslated = new Array(ln);
-  for ( let i = 0; i < ln; i += 2) {
-    pointsTranslated[i] = points[i] + tl.x;
-    pointsTranslated[i+1] = points[i+1] + tl.y;
-  }
-  return new PIXI.Polygon(pointsTranslated);
-}
 
 // ----- NOTE: HTML / Form manipulation ----- //
 

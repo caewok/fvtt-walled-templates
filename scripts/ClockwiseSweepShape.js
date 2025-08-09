@@ -1,5 +1,6 @@
 /* globals
 foundry,
+PIXI,
 */
 "use strict";
 
@@ -55,22 +56,9 @@ export class ClockwiseSweepShape extends foundry.canvas.geometry.ClockwiseSweepP
     // Super will skip repeated points, which really should not happen in sweep.
     // const l = this.points.length;
     // if ( (x === this.points[l-2]) && (y === this.points[l-1]) ) return this;
-    if ( point.isEndpoint ) this.cornersEncountered.add(keyFromPoint(point.x, point.y));
+    const tmp = PIXI.Point.fromObject(point);
+    if ( point.isEndpoint ) this.cornersEncountered.add(tmp.key);
+    tmp.release();
     point.cwEdges.forEach(edge => this.edgesEncountered.add(edge));
   }
 }
-
-//  Same as PolygonVertex
-const MAX_TEXTURE_SIZE = Math.pow(2, 16);
-const INV_MAX_TEXTURE_SIZE = 1 / MAX_TEXTURE_SIZE;
-
-/**
- * Construct an integer key from a 2d point.
- * @param {number} x
- * @param {number} y
- * @returns {number}
- */
-export function keyFromPoint(x, y) {
-  return (MAX_TEXTURE_SIZE * x) + y;
-}
-

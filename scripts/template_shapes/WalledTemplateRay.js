@@ -143,7 +143,7 @@ export class WalledTemplateRay extends WalledTemplateShape {
     if ( !reflectionPoint ) {
       const ix = foundry.utils.lineLineIntersection(ray.A, ray.B, edge.a, edge.b);
       if ( !ix ) return null;
-      reflectionPoint = PIXI.Point.tmp.copyObject(ix);
+      reflectionPoint = PIXI.Point.fromObject(ix);
     }
 
     // Calculate the normals for the edge; pick the one closest to the origin of the ray.

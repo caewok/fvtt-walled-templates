@@ -1,6 +1,7 @@
 /* globals
 canvas,
 CONFIG,
+foundry,
 fromUuidSync,
 game,
 Hooks
@@ -215,14 +216,14 @@ Hooks.once("ready", function() {
   if ( promises.length ) Promise.all(promises);
 
   log("Refreshing templates on ready hook.");
+
   // Redraw templates once the canvas is loaded
   // Cannot use walls to draw templates until canvas.walls.quadtree is loaded.
-//   canvas.templates.placeables.forEach(t => {
-//     t.renderFlags.set({
-//       refreshShape: true
-//     });
-//   });
-
+  canvas.templates.placeables.forEach(t => {
+    t.renderFlags.set({
+      refreshShape: true
+    });
+  });
 });
 
 /**
