@@ -2,7 +2,6 @@
 FormApplication
 foundry,
 game,
-getTemplate,
 SettingsConfig
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -13,7 +12,7 @@ import { Settings } from "./settings.js";
 
 export class SettingsSubmenuAbstract extends FormApplication {
   async _renderInner(data) {
-    await getTemplate(`modules/${MODULE_ID}/templates/settings-menu-tab-partial.html`, "atvSettingsMenuTabPartial");
+    await foundry.applications.handlebars.getTemplate(`modules/${MODULE_ID}/templates/settings-menu-tab-partial.html`, "atvSettingsMenuTabPartial");
     return super._renderInner(data);
   }
 

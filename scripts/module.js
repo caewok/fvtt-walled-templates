@@ -1,9 +1,9 @@
 /* globals
 canvas,
 CONFIG,
+foundry,
 fromUuidSync,
 game,
-getTemplate,
 Hooks
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
@@ -127,7 +127,7 @@ Hooks.once("init", function() {
 
   // Must go later
   const promises = [];
-  for ( const template of Object.values(TEMPLATES) ) promises.push(getTemplate(template)); // Async but not awaiting here.
+  for ( const template of Object.values(TEMPLATES) ) promises.push(foundry.applications.handlebars.getTemplate(template)); // Async but not awaiting here.
   Promise.allSettled(promises);
 });
 
@@ -216,23 +216,27 @@ Hooks.once("ready", function() {
   if ( promises.length ) Promise.all(promises);
 
   log("Refreshing templates on ready hook.");
+
   // Redraw templates once the canvas is loaded
   // Cannot use walls to draw templates until canvas.walls.quadtree is loaded.
-//   canvas.templates.placeables.forEach(t => {
-//     t.renderFlags.set({
-//       refreshShape: true
-//     });
-//   });
-
+  canvas.templates.placeables.forEach(t => {
+    t.renderFlags.set({
+      refreshShape: true
+    });
+  });
 });
 
+/**
+ * Add an autotarget button to the measured template tools.
+ */
 Hooks.on("getSceneControlButtons", controls => {
-  const control = controls.find(x => x.name === "measure");
+  const control = controls.templates;
   const AUTOTARGET = Settings.KEYS.AUTOTARGET;
   const opt = Settings.get(AUTOTARGET.MENU);
-  control.tools.splice(4, 0, {
+  const autotargetTool = {
     icon: "fas fa-crosshairs",
     name: "autotarget",
+    order: control.tools.clear.order,
     title: game.i18n.localize("walledtemplates.controls.autotarget.Title"),
     toggle: true,
     visible: opt === AUTOTARGET.CHOICES.TOGGLE,
@@ -241,7 +245,11 @@ Hooks.on("getSceneControlButtons", controls => {
       Settings.toggle(AUTOTARGET.ENABLED);
       canvas.templates.placeables.forEach(t => t.renderFlags.set({ refreshTargets: true }));
     }
-  });
+  };
+
+  // Increment every tool after the autotarget in the order.
+  Object.values(control.tools).forEach(tool => { if ( tool.order >= autotargetTool.order ) tool.order += 1; });
+  control.tools.autotarget = autotargetTool;
 });
 
 /**

@@ -56,10 +56,10 @@ export class LightWallSweep extends ClockwiseSweepShape {
   _boundaryEdgesFromRectangle(rect) {
     // From CanvasEdges##defineBoundaries
     const define = (type, r) => {
-      const top = new foundry.canvas.edges.Edge({x: r.x, y: r.y}, {x: r.right, y: r.y}, {id: `${type}Top`, type});
-      const right = new foundry.canvas.edges.Edge({x: r.right, y: r.y}, {x: r.right, y: r.bottom}, {id: `${type}Right`, type});
-      const bottom = new foundry.canvas.edges.Edge({x: r.right, y: r.bottom}, {x: r.x, y: r.bottom}, {id: `${type}Bottom`, type});
-      const left = new foundry.canvas.edges.Edge({x: r.x, y: r.bottom}, {x: r.x, y: r.y}, {id: `${type}Left`, type});
+      const top = new foundry.canvas.geometry.edges.Edge({x: r.x, y: r.y}, {x: r.right, y: r.y}, {id: `${type}Top`, type});
+      const right = new foundry.canvas.geometry.edges.Edge({x: r.right, y: r.y}, {x: r.right, y: r.bottom}, {id: `${type}Right`, type});
+      const bottom = new foundry.canvas.geometry.edges.Edge({x: r.right, y: r.bottom}, {x: r.x, y: r.bottom}, {id: `${type}Bottom`, type});
+      const left = new foundry.canvas.geometry.edges.Edge({x: r.x, y: r.bottom}, {x: r.x, y: r.y}, {id: `${type}Left`, type});
       return [top, right, bottom, left];
     };
     return define(`${MODULE_ID}.${this.config.source.sourceId}`, rect);
@@ -91,14 +91,13 @@ export class LightWallSweep extends ClockwiseSweepShape {
    * Skip all boundary walls if the origin is outside the boundary rectangle.
    * Eliminate all walls within the exclusionary triangle.
    * @param {Edge} edge                     The Edge being considered
-   * @param {Record<EdgeTypes, 0|1|2>} edgeTypes Which types of edges are being used? 0=no, 1=maybe, 2=always
-   * @param {PIXI.Rectangle} bounds         The overall bounding box
+   * @param {Record<EdgeType, {priority: number, mode: 0|1|2}>} edgeTypes Which types of edges are being used?
    * @returns {boolean}                     Should the edge be included?
    * @protected
    */
-  _testEdgeInclusion(edge, edgeTypes, bounds) {
+  _testEdgeInclusion(edge, edgeTypes) {
     if ( !this._originContained && (edge.type === "innerBounds" || edge.type === "outerBounds") ) return false;
-    if ( !super._testEdgeInclusion(edge, edgeTypes, bounds) ) return false;
+    if ( !super._testEdgeInclusion(edge, edgeTypes) ) return false;
 
     // Eliminate all edges on the same side as origin is to a|b
     const { exclusionarySide, exclusionaryTriangle, lightWall } = this.config;
@@ -121,7 +120,7 @@ export class LightWallSweep extends ClockwiseSweepShape {
     const cfg = this.config;
 
     if ( !cfg.lightWall ) return console.error("LightWallSweep requires a wall!");
-    if ( cfg.lightWall instanceof Wall ) cfg.lightWall = cfg.lightWall.edge;
+    if ( cfg.lightWall instanceof foundry.canvas.placeables.Wall ) cfg.lightWall = cfg.lightWall.edge;
 
     const { a, b } = cfg.lightWall;
     cfg.exclusionaryTriangle = new PIXI.Polygon(origin, a, b);
