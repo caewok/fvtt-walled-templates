@@ -1,12 +1,15 @@
 /* globals
+canvas,
 dnd5e,
 game,
 Hooks,
+PIXI,
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
 
-import { MODULE_ID, FLAGS, LABELS, TEMPLATES, ICONS } from "./const.js";
+import { MODULE_ID, FLAGS, LABELS, TEMPLATES } from "./const.js";
+import { Settings } from "./settings.js";
 
 export const PATCHES = {};
 PATCHES.dnd5e = {};
@@ -48,6 +51,7 @@ function preCreateActivityTemplate(activity, templateData) {
   // TODO: Determine how to incorporate activity data.
   const item = templateData.item;
   if ( !item ) return;
+  const shape = templateData.t;
 
   // Store flags in the template data object.
   const flags = templateData.flags[MODULE_ID] ??= {};
@@ -142,7 +146,8 @@ function postUseActivity(activity, usageConfig, results) {
   let token;
   switch ( attachToken ) {
     case "caster": token = item.parent.token ?? item.parent.getActiveTokens()[0]; break;
-    case "target": token = options.flags?.lastTargeted ?? [...game.user.targets.values()].at(-1); break; // tokenId
+    // case "target": token = options.flags?.lastTargeted ?? [...game.user.targets.values()].at(-1); break; // tokenId
+    case "target": [...game.user.targets.values()].at(-1); break; // tokenId
   }
   if ( !token ) return;
 
@@ -168,7 +173,7 @@ PATCHES.dnd5e.HOOKS = {
  * @param {HandlebarsRenderOptions} options       Options which configure application rendering behavior
  * @returns {Promise<ApplicationRenderContext>}   Context data for a specific part
  */
-async function _preparePartContext(wrapper, partId, context, options) {
+export async function _preparePartContext(wrapper, partId, context, options) {
   context = await wrapper(partId, context, options);
   if ( partId !== MODULE_ID ) return context;
   const item = this.item;
