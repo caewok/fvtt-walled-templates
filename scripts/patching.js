@@ -14,9 +14,9 @@ import { PATCHES as PATCHES_MeasuredTemplate } from "./MeasuredTemplate.js";
 import { PATCHES as PATCHES_MeasuredTemplateConfig } from "./MeasuredTemplateConfig.js";
 import { PATCHES as PATCHES_Token } from "./Token.js";
 import { PATCHES as PATCHES_Wall } from "./Wall.js";
-import { PATCHES_dnd5e } from "./dnd5e.js";
 import { PATCHES as PATCHES_ActiveEffect } from "./ActiveEffect.js";
 import { PATCHES as PATCHES_GridLayer } from "./GridLayer.js";
+import { PATCHES as PATCHES_ItemSheet5e } from "./ItemSheet5e.js";
 
 
 // Settings
@@ -30,17 +30,19 @@ export const PATCHES = {
   "foundry.applications.sheets.MeasuredTemplateConfig": PATCHES_MeasuredTemplateConfig,
   "foundry.canvas.placeables.Token": PATCHES_Token,
   "foundry.canvas.placeables.Wall": PATCHES_Wall,
-  dnd5e: PATCHES_dnd5e // Only works b/c these are all hooks. Otherwise, would need class breakdown.
+
+  // dnd5e
+  "dnd5e.applications.item.ItemSheet5e": PATCHES_ItemSheet5e,
 };
 
 export const PATCHER = new Patcher();
 
 
 export function initializePatching() {
-  if ( game.system.id === "dnd5e" && foundry.utils.isNewerVersion(game.system.version, "3.99") ) {
-    PATCHES.dnd5e.dnd5e.HOOKS["dnd5e.postUseActivity"] = PATCHES.dnd5e.dnd5e.HOOKS["dnd5e.useItem"];
-    delete PATCHES.dnd5e.dnd5e.HOOKS["dnd5e.useItem"];
-  }
+//   if ( game.system.id === "dnd5e" && foundry.utils.isNewerVersion(game.system.version, "3.99") ) {
+//     PATCHES.dnd5e.dnd5e.HOOKS["dnd5e.postUseActivity"] = PATCHES.dnd5e.dnd5e.HOOKS["dnd5e.useItem"];
+//     delete PATCHES.dnd5e.dnd5e.HOOKS["dnd5e.useItem"];
+//   }
 
   PATCHER.addPatchesFromRegistrationObject(PATCHES);
   PATCHER.registerGroup("BASIC");
