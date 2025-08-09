@@ -1,3 +1,7 @@
+## 0.9.0
+Updated for Foundry v13. Requires v13. Use the 0.8 series for v12.
+Update for dnd5e v5. Probably won't work with dnd5e v4.
+
 ## 0.8.4
 Avoid error re modification not allowed when viewing spell from compendium. #134.
 Add a setting to prevent template highlighting in areas not within line-of-sight or
