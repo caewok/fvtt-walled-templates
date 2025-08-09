@@ -2,7 +2,6 @@
 CONFIG,
 foundry,
 PIXI,
-Ray
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
@@ -76,7 +75,7 @@ export class WalledTemplateRay extends WalledTemplateShape {
    * @returns {WalledTemplateRay|null}
    */
   _generateSubtemplates(sweep) {
-    const dirRay = Ray.fromAngle(this.origin.x, this.origin.y, this.direction, this.distance);
+    const dirRay = foundry.canvas.geometry.Ray.fromAngle(this.origin.x, this.origin.y, this.direction, this.distance);
 
     // Sort walls by closest collision to the template origin, skipping those that do not intersect.
     let closestReflectingEdge;
@@ -165,7 +164,7 @@ export class WalledTemplateRay extends WalledTemplateShape {
     const dot = Ri.dot(N);
     const Rr = PIXI.Point.tmp;
     Ri.subtract(N.multiplyScalar(2 * dot, Rr), Rr);
-    const reflectionRay = new Ray(reflectionPoint, reflectionPoint.add(Rr));
+    const reflectionRay = new foundry.canvas.geometry.Ray(reflectionPoint, reflectionPoint.add(Rr));
     PIXI.Point.release(
       delta,
       normals[0],

@@ -23,13 +23,13 @@ import { PATCHES as PATCHES_GridLayer } from "./GridLayer.js";
 import { PATCHES as PATCHES_ClientSettings } from "./ModuleSettingsAbstract.js";
 
 export const PATCHES = {
-  ActiveEffect: PATCHES_ActiveEffect,
+  "foundry.documents.ActiveEffect": PATCHES_ActiveEffect,
   "foundry.helpers.ClientSettings": PATCHES_ClientSettings,
-  GridLayer: PATCHES_GridLayer,
-  MeasuredTemplate: PATCHES_MeasuredTemplate,
+  "foundry.canvas.layers.GridLayer": PATCHES_GridLayer,
+  "foundry.canvas.placeables.MeasuredTemplate": PATCHES_MeasuredTemplate,
   "foundry.applications.sheets.MeasuredTemplateConfig": PATCHES_MeasuredTemplateConfig,
-  Token: PATCHES_Token,
-  Wall: PATCHES_Wall,
+  "foundry.canvas.placeables.Token": PATCHES_Token,
+  "foundry.canvas.placeables.Wall": PATCHES_Wall,
   dnd5e: PATCHES_dnd5e // Only works b/c these are all hooks. Otherwise, would need class breakdown.
 };
 

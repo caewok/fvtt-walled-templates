@@ -2,7 +2,6 @@
 CONFIG,
 foundry,
 PIXI,
-Ray
 */
 /* eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }] */
 "use strict";
@@ -86,7 +85,7 @@ export class WalledTemplateCone extends WalledTemplateRay {
     const maxDist = this.distance;
     const maxDist2 = Math.pow(maxDist, 2);
     const templateOrigin = this.origin.to2d();
-    const dirRay = Ray.fromAngle(templateOrigin.x, templateOrigin.y, this.direction, this.distance);
+    const dirRay = foundry.canvas.geometry.Ray.fromAngle(templateOrigin.x, templateOrigin.y, this.direction, this.distance);
     const {
       closestPointToSegment,
       orient2dFast,
