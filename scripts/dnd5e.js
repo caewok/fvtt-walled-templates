@@ -3,6 +3,7 @@ canvas,
 CONFIG,
 foundry,
 game,
+Hooks,
 PIXI,
 renderTemplate
 */
@@ -12,10 +13,11 @@ import { log, constructTabElement, constructTabDivision } from "./util.js";
 import { MODULE_ID, FLAGS, LABELS, TEMPLATES } from "./const.js";
 import { Settings } from "./settings.js";
 
-export const PATCHES_dnd5e = {};
-PATCHES_dnd5e.dnd5e = {};
+export const PATCHES = {};
+PATCHES.dnd5e = {};
 
 // ----- NOTE: Hooks ----- //
+
 
 /**
  * Hook renderItemSheet5e to add template configuration options for spells.
@@ -23,19 +25,21 @@ PATCHES_dnd5e.dnd5e = {};
  * @param {Object} html
  * @param {Object} data
  */
-function renderItemSheet5eHook(app, html, data) {
-  const type = data.item?.type;
+function renderItemSheet5eHook(app, element, context, _opts) {
+  const type = context.item?.type;
   if ( !(type === "spell" || type === "feat") ) return;
 
   // stop if this sheet is tidy5e
   if ( game.modules.get('tidy5e-sheet')?.api?.isTidy5eItemSheet(app) ) return;
 
-  const navTabs = html.find(".tabs")[0];
-  if ( !navTabs ) return;
-  const sheetBodySection = html.find(".sheet-body")[0];
-  if ( !sheetBodySection) return;
-  const parts = { navTabs, sheetBodySection };
-  render5eSpellTemplateConfig(parts, data);
+  // querySelector
+//
+//   const navTabs = html.find(".tabs")[0];
+//   if ( !navTabs ) return;
+//   const sheetBodySection = html.find(".sheet-body")[0];
+//   if ( !sheetBodySection) return;
+//   const parts = { navTabs, sheetBodySection };
+//   render5eSpellTemplateConfig(parts, data);
 }
 
 /**
@@ -161,13 +165,14 @@ function dnd5eUseItemHook(item, config, options, templates) {
   if ( token ) templates.forEach(templateD => templateD.object.attachToken(token));
 }
 
-PATCHES_dnd5e.dnd5e.HOOKS = {
-  renderItemSheet5e: renderItemSheet5eHook,
-  ["dnd5e.useItem"]: dnd5eUseItemHook
-};
-PATCHES_dnd5e.dnd5e.HOOKS_ONCE = {
-  ["tidy5e-sheet.ready"]: renderTidy5eItemSheetHook
-};
+// PATCHES.dnd5e.HOOKS = {
+//   renderItemSheet5e: renderItemSheet5eHook,
+//   ["dnd5e.useItem"]: dnd5eUseItemHook
+// };
+// PATCHES.dnd5e.HOOKS_ONCE = {
+//   init: initHook,
+//   ["tidy5e-sheet.ready"]: renderTidy5eItemSheetHook
+// };
 
 /**
  * Inject html to add controls to the measured template configuration:

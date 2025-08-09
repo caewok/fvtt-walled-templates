@@ -121,12 +121,14 @@ export const NOTIFICATIONS = {
 };
 
 export const TEMPLATES = {
-  DND5E: `modules/${MODULE_ID}/templates/dnd5e-spell-template-config.html`,
+  DND5E: `modules/${MODULE_ID}/templates/dnd5e-spell-template-config-module.html`,
+  DND5E_PARTIAL: `modules/${MODULE_ID}/templates/dnd5e-spell-template-config-partial.html`,
   CONFIG_TABS: `modules/${MODULE_ID}/templates/measured-template-config-tabs.html`,
   CONFIG_MT_MODULE: `modules/${MODULE_ID}/templates/measured-template-config-module.html`,
   CONFIG_BASIC: `modules/${MODULE_ID}/templates/foundry-template-config.html`,
   CONFIG_MT_MAIN: `modules/${MODULE_ID}/templates/measured-template-config-main.html`,
   CONFIG_PARTIAL: `modules/${MODULE_ID}/templates/measured-template-config-partial.html`,
+
 };
 
 export const ACTIVE_EFFECT_ICON = `modules/${MODULE_ID}/assets/ruler-combined-solid-gray.svg`;
