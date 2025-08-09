@@ -106,7 +106,7 @@ function createActivityTemplate(activity, templates) {
     const templateD = template.document;
 
     // Does the template originate on a token? (Use the first token found.)
-    templateOrigin.fromObject(templateD);
+    templateOrigin.copyFrom(templateD);
     const token = canvas.tokens.placeables.find(t => templateOrigin.almostEqual(t.center));
     if ( token ) {
       // Add 1/2 token size to the template distance.
