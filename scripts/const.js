@@ -86,21 +86,21 @@ export const LABELS = {
   },
 
   WALL_RESTRICTION: {
-    light: "WALLS.Light",
-    move: "WALLS.Movement",
-    sight: "WALLS.Sight",
-    sound: "WALLS.Sound"
+    light: "WALL.FIELDS.light.label",
+    move: "WALL.FIELDS.move.label",
+    sight: "WALL.FIELDS.sight.label",
+    sound: "WALL.FIELDS.sound.label",
   },
 
   TEMPLATE_HIDE: {
     globalDefault: "walledtemplates.MeasuredTemplateConfiguration.globalDefault",
     alwaysHide: "walledtemplates.MeasuredTemplateConfiguration.alwaysHide",
-    alwaysShow: "walledtemplates.MeasuredTemplateConfiguration.alwaysShow"
+    alwaysShow: "walledtemplates.MeasuredTemplateConfiguration.alwaysShow",
   },
 
   SPELL_TEMPLATE: {},
 
-  GLOBAL_DEFAULT: "globalDefault"
+  GLOBAL_DEFAULT: "globalDefault",
 };
 
 LABELS.SPELL_TEMPLATE.WALLS_BLOCK = foundry.utils.duplicate(LABELS.WALLS_BLOCK);
@@ -123,8 +123,10 @@ export const NOTIFICATIONS = {
 export const TEMPLATES = {
   DND5E: `modules/${MODULE_ID}/templates/dnd5e-spell-template-config.html`,
   CONFIG_TABS: `modules/${MODULE_ID}/templates/measured-template-config-tabs.html`,
-  CONFIG_PARTIAL: `modules/${MODULE_ID}/templates/measured-template-config.html`,
-  CONFIG_BASIC: `modules/${MODULE_ID}/templates/foundry-template-config.html`
+  CONFIG_MT_MODULE: `modules/${MODULE_ID}/templates/measured-template-config-module.html`,
+  CONFIG_BASIC: `modules/${MODULE_ID}/templates/foundry-template-config.html`,
+  CONFIG_MT_MAIN: `modules/${MODULE_ID}/templates/measured-template-config-main.html`,
+  CONFIG_PARTIAL: `modules/${MODULE_ID}/templates/measured-template-config-partial.html`,
 };
 
 export const ACTIVE_EFFECT_ICON = `modules/${MODULE_ID}/assets/ruler-combined-solid-gray.svg`;
@@ -136,6 +138,11 @@ export const MODULES = {
   TOKEN_MAGIC: { ACTIVE: false, ID: "tokenmagic" },
   LEVELS: { ACTIVE: false, ID: "levels" },
   WALL_HEIGHT: { ACTIVE: false, ID: "wall-height"}
+};
+
+export const ICONS = {
+  MEASURED_TEMPLATE: "fa-solid fa-ruler-combined",
+  MODULE: "fa-solid fa-object-group",
 };
 
 // Hook init b/c game.modules is not initialized at start.

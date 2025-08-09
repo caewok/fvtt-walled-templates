@@ -105,7 +105,7 @@ export class WalledTemplateRectangle extends WalledTemplateCircle {
     const origin2d = this.origin.to2d();
 
     // Build a new shape and intersect with the frame.
-    const ixShape = MeasuredTemplate.getRectShape(direction, this.distance)
+    const ixShape = foundry.canvas.placeables.MeasuredTemplate.getRectShape(direction, this.distance)
       .translate(origin2d.x, origin2d.y)
       .intersection(enclosingFrame);
 

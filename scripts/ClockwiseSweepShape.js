@@ -1,5 +1,6 @@
 /* globals
-ClockwiseSweepPolygon,
+foundry,
+PIXI,
 */
 "use strict";
 
@@ -27,7 +28,7 @@ t.shape._sweep.cornersEncountered.forEach(corner => draw.point(pointFromKey(corn
  * Used for bounce and spread options for templates.
  * Also handles other shape-specific modifications to sweep previously done using libWrapper.
  */
-export class ClockwiseSweepShape extends ClockwiseSweepPolygon {
+export class ClockwiseSweepShape extends foundry.canvas.geometry.ClockwiseSweepPolygon {
   /**
    * "Corner" points encountered. Corners are when the sweep hits a non-limited wall
    * and must extend the sweep beyond that point.
@@ -50,26 +51,14 @@ export class ClockwiseSweepShape extends ClockwiseSweepPolygon {
 
   addPoint(point) {
     super.addPoint(point);
+    if ( !Object.hasOwn(point, "cwEdges") ) return; // If calling simply "addPoint", ignore the rest.
 
     // Super will skip repeated points, which really should not happen in sweep.
     // const l = this.points.length;
     // if ( (x === this.points[l-2]) && (y === this.points[l-1]) ) return this;
-    if ( point.isEndpoint ) this.cornersEncountered.add(keyFromPoint(point.x, point.y));
+    const tmp = PIXI.Point.fromObject(point);
+    if ( point.isEndpoint ) this.cornersEncountered.add(tmp.key);
+    tmp.release();
     point.cwEdges.forEach(edge => this.edgesEncountered.add(edge));
   }
 }
-
-//  Same as PolygonVertex
-const MAX_TEXTURE_SIZE = Math.pow(2, 16);
-const INV_MAX_TEXTURE_SIZE = 1 / MAX_TEXTURE_SIZE;
-
-/**
- * Construct an integer key from a 2d point.
- * @param {number} x
- * @param {number} y
- * @returns {number}
- */
-export function keyFromPoint(x, y) {
-  return (MAX_TEXTURE_SIZE * x) + y;
-}
-

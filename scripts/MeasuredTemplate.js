@@ -4,7 +4,6 @@ CONFIG,
 CONST,
 foundry,
 game,
-MouseInteractionManager,
 PIXI,
 _token,
 */
@@ -12,7 +11,7 @@ _token,
 "use strict";
 
 import { WalledTemplateShape } from "./template_shapes/WalledTemplateShape.js";
-import { log, gridShapeForTopLeft, tokenBounds } from "./util.js";
+import { log, gridShapeForTopLeft } from "./util.js";
 import { MODULE_ID, FLAGS, MODULES } from "./const.js";
 import { Settings } from "./settings.js";
 import { Square } from "./geometry/RegularPolygon/Square.js";
@@ -615,8 +614,7 @@ function targetsWithinShape({ onlyVisible = false } = {}) {
     if ( token.actor.statuses && token.actor.statuses.intersects(statusesToIgnore) ) return false;
 
     // Test the token boundary.
-    const tBounds = tokenBounds(token);
-    return this.boundsOverlap(tBounds);
+    return this.boundsOverlap(token.constrainedTokenBorder);
   });
 }
 
@@ -681,7 +679,7 @@ function applyTokenStatusEffect(token, statusId, _active) {
   if ( !CONFIG[MODULE_ID].autotargetStatusesToIgnore.has(statusId) ) return;
 
   // If the token is within the template boundary, trigger a refreshTargetsing.
-  const tBounds = tokenBounds(token);
+  const tBounds = token.constrainedTokenBorder;
   canvas.templates.placeables.forEach(template => {
     if ( template.boundsOverlap(tBounds) ) template.renderFlags.set({ refreshTargets: true });
   });
@@ -828,7 +826,7 @@ function canHideTemplate(template) {
   return !(template.hover
     || showPreview
     || !template.visible
-    || template.interactionState === MouseInteractionManager.INTERACTION_STATES.DRAG
+    || template.interactionState === foundry.canvas.interaction.MouseInteractionManager.INTERACTION_STATES.DRAG
     || Settings.FORCE_TEMPLATE_DISPLAY);
 }
 

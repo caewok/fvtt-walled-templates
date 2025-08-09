@@ -2,7 +2,6 @@
 canvas,
 CONFIG,
 CONST,
-Color,
 foundry,
 game
 */
@@ -10,7 +9,6 @@ game
 "use strict";
 
 import { ACTIVE_EFFECT_ICON, FLAGS, MODULE_ID } from "./const.js";
-import { tokenBounds } from "./util.js";
 import { UserCloneTargets } from "./UserCloneTargets.js";
 import { Settings } from "./settings.js";
 
@@ -149,7 +147,7 @@ async function detachTemplate(templateId, detachFromTemplate = true, removeActiv
  * Draw only the target arrows for the primary user.
  * @pram {ReticuleOptions} [reticule] Additional parameters to configure how the targeting reticule is drawn.
  */
-function _refreshCloneTarget(reticule) {
+function _refreshCloneTarget() {
   this.cloneTargeted ||= new Set();
 
   // We don't show the target arrows for a secret token disposition and non-GM users
@@ -157,26 +155,23 @@ function _refreshCloneTarget(reticule) {
   if ( !this.cloneTargeted.size || isSecret ) return;
 
   // Clone target overrides the normal target.
-  this.target.clear();
+  this.targetArrows.clear();
 
   // Determine whether the current user has target and any other users
   const [others, user] = Array.from(this.cloneTargeted).partition(u => u === game.user);
 
-  // Use half-transparency to distinguish from normal targets.
-  reticule ||= {};
-  reticule.alpha = 0.25;
-
   // For the current user, draw the target arrows.
-  if ( user.length ) this._drawTarget(reticule);
+  // Use half-transparency to distinguish from normal targets.
+  if ( user.length ) {
+    const opts = {
+      border: { width: 2 * canvas.dimensions.uiScale }, // From _refreshTarget.
+      alpha: 0.5
+    }
+    this._drawTargetArrows(opts);
+  }
 
   // For other users, draw offset pips
-  const hw = (this.w / 2) + (others.length % 2 === 0 ? 8 : 0);
-  for ( let [i, u] of others.entries() ) {
-    const offset = Math.floor((i+1) / 2) * 16;
-    const sign = i % 2 === 0 ? 1 : -1;
-    const x = hw + (sign * offset);
-    this.target.beginFill(Color.from(u.color), 1.0).lineStyle(2, 0x0000000).drawCircle(x, 0, 6);
-  }
+  this._drawTargetPips();
 }
 
 /**
@@ -361,7 +356,7 @@ function _onHoverOut(wrapped, event, options) {
 function showHideTemplates(token, show = true) {
   if ( !token.isVisible ) return;
   const showOnHoverSetting = Settings.get(Settings.KEYS.HIDE.SHOW_ON_HOVER);
-  const tBounds = tokenBounds(token);
+  const tBounds = token.constrainedTokenBorder;
   const { SHOW_ON_HOVER, TOKEN_HOVER, TYPES } = FLAGS.HIDE;
   canvas.templates.placeables.forEach(t => {
     const hoverFlag = t.document.getFlag(MODULE_ID, SHOW_ON_HOVER) ?? TYPES.GLOBAL_DEFAULT;
@@ -379,11 +374,10 @@ function showHideTemplates(token, show = true) {
 /**
  * Wrap Token.prototype._refreshTarget
  * Trigger refresh of the clone targets
- * @param {ReticuleOptions} [reticule]  Additional parameters to configure how the targeting reticule is drawn.
  */
-function _refreshTarget(wrapped, reticule) {
-  wrapped(reticule);
-  this._refreshCloneTarget(reticule);
+function _refreshTarget(wrapped) {
+  wrapped();
+  this._refreshCloneTarget();
 }
 
 /**
