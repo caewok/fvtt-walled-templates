@@ -18,7 +18,6 @@ import { PATCHES as PATCHES_dnd5e } from "./dnd5e.js";
 import { PATCHES as PATCHES_ActiveEffect } from "./ActiveEffect.js";
 import { PATCHES as PATCHES_GridLayer } from "./GridLayer.js";
 import { PATCHES as PATCHES_ItemSheet5e } from "./ItemSheet5e.js";
-import { PATCHES as PATCHES_SaveSheet } from "./SaveSheet.js";
 
 
 // Settings
@@ -35,7 +34,6 @@ export const PATCHES = {
 
   // dnd5e
   "dnd5e.applications.item.ItemSheet5e": PATCHES_ItemSheet5e,
-  "dnd5e.applications.activity.SaveSheet": PATCHES_SaveSheet,
 };
 
 export const PATCHER = new Patcher();
