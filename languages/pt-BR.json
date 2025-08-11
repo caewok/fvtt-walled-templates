@@ -42,6 +42,8 @@
 
     "walledtemplates.MeasuredTemplateConfiguration.elevation.Name": "Elevação",
 
+    "walledtemplates.MeasuredTemplateConfiguration.legend.snapping": "Ajustar à Grade",
+    
     "walledtemplates.dnd5e-spell-config.attach-token.Name": "Anexar?",
     "walledtemplates.dnd5e-spell-config.attach-token.na": "Não",
     "walledtemplates.dnd5e-spell-config.attach-token.caster": "Conjurador",
@@ -70,6 +72,10 @@
     "walledtemplates.settings.submenu.autotarget-override.Name": "Subscrever Destaque/Auto-Marcar",
     "walledtemplates.settings.submenu.autotarget-override.Hint": "Subscreve a configuração padrão para destaque/marcar automaticamente para este modelo.",
 
+    "walledtemplates.settings.submenu.snap-center.Name": "Ajustar ao Centro",
+    "walledtemplates.settings.submenu.snap-corner.Name": "Ajustar ao Canto",
+    "walledtemplates.settings.submenu.snap-midpoint.Name": "Ajustar ao Ponto Médio Lateral",
+    
     "walledtemplates.settings.default_circle.Name": "Paredes Bloqueiam",
     "walledtemplates.settings.default_cone.Name": "Paredes Bloqueiam",
     "walledtemplates.settings.default_ray.Name": "Paredes Bloqueiam",
@@ -126,9 +132,14 @@
     "walledtemplates.settings.hideHighlighting.Name": "Esconder Destaque do Modelo",
     "walledtemplates.settings.hideHighlighting.Hint": "A menos que passe o mouse sobre o ícone de controle do modelo, não mostre a grade destacada do modelo.",
 
-     "walledtemplates.settings.showOnHover.Name": "Exibir ao Passar no Token",
+    "walledtemplates.settings.showOnHover.Name": "Exibir ao Passar no Token",
     "walledtemplates.settings.showOnHover.Hint": "Ao passar o mouse sobre um token, mostre o destaque da grade para todos os modelos ocultos que se sobrepõem à borda desse token.",
 
+    "walledtemplates.settings.hideBasedOnVisibility.Name": "Ocultar com Base na Visibilidade",
+    "walledtemplates.settings.hideBasedOnVisibility.Hint": "Oculta o destaque do modelo para um espaço de grade se o espaço estiver fora da visibilidade do usuário, conforme medido pela linha de visão e campo de visão para tokens que o usuário tem permissões de OBSERVADOR ou superiores.",
+  
+    "walledtemplates.settings.circleSquare.Name": "Substituir Círculos por Quadrados",
+    
     "walledtemplates.controls.autotarget.Title": "Auto-Marcar Tokens com Modelo",
 
     "walledtemplates.notifications.attach-last-selected-token": "Selecione um token para anexar.",
