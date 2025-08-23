@@ -148,7 +148,7 @@
     "walledtemplates.keybindings.autoTarget.name": "Alternar Auto-Marcar de Modelo",
     "walledtemplates.keybindings.autoTarget.hint": "Adia para outros usos da chave. Por exemplo, se definido como 'T', não funcionará se passar o mouse sobre um token. Também funciona apenas se a alternância de marcação automática estiver habilitada nas configurações. E funciona apenas em camadas de token ou modelo.",
 
-    "walledtemplates.keybindings.unhideTemplates.name": "Exibis Modelos Temporariamente",
+    "walledtemplates.keybindings.unhideTemplates.name": "Exibir Modelos Temporariamente",
     "walledtemplates.keybindings.unhideTemplates.hint": "Quando pressionado, as bordas do modelo e o destaque são exibidos.",
 
     "walledtemplates.keybindings.incrementElevation.name": "Aumentar Elevação do Modelo",
