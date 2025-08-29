@@ -213,6 +213,12 @@ PATCHES.dnd5e.HOOKS = { drawMeasuredTemplate };
 function _getGridHighlightPositions(wrapper) {
   let positions;
 
+
+  // Temporarily change the template type so that systems that override are less likely to mess with the positions.
+  // See issue #144.
+  const oldTemplateType = this.document.t;
+  if ( this.wallsBlock ) this.document.t = "polygon";
+
   if ( Settings.autotargetMethod(this.document.t) === Settings.KEYS.AUTOTARGET.METHODS.CENTER ) positions = wrapper();
   else {
     // Determine all the grid positions that could be under the shape.
@@ -238,6 +244,7 @@ function _getGridHighlightPositions(wrapper) {
       return this.boundsOverlap(shape);
     });
   }
+  this.document.t = oldTemplateType;
 
   // If hiding unseen areas from user, remove any position not in the user's vision.
   if ( !game.user.isGM
