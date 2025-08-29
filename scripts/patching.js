@@ -26,10 +26,7 @@ export const PATCHES = {
   "foundry.documents.ActiveEffect": PATCHES_ActiveEffect,
   "foundry.helpers.ClientSettings": PATCHES_ClientSettings,
   "foundry.canvas.layers.GridLayer": PATCHES_GridLayer,
-
-  "CONFIG.MeasuredTemplate.objectClass": PATCHES_MeasuredTemplate,
-  // "foundry.canvas.placeables.MeasuredTemplate": PATCHES_MeasuredTemplate,
-
+  "foundry.canvas.placeables.MeasuredTemplate": PATCHES_MeasuredTemplate,
   "foundry.applications.sheets.MeasuredTemplateConfig": PATCHES_MeasuredTemplateConfig,
   "foundry.canvas.placeables.Token": PATCHES_Token,
   "foundry.canvas.placeables.Wall": PATCHES_Wall,
