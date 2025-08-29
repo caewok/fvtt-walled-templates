@@ -96,6 +96,7 @@
     "prefer-regex-literals": "warn",
     "prefer-spread": "warn",
     "rest-spread-spacing": ["warn", "never"],
+    "semi": "warn",
     "semi-spacing": "warn",
     "semi-style": ["warn", "last"],
     "space-unary-ops": ["warn", {"words": true, "nonwords": false}],
