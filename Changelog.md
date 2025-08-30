@@ -1,6 +1,7 @@
 ## 0.9.1
 Fix for template highlighting in PF1 when walls block. Issue #144.
 Fix for "name" error in module.json. Issue #141.
+Fix for Token Ruler not being able to set waypoints. Issue #142.
 
 Update to libGeometry 0.4.3.
 
