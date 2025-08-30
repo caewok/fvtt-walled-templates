@@ -1,12 +1,11 @@
 {
-  "name": "walledtemplates",
   "id": "walledtemplates",
   "title": "Walled Templates",
   "version": "#{VERSION}#",
   "library": false,
   "compatibility": {
     "minimum": "13",
-    "verified": "13.347"
+    "verified": "13.348"
   },
   "authors": [
     {

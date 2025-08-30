@@ -299,24 +299,24 @@ function _onDragLeftMove(wrapped, event) {
   }
 }
 
-async function _onDragLeftDrop(wrapped, event) {
-  const res = await wrapped(event);
-  if ( !res || !event.interactionData.clones ) return res;
-
-  // Trigger each attached template to stop the drag.
-//   let clearPreview = false;
-//   for ( const clone of event.interactionData.clones ) {
-//     const attachedTemplates = clone.attachedTemplates;
-//     for ( const template of attachedTemplates ) await template._onDragLeftDrop(event);
-//     clearPreview ||= attachedTemplates.size;
-//   }
-//   if ( clearPreview ) canvas.templates.clearPreviewContainer(); // Not otherwise cleared b/c we are in token layer.
-  return res;
-}
+// async function _onDragLeftDrop(wrapped, event) {
+//   const res = await wrapped(event);
+//   if ( !res || !event.interactionData.clones ) return res;
+//
+//   // Trigger each attached template to stop the drag.
+// //   let clearPreview = false;
+// //   for ( const clone of event.interactionData.clones ) {
+// //     const attachedTemplates = clone.attachedTemplates;
+// //     for ( const template of attachedTemplates ) await template._onDragLeftDrop(event);
+// //     clearPreview ||= attachedTemplates.size;
+// //   }
+// //   if ( clearPreview ) canvas.templates.clearPreviewContainer(); // Not otherwise cleared b/c we are in token layer.
+//   return res;
+// }
 
 function _onDragLeftCancel(wrapped, event) {
-  wrapped(event);
-  if ( !event.interactionData.clones ) return;
+  const out = wrapped(event); // Returns false if the drag event should *not* be canceled.
+  if ( !event.interactionData.clones || out === false ) return out;
 
   // Trigger each attached template to cancel the drag
   const formerClear = event.interactionData.clearPreviewContainer;
@@ -443,7 +443,7 @@ function doTemplateAnimation(template, _dt, _anim, documentData, _config) {
 PATCHES.BASIC.WRAPS = {
   _onDragLeftStart,
   _onDragLeftMove,
-  _onDragLeftDrop,
+//  _onDragLeftDrop, // Currently unused.
   _onDragLeftCancel,
   _refreshTarget,
   animate,

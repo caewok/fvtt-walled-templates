@@ -67,7 +67,6 @@ Hooks.once("init", async function() {
   };
 });
 
-
 /**
  * Hook the measured template config render.
  * @param {ApplicationV2} application          The Application instance being rendered
