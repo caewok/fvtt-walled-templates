@@ -14,6 +14,86 @@ import { Settings } from "./settings.js";
 export const PATCHES = {};
 PATCHES.dnd5e = {};
 
+// ----- NOTE: Tidy 5e Sheet ----- //
+
+Hooks.once("tidy5e-sheet.ready", api => renderTidy5eItemSheetHook(api));
+
+/**
+ * Hook tidy5e-sheet.ready to add template configuration options for spells in tidy-5e item sheets.
+ * @param {Object} api tidy5e's api
+ */
+function renderTidy5eItemSheetHook(api) {
+  const myTab = new api.models.HtmlTab({
+    title: game.i18n.localize("walledtemplates.MeasuredTemplateConfiguration.LegendTitle"),
+    tabId: MODULE_ID,
+    html: '',
+    enabled(data) {
+      const type = data.item?.type;
+      return type === "spell" || type === "feat";
+    },
+    onRender(params) {
+      const type = params.data.item?.type;
+      if ( !(type === "spell" || type === "feat") ) return;
+      // const app = params.app;
+      // const html = [params.element];
+      const data = params.data;
+      const parts = { tidy5e: params.tabContentsElement };
+      return renderTidy5eSpellTemplateConfig(parts, data);
+    }
+  });
+  api.registerItemTab(myTab, { autoHeight: true });
+}
+
+async function renderTidy5eSpellTemplateConfig(parts, data) {
+  const {navTabs, sheetBodySection, tidy5e} = parts;
+
+  const item = data.item;
+  if ( !item ) return;
+
+    // By default, rely on the global settings.
+  if ( !item.pack ) { // Issue #134: error thrown when viewing spell in compendium.
+    if (typeof item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
+      await item.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, LABELS.GLOBAL_DEFAULT);
+    }
+
+    if (typeof item.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined") {
+      await item.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, LABELS.GLOBAL_DEFAULT);
+    }
+
+    if (typeof item.getFlag(MODULE_ID, FLAGS.SNAPPING.CENTER) === "undefined") {
+      await item.setFlag(MODULE_ID, FLAGS.SNAPPING.CENTER, true);
+    }
+
+    if (typeof item.getFlag(MODULE_ID, FLAGS.SNAPPING.CORNER) === "undefined") {
+      await item.setFlag(MODULE_ID, FLAGS.SNAPPING.CORNER, true);
+    }
+
+    if (typeof item.getFlag(MODULE_ID, FLAGS.SNAPPING.SIDE_MIDPOINT) === "undefined") {
+      await item.setFlag(MODULE_ID, FLAGS.SNAPPING.SIDE_MIDPOINT, true);
+    }
+  }
+
+  // Set variable to know if we are dealing with a template
+  // const areaType = context.system.target.template.type;
+  //   context.isTemplate = areaType in CONFIG.DND5E.areaTargetTypes;
+
+  data[MODULE_ID] = {
+    blockoptions: LABELS.SPELL_TEMPLATE.WALLS_BLOCK,
+    walloptions: LABELS.SPELL_TEMPLATE.WALL_RESTRICTION,
+    attachtokenoptions: LABELS.SPELL_TEMPLATE.ATTACH_TOKEN,
+    hideoptions: LABELS.TEMPLATE_HIDE
+  };
+
+  const template = TEMPLATES.DND5E;
+  const myHTML = await renderTemplate(template, data);
+
+  // Create a new tab entry for the module.
+  const div = document.createElement("DIV");
+  div.innerHTML = myHTML;
+  tidy5e.appendChild(div);
+}
+
+
 // Patches for dnd5e ItemSheet5e
 
 // ----- NOTE: Hooks ----- //
@@ -182,23 +262,23 @@ export async function _preparePartContext(wrapper, partId, context, options) {
    // By default, rely on the global settings.
   if ( !item.pack ) { // Issue #134: error thrown when viewing spell in compendium.
     if (typeof item.getFlag(MODULE_ID, FLAGS.WALLS_BLOCK) === "undefined") {
-      item.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, LABELS.GLOBAL_DEFAULT);
+      await item.setFlag(MODULE_ID, FLAGS.WALLS_BLOCK, LABELS.GLOBAL_DEFAULT);
     }
 
     if (typeof item.getFlag(MODULE_ID, FLAGS.WALL_RESTRICTION) === "undefined") {
-      item.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, LABELS.GLOBAL_DEFAULT);
+      await item.setFlag(MODULE_ID, FLAGS.WALL_RESTRICTION, LABELS.GLOBAL_DEFAULT);
     }
 
     if (typeof item.getFlag(MODULE_ID, FLAGS.SNAPPING.CENTER) === "undefined") {
-      item.setFlag(MODULE_ID, FLAGS.SNAPPING.CENTER, true);
+      await item.setFlag(MODULE_ID, FLAGS.SNAPPING.CENTER, true);
     }
 
     if (typeof item.getFlag(MODULE_ID, FLAGS.SNAPPING.CORNER) === "undefined") {
-      item.setFlag(MODULE_ID, FLAGS.SNAPPING.CORNER, true);
+      await item.setFlag(MODULE_ID, FLAGS.SNAPPING.CORNER, true);
     }
 
     if (typeof item.getFlag(MODULE_ID, FLAGS.SNAPPING.SIDE_MIDPOINT) === "undefined") {
-      item.setFlag(MODULE_ID, FLAGS.SNAPPING.SIDE_MIDPOINT, true);
+      await item.setFlag(MODULE_ID, FLAGS.SNAPPING.SIDE_MIDPOINT, true);
     }
   }
 
