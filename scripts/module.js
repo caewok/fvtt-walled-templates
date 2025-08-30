@@ -40,6 +40,7 @@ import { WalledTemplateRay } from "./template_shapes/WalledTemplateRay.js";
 import { WalledTemplateRoundedCone } from "./template_shapes/WalledTemplateRoundedCone.js";
 import { WalledTemplateSquare } from "./template_shapes/WalledTemplateSquare.js";
 import { WalledTemplateRotatedSquare } from "./template_shapes/WalledTemplateRotatedSquare.js";
+import { WalledTemplateRoundedRectangle } from "./template_shapes/WalledTemplateRoundedRectangle.js";
 
 // Self-executing scripts for hooks
 import "./changelog.js";
@@ -111,6 +112,7 @@ Hooks.once("init", function() {
     WalledTemplateRoundedCone,
     WalledTemplateSquare,
     WalledTemplateRotatedSquare,
+    WalledTemplateRoundedRectangle,
 
     PATCHER,
 
