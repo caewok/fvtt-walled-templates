@@ -1,3 +1,7 @@
+## 0.9.6
+Catch when token.actor is undefined. #150.
+Update to libGeometry v0.5.2.
+
 ## 0.9.5
 Update to libGeometry 0.5.
 
